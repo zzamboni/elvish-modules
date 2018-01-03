@@ -38,11 +38,13 @@
   # Define aliases
   #----------------------------------------------------------------------
 
-  fn def [name @cmd]{
+  fn def [&verbose=false name @cmd]{
     file = $dir/$name.elv
     echo "#alias:def" $name $@cmd > $file
     echo fn $name '[@_args]{' $@cmd '$@_args }' >> $file
-    echo (edit:styled "Defining alias "$name green)
+    if (not-eq $verbose false) {
+      echo (edit:styled "Defining alias "$name green)
+    }
     is_ok = ?(-source $file)
     if (not $is_ok) {
       echo (edit:styled "Your alias definition has a syntax error. Please recheck it.\nError: "(echo $is_ok) red)
