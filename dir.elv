@@ -13,6 +13,8 @@
 #     edit:insert:binding[Alt-i] = $dir:&dir-chooser
 #     fn cd [@dir]{ dir:cd $@dir }
 
+use builtin
+
 # Hooks to run before and after the directory chooser
 before-chooser = []
 after-chooser = []
