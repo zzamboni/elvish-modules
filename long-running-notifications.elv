@@ -82,7 +82,7 @@ fn after_readline_hook [cmd]{
 # Set up the prompt hooks to compute times and produce notifications
 # as needed
 fn setup {
-  use github.com/zzamboni/modules.elv/prompt_hooks
+  use ./prompt_hooks
   prompt_hooks:add-before-readline $before_readline_hook~
   prompt_hooks:add-after-readline $after_readline_hook~
   # Initialize to setup time to avoid spurious notification
