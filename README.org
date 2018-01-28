@@ -1,0 +1,64 @@
+#+STARTUP: indent
+
+* zzamboni's Elvish libraries
+
+This Elvish package contains various modules I have written for the
+Elvish shell, except for [[https://github.com/zzamboni/elvish-themes/][themes]] and [[https://github.com/zzamboni/elvish-completions][completions]], which are kept in
+separate packages.
+
+To install, use [[https://elvish.io/ref/epm.html][epm]]:
+
+#+begin_src elvish
+  use epm
+  epm:install github.com/zzamboni/elvish-modules
+#+end_src
+
+For each module you want to use, you need to run =use <modulename>= in
+your =rc.elv= file.
+
+The following modules are included (you can see detailed usage
+instructions in each module):
+
+** [[alias.org][github.com/zzamboni/elvish-modules/alias]]
+
+Manage persistent aliases, includes support for bash-style alias
+definition syntax.
+
+** [[atlas.org][github.com/zzamboni/elvish-modules/atlas]]
+
+Functions for interacting with the [[https://atlas.oreilly.com/][O'Reilly Atlas]] typesetting system.
+
+** [[bang-bang.org][github.com/zzamboni/elvish-modules/bang-bang]]
+
+Add support for the =!!=, =!$= and =!<n>= shortcuts to access the previous
+command and its arguments.
+
+** [[dir.org][github.com/zzamboni/elvish-modules/dir]]
+
+Keep and move through the directory history, including a graphical
+chooser, similar to Elvish's Location mode, but showing a
+chronological directory history instead of a weighted one.
+
+** [[git_vcsh.org][github.com/zzamboni/elvish-modules/git_vcsh]]
+
+A wrapper that detects whether the current directory is a git or vcsh
+directory and runs the correct command automatically.
+
+** [[long-running-notifications.org][github.com/zzamboni/elvish-modules/long-running-notifications]]
+
+Produce notifications for long-running commands (above a configurable
+theshold). Can use different notification methods.
+
+** [[nix.org][github.com/zzamboni/elvish-modules/nix]]
+
+Functions for setting up the [[https://nixos.org/nix/][Nix]] environment variables, and some
+utility functions for searches and for moving over from Homebrew to
+Nix.
+
+** [[prompt_hooks.org][github.com/zzamboni/elvish-modules/prompt_hooks]]
+
+Convenience functions to add hooks to the prompt hook lists.
+
+** [[proxy.org][github.com/zzamboni/elvish-modules/proxy]]
+
+Automated setting of proxy environment variables.
