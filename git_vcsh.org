@@ -1,7 +1,7 @@
 #+PROPERTY: header-args:elvish :tangle git_vcsh.elv
 #+PROPERTY: header-args :mkdirp yes :comments no 
 
-#+TITLE:  Git-related functions and wrappers for Elvish
+#+TITLE:  Git wrapper for vcsh in Elvish
 #+AUTHOR: Diego Zamboni
 #+EMAIL:  diego@zzamboni.org
 
