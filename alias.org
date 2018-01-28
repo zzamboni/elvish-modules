@@ -12,7 +12,7 @@
 Implementation of aliases for [[http://elvish.io][Elvish]].
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy
-to explain. See [[https://github.com/zzamboni/elvish-modules/blob/master/alias.elv][alias.elv]] for the generated file.
+to explain. See [[alias.elv][alias.elv]] for the generated file.
 
 * Usage
 
