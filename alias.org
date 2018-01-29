@@ -14,6 +14,15 @@ Implementation of aliases for [[http://elvish.io][Elvish]].
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy
 to explain. See [[alias.elv][alias.elv]] for the generated file.
 
+* Table of Contents                                            :TOC:noexport:
+- [[#usage][Usage]]
+- [[#implementation][Implementation]]
+  - [[#configuration][Configuration]]
+  - [[#creating-aliases][Creating aliases]]
+  - [[#listing-aliases][Listing aliases]]
+  - [[#removing-aliases][Removing aliases]]
+  - [[#load-time-initialization][Load-time initialization]]
+
 * Usage
 
 Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
