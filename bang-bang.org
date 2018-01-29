@@ -20,17 +20,17 @@ to explain. See [[file:alias.elv][alias.elv]] for the generated file.
 
 Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
 
-#+begin_example
+#+begin_src elvish
   use epm
   epm:install github.com/zzamboni/elvish-modules
-#+end_example
+#+end_src
 
 In your =rc.elv=, load this module and bind the trigger keys.
 
-#+begin_example
+#+begin_src elvish
   use github.com/zzamboni/elvish-modules/bang-bang
   bang-bang:bind-trigger-keys
-#+end_example
+#+end_src
 
 When you press =!=, you will see a menu showing you the different
 keys your can press, for example, if you try to execute a command that
