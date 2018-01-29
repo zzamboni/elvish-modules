@@ -35,6 +35,9 @@ To define an alias:
   alias:new alias command
 #+end_src
 
+You can also use =alias:bash_alias= to use the bash syntax
+=alias=command= for defining aliases.
+
 Each alias is stored in a separate file under =$alias:dir=
 (=~/.elvish/aliases/= by default).
 
@@ -50,16 +53,13 @@ To remove an alias:
   alias:rm alias
 #+end_src
 
-NOTE: the change will only take effect in future shells.
-
-=alias:bash_alias= is a wrapper which understands the bash syntax
-=name=command= for defining aliases.
-
 * Implementation
 :PROPERTIES:
 :header-args:elvish: :tangle alias.elv
 :header-args: :mkdirp yes :comments no
 :END:
+
+** Configuration
 
 The =alias:dir= variable determines where the alias files will be saved.
 
@@ -67,18 +67,7 @@ The =alias:dir= variable determines where the alias files will be saved.
   dir = ~/.elvish/aliases
 #+END_SRC
 
-To list aliases, we grep the aliases directory for the corresponding
-definition files. Each file has a marker at the beginning which
-includes the alias definition command. =alias:list= and =alias:ls= are
-equivalent.
-
-#+BEGIN_SRC elvish
-  fn list {
-    _ = ?(grep -h '^#alias:def ' $dir/*.elv | sed 's/^#//')
-  }
-
-  fn ls { list } # Alias for list
-#+END_SRC
+** Creating aliases
 
 Aliases are defined as functions, which execute the body provided as
 the alias definition. After writing the file we load it with the
@@ -114,6 +103,23 @@ equals sign, and calls =alias:def= with the two pieces.
   }
 #+END_SRC
 
+** Listing aliases
+
+To list aliases, we grep the aliases directory for the corresponding
+definition files. Each file has a marker at the beginning which
+includes the alias definition command. =alias:list= and =alias:ls= are
+equivalent.
+
+#+BEGIN_SRC elvish
+  fn list {
+    _ = ?(grep -h '^#alias:def ' $dir/*.elv | sed 's/^#//')
+  }
+
+  fn ls { list } # Alias for list
+#+END_SRC
+
+** Removing aliases
+
 Removing an alias is achieved by removing its definition file, and
 deleting the corresponding variable so that the change takes effect in
 the current session. =alias:rm= and =alias:undef= are equivalent.
@@ -140,6 +146,8 @@ dynamically.
 
   fn rm [@arg]{ undef $@arg }
 #+END_SRC
+
+** Load-time initialization
 
 The initialization code is not within a function so it runs
 automatically when the module is loaded. We create the alias directory

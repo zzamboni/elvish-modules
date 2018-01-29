@@ -1,11 +1,5 @@
 dir = ~/.elvish/aliases
 
-fn list {
-  _ = ?(grep -h '^#alias:def ' $dir/*.elv | sed 's/^#//')
-}
-
-fn ls { list } # Alias for list
-
 fn def [&verbose=false name @cmd]{
   file = $dir/$name.elv
   echo "#alias:def" $name $@cmd > $file
@@ -27,6 +21,12 @@ fn bash_alias [@args]{
   name cmd = (splits &max=2 '=' $line)
   def $name $cmd
 }
+
+fn list {
+  _ = ?(grep -h '^#alias:def ' $dir/*.elv | sed 's/^#//')
+}
+
+fn ls { list } # Alias for list
 
 fn undef [name]{
   file = $dir/$name.elv
