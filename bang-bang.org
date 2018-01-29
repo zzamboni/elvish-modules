@@ -20,23 +20,23 @@ to explain. See [[file:alias.elv][alias.elv]] for the generated file.
 
 Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
 
-#+begin_src elvish
+#+begin_example
   use epm
   epm:install github.com/zzamboni/elvish-modules
-#+end_src
+#+end_example
 
 In your =rc.elv=, load this module and bind the trigger keys.
 
-#+begin_src elvish
+#+begin_example
   use github.com/zzamboni/elvish-modules/bang-bang
   bang-bang:bind-trigger-keys
-#+end_src
+#+end_example
 
 When you press =!=, you will see a menu showing you the different
 keys your can press, for example, if you try to execute a command that
 requires =root= privileges:
 
-#+begin_src console
+#+begin_example
 [~]─> ls /var/spool/mqueue/
 ls: cannot open directory '/var/spool/mqueue/': Permission denied
 Exception: ls exited with 2
@@ -45,30 +45,30 @@ Traceback:
     fn ls [@_args]{ e:ls --color=auto $@_args }
   [tty], line 1:
     ls /var/spool/mqueue/
-#+end_src
+#+end_example
 
 You can type =sudo= and then press =!=, which will show you the menu:
 
-#+begin_src console
+#+begin_example
 [~]─> sudo <!>
 bang-lastcmd [A C]
 !     ls /var/spool/mqueue/
 0     ls
 1/$   /var/spool/mqueue/
 Alt-! !
-#+end_src
+#+end_example
 
 If you press =!= a second time, the full command will be inserted at the
 point:
 
-#+begin_src console
+#+begin_example
 [~]─> sudo ls /var/spool/mqueue/
-#+end_src
+#+end_example
 
 If you wanted to see the permissions on that directory next, you could
 use the =!$= shortcut instead:
 
-#+begin_src console
+#+begin_example
 [~]─> ls -ld <!>
 bang-lastcmd [A C]
 !     sudo ls /var/spool/mqueue/
@@ -76,13 +76,13 @@ bang-lastcmd [A C]
 1     ls
 2/$   /var/spool/mqueue/
 Alt-! !
-#+end_src
+#+end_example
 
 Pressing =$= (or =2=) at this point will insert the last argument:
 
-#+begin_src console
+#+begin_example
 [~]─> ls -ld /var/spool/mqueue/
-#+end_src
+#+end_example
 
 By default, =bang-bang:bind-trigger-keys= also binds the default
 "lastcmd" key (=Alt-1=), and when repeated, it will insert the full
