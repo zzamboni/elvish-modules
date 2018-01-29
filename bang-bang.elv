@@ -12,31 +12,35 @@ fn lastcmd {
   last = (edit:command-history -1)
   parts = [(edit:wordify $last[cmd])]
   cmd = [
-    &content=$last[cmd]
-    &display="! "$last[cmd]
-    &filter-text=$last[cmd]
+    &content=     $last[cmd]
+    &display=     "! "$last[cmd]
+    &filter-text= $last[cmd]
   ]
   bang = [
-    &content="!"
-    &display=$-plain-bang-insert" !"
-    &filter-text="!"
+    &content=     "!"
+    &display=     $-plain-bang-insert" !"
+    &filter-text= "!"
   ]
-  items = [(range (count $parts) | each [i]{
+  nitems = (count $parts)
+  items = [
+    (range $nitems |
+      each [i]{
         text = $parts[$i]
-        if (eq $i (- (count $parts) 1)) {
-          i = $i"/$"
-        }
+        if (eq $i (- $nitems 1)) { i = $i"/$" }
         put [
-          &content=$text
-          &display=$i" "$text
-          &filter-text=$text
-  ]})]
+          &content=     $text
+          &display=     $i" "$text
+          &filter-text= $text
+        ]
+      }
+    )
+  ]
   candidates = [$cmd $@items $bang]
   insert-full-cmd = { edit:insert:start; edit:insert-at-dot $last[cmd] }
   insert-part-n = [n]{ edit:insert:start; edit:insert-at-dot $parts[$n] }
   bindings = [
-    &!= $insert-full-cmd
-    &"$"= { $insert-part-n -1 }
+    &!=                   $insert-full-cmd
+    &"$"=                 { $insert-part-n -1 }
     &$-plain-bang-insert= $insert-plain-bang~
   ]
   for k $-extra-trigger-keys {

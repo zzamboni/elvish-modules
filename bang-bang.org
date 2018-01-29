@@ -185,31 +185,35 @@ same as =content=.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
   cmd = [
-    &content=$last[cmd]
-    &display="! "$last[cmd]
-    &filter-text=$last[cmd]
+    &content=     $last[cmd]
+    &display=     "! "$last[cmd]
+    &filter-text= $last[cmd]
   ]
   bang = [
-    &content="!"
-    &display=$-plain-bang-insert" !"
-    &filter-text="!"
+    &content=     "!"
+    &display=     $-plain-bang-insert" !"
+    &filter-text= "!"
   ]
 #+end_src
 
-We now the menu items for each word of the command. For the last one,
-we also indicate that it can be selected with =$=.
+We now populate the menu items for each word of the command. For the
+last one, we also indicate that it can be selected with =$=.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-  items = [(range (count $parts) | each [i]{
+  nitems = (count $parts)
+  items = [
+    (range $nitems |
+      each [i]{
         text = $parts[$i]
-        if (eq $i (- (count $parts) 1)) {
-          i = $i"/$"
-        }
+        if (eq $i (- $nitems 1)) { i = $i"/$" }
         put [
-          &content=$text
-          &display=$i" "$text
-          &filter-text=$text
-  ]})]
+          &content=     $text
+          &display=     $i" "$text
+          &filter-text= $text
+        ]
+      }
+    )
+  ]
 #+end_src
 
 Finally, we put the whole list together.
@@ -225,8 +229,8 @@ of the menu.
   insert-full-cmd = { edit:insert:start; edit:insert-at-dot $last[cmd] }
   insert-part-n = [n]{ edit:insert:start; edit:insert-at-dot $parts[$n] }
   bindings = [
-    &!= $insert-full-cmd
-    &"$"= { $insert-part-n -1 }
+    &!=                   $insert-full-cmd
+    &"$"=                 { $insert-part-n -1 }
     &$-plain-bang-insert= $insert-plain-bang~
   ]
   for k $-extra-trigger-keys {
