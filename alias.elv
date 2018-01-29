@@ -33,6 +33,7 @@ fn undef [name]{
   if ?(test -f $file) {
     # Remove the definition file
     rm $file
+    # Remove the function in the current session
     tmpf = (mktemp)
     echo  "del "$name"~" > $tmpf
     -source $tmpf
