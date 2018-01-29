@@ -64,7 +64,7 @@ To remove an alias:
 
 * Implementation
 :PROPERTIES:
-:header-args:elvish: :tangle alias.elv
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
 :header-args: :mkdirp yes :comments no
 :END:
 
