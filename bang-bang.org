@@ -209,7 +209,7 @@ we also indicate that it can be selected with =$=.
           &content=$text
           &display=$i" "$text
           &filter-text=$text
-        ]})]
+  ]})]
 #+end_src
 
 Finally, we put the whole list together.

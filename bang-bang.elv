@@ -30,7 +30,7 @@ fn lastcmd {
           &content=$text
           &display=$i" "$text
           &filter-text=$text
-        ]})]
+  ]})]
   candidates = [$cmd $@items $bang]
   insert-full-cmd = { edit:insert:start; edit:insert-at-dot $last[cmd] }
   insert-part-n = [n]{ edit:insert:start; edit:insert-at-dot $parts[$n] }
