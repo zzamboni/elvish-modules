@@ -1,110 +1,277 @@
-#+PROPERTY: header-args:elvish :tangle bang-bang.elv
-#+PROPERTY: header-args :mkdirp yes :comments no 
-
 #+TITLE:  Bang-bang key bindings for Elvish
 #+AUTHOR: Diego Zamboni
 #+EMAIL:  diego@zzamboni.org
 
+Implement the =!!= (last command), =!$= (last argument of last command)
+and =!<n>= (nth argument of last command) shortcuts in Elvish.
+
+This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy
+to explain. See [[file:alias.elv][alias.elv]] for the generated file.
+
+* Table of Contents                                            :TOC:noexport:
+- [[#usage][Usage]]
+- [[#implementation][Implementation]]
+  - [[#configuration][Configuration]]
+  - [[#inserting-a-plain-exclamation-mark][Inserting a plain exclamation mark]]
+  - [[#bang-bang-mode-function][bang-bang mode function]]
+  - [[#binding-trigger-keys][Binding trigger keys]]
+
+* Usage
+
+Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
+
+#+begin_src elvish
+  use epm
+  epm:install github.com/zzamboni/elvish-modules
+#+end_src
+
+In your =rc.elv=, load this module and bind the trigger keys.
+
+#+begin_src elvish
+  use github.com/zzamboni/elvish-modules/bang-bang
+  bang-bang:bind-trigger-keys
+#+end_src
+
+When you press =!=, you will see a menu showing you the different
+keys your can press, for example, if you try to execute a command that
+requires =root= privileges:
+
+#+begin_src console
+[~]─> ls /var/spool/mqueue/
+ls: cannot open directory '/var/spool/mqueue/': Permission denied
+Exception: ls exited with 2
+Traceback:
+  /Users/taazadi1/.elvish/aliases/ls.elv, line 2:
+    fn ls [@_args]{ e:ls --color=auto $@_args }
+  [tty], line 1:
+    ls /var/spool/mqueue/
+#+end_src
+
+You can type =sudo= and then press =!=, which will show you the menu:
+
+#+begin_src console
+[~]─> sudo <!>
+bang-lastcmd [A C]
+!     ls /var/spool/mqueue/
+0     ls
+1/$   /var/spool/mqueue/
+Alt-! !
+#+end_src
+
+If you press =!= a second time, the full command will be inserted at the
+point:
+
+#+begin_src console
+[~]─> sudo ls /var/spool/mqueue/
+#+end_src
+
+If you wanted to see the permissions on that directory next, you could
+use the =!$= shortcut instead:
+
+#+begin_src console
+[~]─> ls -ld <!>
+bang-lastcmd [A C]
+!     sudo ls /var/spool/mqueue/
+0     sudo
+1     ls
+2/$   /var/spool/mqueue/
+Alt-! !
+#+end_src
+
+Pressing =$= (or =2=) at this point will insert the last argument:
+
+#+begin_src console
+[~]─> ls -ld /var/spool/mqueue/
+#+end_src
+
+By default, =bang-bang:bind-trigger-keys= also binds the default
+"lastcmd" key (=Alt-1=), and when repeated, it will insert the full
+command. This means it fully emulates the default [[https://elvish.io/learn/cookbook.html#ui-recipes]["last command"]]
+behavior. If you want to disable this behavior or bind bang-bang to
+other keys, you can pass them in a list in the =&extra-triggers= option
+to =bang-bang:bind-trigger-keys=. For example, to avoid binding to the
+default "lastcmd" key (=Alt-1=):
+
+#+begin_src elvish
+  bang-bang:bind-trigger-keys &extra-triggers=[]
+#+end_src
+
+or to bind it to =Alt-`= instead:
+
 #+BEGIN_SRC elvish
-  # bang-bang
-  #
-  # Emulate !! and !$ in Elvish to insert the last command and its last
-  # argument, respectively
-  # Diego Zamboni <diego@zzamboni.org>
+  bang-bang:bind-trigger-keys &extra-triggers=["Alt-`"]
+#+END_SRC
 
-  # To use:
-  #     use bang-bang
-  #     bang-bang:bind-trigger-keys
-  #
-  # By default, bind-trigger-keys also binds the default "lastcmd" key (Alt-1),
-  # and when repeated, it will insert the full command. This means it
-  # fully emulates the default "lastcmd" behavior. If you want to disable
-  # this behavior or bind bang-bang to other keys, you can pass them in a list
-  # in the &extra-triggers option to bind-trigger-keys. For example, to
-  # avoid binding to the default "lastcmd" key (Alt-1):
-  #
-  #     bang-bang:bind-trigger-keys &extra-triggers=[]
-  #
-  # or to bind it to "Alt-`" instead:
-  #
-  #     bang-bang:bind-trigger-keys &extra-triggers=["Alt-`"]
-  #
-  # By default, Alt-! (Alt-Shift-1) can be used to insert an exclamation
-  # mark when you really need one. This works both from insert mode or
-  # from "bang-mode" after you have typed an exclamation mark. If you want
-  # to bind this to a different key, specify it with the &plain-bang
-  # option to bind-trigger-keys, like this:
-  #
-  #     bang-bang:bind-trigger-keys &plain-bang="Alt-3"
-  #
+By default, =Alt-!= (=Alt-Shift-1=) can be used to insert an exclamation
+mark when you really need one. This works both from insert mode or
+from "bang-mode" after you have typed the first exclamation mark. If
+you want to bind this to a different key, specify it with the
+=&plain-bang= option to =bang-bang:bind-trigger-keys=, like this:
 
-  # Hooks to run before and after lastcmd
+#+BEGIN_SRC elvish
+  bang-bang:bind-trigger-keys &plain-bang="Alt-3"
+#+END_SRC
+
+* Implementation
+:PROPERTIES:
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
+:header-args: :mkdirp yes :comments no
+:END:
+
+** Configuration
+
+If you want hooks to be run either before or after entering bang-bang
+mode, you can add them as lambdas to these variables.
+
+#+BEGIN_SRC elvish
   before-lastcmd = []
   after-lastcmd = []
+#+END_SRC
 
-  # Binding to insert a plain !, also works after entering lastcmd.
-  # Do not set directly, instead pass the &plain-bang option to
-  # bind-trigger-keys (defaults to "Alt-!")
-  plain-bang-insert = ""
+=$-plain-bang-insert= contains the key that is used to insert a plain =!=,
+also after entering lastcmd.  *Do not set directly*, instead pass the
+=&plain-bang= option to =bind-trigger-keys=.
 
-  # Additional keys that will trigger bang-bang mode. These keys
-  # will also be bound, when pressed twice, to inserting the full
-  # last command.
-  extra-trigger-keys = []
+#+BEGIN_SRC elvish
+  -plain-bang-insert = ""
+#+END_SRC
 
-  # Insert a plain exclamation mark
+=$-extra-trigger-keys= is an array containing the additional keys that
+will trigger bang-bang mode. These keys will also be bound, when
+pressed twice, to insert the full last command. *Do not set directly*,
+instead pass the =&-extra-triggers= option to =bind-trigger-keys=.
+
+#+BEGIN_SRC elvish
+  -extra-trigger-keys = []
+#+END_SRC
+
+** Inserting a plain exclamation mark
+
+This function gets bound to the keys specified in =-plain-bang-insert=.
+
+#+BEGIN_SRC elvish
   fn insert-plain-bang { edit:insert:start; edit:insert-at-dot "!" }
+#+END_SRC
 
+** bang-bang mode function
+
+The =bang-bang:lastcmd= function is the central function of this module.
+
+#+BEGIN_SRC elvish
   fn lastcmd {
+#+END_SRC
+
+First, we run the "before" hooks, if any.
+
+#+BEGIN_SRC elvish
     for hook $before-lastcmd { $hook }
+#+END_SRC
+
+We get the last command and split it in words for later use.
+
+#+BEGIN_SRC elvish
     last = (edit:command-history -1)
     parts = [(edit:wordify $last[cmd])]
+#+END_SRC
+
+We create the two "fixed" items of the bang-bang menu: the full
+command and the plain exclamation mark. Each menu item is a map with
+three keys: =content= is the text to insert when the option is selected,
+=display= is the text to show in the menu, and =filter-text= is the text
+which can be used by the user to filter options - usually it's the
+same as =content=.
+
+#+BEGIN_SRC elvish
     cmd = [
       &content=$last[cmd]
       &display="! "$last[cmd]
-      &filter-text=""
+      &filter-text=$last[cmd]
     ]
     bang = [
       &content="!"
-      &display=$plain-bang-insert" !"
-      &filter-text=""
+      &display=$-plain-bang-insert" !"
+      &filter-text="!"
     ]
-    index = 0
-    extra = ""
-    candidates = [$cmd ( each [arg]{
-          if (eq $index (- (count $parts) 1)) {
-            extra = "/$"
-          }
-          put [
-            &content=$arg
-            &display=$index$extra" "$arg
-            &filter-text=$index
-          ]
-          index = (+ $index 1)
-    } $parts) $bang]
-    bindings = [
-      &!={ edit:insert:start; edit:insert-at-dot $last[cmd] }
-      &"$"={ edit:insert:start; edit:insert-at-dot $parts[-1] }
-      &$plain-bang-insert=$insert-plain-bang~
-    ] 
-    for k $extra-trigger-keys {
-      bindings[$k] = { edit:insert:start; edit:insert-at-dot $last[cmd] }
-    }
-    edit:-narrow-read {
-      put $@candidates
-    } [arg]{
-      edit:insert-at-dot $arg[content]
-      for hook $after-lastcmd { $hook }
-    } &modeline="bang-lastcmd " &auto-commit=$true &ignore-case=$true &bindings=$bindings
-  }
+#+END_SRC
 
+We now the menu items for each word of the command. For the last one,
+we also indicate that it can be selected with =$=.
+
+#+BEGIN_SRC elvish
+  items = [(range (count $parts) | each [i]{
+        text = $parts[$i]
+        if (eq $i (- (count $parts) 1)) {
+          i = $i"/$"
+        }
+        put [
+          &content=$text
+          &display=$i" "$text
+          &filter-text=$text
+        ]})]
+#+END_SRC
+
+Finally, we put the whole list together.
+
+#+BEGIN_SRC elvish
+    candidates = [$cmd $@items $bang]
+#+END_SRC
+
+Now we create a list with the keybindings for the different elements
+of the menu.
+
+#+BEGIN_SRC elvish
+  insert-full-cmd = { edit:insert:start; edit:insert-at-dot $last[cmd] }
+  insert-part-n = [n]{ edit:insert:start; edit:insert-at-dot $parts[$n] }
+  bindings = [
+    &!= $insert-full-cmd
+    &"$"= { $insert-part-n -1 }
+    &$-plain-bang-insert= $insert-plain-bang~
+  ]
+  for k $-extra-trigger-keys {
+    bindings[$k] = $insert-full-cmd
+  }
+  range (count $parts) | each [i]{
+    bindings[$i] = { $insert-part-n $i }
+  }
+#+END_SRC
+
+Finally, we invoke narrow mode with all the information we have put
+together, to display the menu and act on the corresponding choice.
+
+#+BEGIN_SRC elvish
+  edit:-narrow-read {
+    put $@candidates
+  } [arg]{
+    edit:insert-at-dot $arg[content]
+    for hook $after-lastcmd { $hook }
+  } &modeline="bang-bang " &auto-commit=$true &ignore-case=$true &bindings=$bindings
+#+END_SRC
+
+#+BEGIN_SRC elvish
+  }
+#+END_SRC
+
+** Binding trigger keys
+
+This is the function that gets called to set up the keybindings. This
+function can receive two options:
+
+- =&plain-bang= (string) to specify the key to insert a plain exclamation mark
+  when needed. Defaults to ="Alt-!"=.
+- =&extra-triggers= (array of strings) to specify additional keys (other
+  than =!=) to trigger bang-bang mode. All of these keys will also be
+  bound, when pressed twice, to insert the full last command (just
+  like =!!=). Defaults to =["Alt-1"]=, which emulates the default
+  last-command keybinding in Elvish.
+
+#+BEGIN_SRC elvish
   fn bind-trigger-keys [&plain-bang="Alt-!" &extra-triggers=["Alt-1"]]{
-    plain-bang-insert = $plain-bang
-    extra-trigger-keys = $extra-triggers
+    -plain-bang-insert = $plain-bang
+    -extra-trigger-keys = $extra-triggers
     edit:insert:binding[!] = $lastcmd~
     for k $extra-triggers {
       edit:insert:binding[$k] = $lastcmd~
     }
-    edit:insert:binding[$plain-bang-insert] = $insert-plain-bang~
+    edit:insert:binding[$-plain-bang-insert] = $insert-plain-bang~
   }
 #+END_SRC
