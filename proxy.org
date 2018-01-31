@@ -21,7 +21,7 @@
   #   proxy:test = { and ?(test -f /etc/resolv.conf) ?(egrep -q '^(search|domain).*corpnet.com' /etc/resolv.conf) }
   #   prompt_hooks:add-before-readline { proxy:autoset }
 
-  # Proxy host to used. Usual format: host:port
+  # Proxy host to used by default. Usual format: host:port
   host = ""
 
   # This function should return a true value when the proxy needs to be set, false otherwise
@@ -32,24 +32,31 @@
   # Whether to print notifications when setting/unsetting the proxy
   notify = $true
 
-  # Internal variable to avoid notifying more than once.
-  has_been_set = $false
-
   # Whether autoset should be disabled (useful for temporarily stopping the automatic proxy setting)
   disable_autoset = $false
 
-  # Set the proxy variables to the given string
-  fn set [host]{
-    E:http_proxy = $host
-    E:https_proxy = $host
-    has_been_set = $true
+  # Check whether the proxy is set. We use $E:http_proxy for the check
+  fn is-set {
+    not-eq $E:http_proxy ""
+  }
+
+  # Set the proxy variables to the given string. If no parameters are given but `$proxy:host` is set,
+  # then its value is used
+  fn set [@param]{
+    proxyhost = $host
+    if (> (count $param) 0) {
+      proxyhost = $param[0]
+    }
+    if (not-eq $proxyhost "") {
+      E:http_proxy = $host
+      E:https_proxy = $host
+    }
   }
 
   # Unset the proxy variables
   fn unset {
     del E:http_proxy
     del E:https_proxy
-    has_been_set = $false
   }
 
   # Disable auto-set and unset the proxy
@@ -69,13 +76,13 @@
     if (not $disable_autoset) {
       if ($test) {
         if (and $host (not (eq $host ""))) {
-          if (and $notify (not $has_been_set)) { echo (edit:styled "Setting proxy "$host blue) }
+          if (and $notify (not (is-set))) { echo (edit:styled "Setting proxy "$host blue) }
           set $host
         } else {
           fail "You need to set $proxy:host to the proxy to use"
         }
       } else {
-        if (and $notify $has_been_set) { echo (edit:styled "Unsetting proxy" blue) }
+        if (and $notify (is-set)) { echo (edit:styled "Unsetting proxy" blue) }
         unset
       }
     }
