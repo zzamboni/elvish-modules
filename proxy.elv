@@ -3,74 +3,78 @@
 # https://github.com/zzamboni/elvish-modules/blob/master/proxy.org.
 # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 
-# Proxy host to used by default. Usual format: host:port
+use ./prompt_hooks
+
 host = ""
 
-# This function should return a true value when the proxy needs to be set, false otherwise
-# By default it returns false, you should override it with code that performs a meaningful
-# check for your needs.
 test = { put $false }
 
-# Whether to print notifications when setting/unsetting the proxy
 notify = $true
 
-# Whether autoset should be disabled (useful for temporarily stopping the automatic proxy setting)
 disable_autoset = $false
 
-# Check whether the proxy is set. We use $E:http_proxy for the check
-fn is-set {
-  not-eq $E:http_proxy ""
+env_vars = [ http_proxy https_proxy ]
+
+fn eval [str]{
+  tmpf = (mktemp)
+  echo $str > $tmpf
+  -source $tmpf
+  rm -f $tmpf
 }
 
-# Set the proxy variables to the given string. If no parameters are given but `$proxy:host` is set,
-# then its value is used
+fn is-set {
+  -tmp-file = (mktemp)
+  eval "if (eq $E:"(take 1 $env_vars)" '') { rm "$-tmp-file" }"
+  -res = (bool ?(test -f $-tmp-file))
+  rm -f $-tmp-file
+  put $-res
+}
+
 fn set [@param]{
   proxyhost = $host
   if (> (count $param) 0) {
     proxyhost = $param[0]
   }
   if (not-eq $proxyhost "") {
-    E:http_proxy = $host
-    E:https_proxy = $host
+    eval (each [var]{ put "E:"$var" = "$host } $env_vars | joins "; ")
   }
 }
 
-# Unset the proxy variables
 fn unset {
-  del E:http_proxy
-  del E:https_proxy
+  eval (each [var]{ put "del E:"$var } $env_vars | joins "; ")
 }
 
-# Disable auto-set and unset the proxy
 fn disable {
   disable_autoset = $true
   unset
 }
 
-# Enable auto-set
 fn enable {
   disable_autoset = $false
 }
 
-# Automatically set the proxy by running `proxy:test` and setting/unsetting depending
-# on the result
-fn autoset {
-  if (not $disable_autoset) {
-    if ($test) {
-      if (and $host (not (eq $host ""))) {
-        if (and $notify (not (is-set))) { echo (edit:styled "Setting proxy "$host blue) }
-        set $host
-      } else {
-        fail "You need to set $proxy:host to the proxy to use"
+fn autoset [@_]{
+  if $disable_autoset {
+    return
+  }
+  if ($test) {
+    if (and $host (not (eq $host ""))) {
+      if (and $notify (not (is-set))) {
+        echo (edit:styled "Setting proxy "$host blue)
       }
+      set
     } else {
-      if (and $notify (is-set)) { echo (edit:styled "Unsetting proxy" blue) }
-      unset
+      fail "You need to set $proxy:host to the proxy to use"
     }
+  } else {
+    if (and $notify (is-set)) {
+      echo (edit:styled "Unsetting proxy" blue)
+    }
+    unset
   }
 }
 
 fn setup_autoset {
-  edit:before-readline=[ $@edit:before-readline { autoset } ]
-  edit:after-readline=[ $@edit:after-readline [cmd]{ autoset } ]
+  prompt_hooks:add-before-readline $autoset~
+  prompt_hooks:add-after-readline $autoset~
 }

@@ -11,6 +11,9 @@ to explain. See [[file:proxy.elv][proxy.elv]] for the generated file.
 * Table of Contents                                            :TOC:noexport:
 - [[#usage][Usage]]
 - [[#implementation][Implementation]]
+  - [[#libraries][Libraries]]
+  - [[#configuration][Configuration]]
+  - [[#functions][Functions]]
 
 * Usage
 
@@ -78,76 +81,164 @@ unsets the proxy variables.
   # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 #+END_SRC
 
+** Libraries
+
+We use the =prompt_hooks= library to set up the hooks for the auto-set
+feature.
+
+#+begin_src elvish
+  use ./prompt_hooks
+#+end_src
+
+** Configuration
+
+The =$proxy:host= variable contains the proxy host to used by default,
+in "http://host:port" format.
+
 #+BEGIN_SRC elvish
-  # Proxy host to used by default. Usual format: host:port
   host = ""
+#+END_SRC
 
-  # This function should return a true value when the proxy needs to be set, false otherwise
-  # By default it returns false, you should override it with code that performs a meaningful
-  # check for your needs.
+When auto-set mode is enabled using =proxy:setup_autoset=, =$proxy:test=
+contains the auto-set test function. It must be a lambda which
+receives no arguments, and return a true value (anything except =$false=
+or an error, as per [[https://elvish.io/ref/builtin.html#bool][Elvish's booleanly interpretation of values]]) when
+the proxy needs to be automatically set, false otherwise Its default
+value always returns false, you should override it with code that
+performs a meaningful check for your needs.
+
+#+BEGIN_SRC elvish
   test = { put $false }
+#+END_SRC
 
-  # Whether to print notifications when setting/unsetting the proxy
+Whether to print notifications when setting/unsetting the proxy.
+
+#+BEGIN_SRC elvish
   notify = $true
+#+END_SRC
 
-  # Whether autoset should be disabled (useful for temporarily stopping the automatic proxy setting)
+Whether autoset should be disabled (useful for temporarily stopping
+the automatic proxy setting using =proxy:disable=).
+
+#+BEGIN_SRC elvish
   disable_autoset = $false
+#+END_SRC
 
-  # Check whether the proxy is set. We use $E:http_proxy for the check
-  fn is-set {
-    not-eq $E:http_proxy ""
+The list of environment variables to set. By default only =http_proxy=
+and =https_proxy= are set.
+
+#+begin_src elvish
+  env_vars = [ http_proxy https_proxy ]
+#+end_src
+
+** Functions
+
+Elvish does not include an =eval= function, but we emulate one using the
+=-source= command. We use this to dynamically query and set the
+variables according to the contents of =$proxy:env_vars=.
+
+#+begin_src elvish
+  fn eval [str]{
+    tmpf = (mktemp)
+    echo $str > $tmpf
+    -source $tmpf
+    rm -f $tmpf
   }
+#+end_src
 
-  # Set the proxy variables to the given string. If no parameters are given but `$proxy:host` is set,
-  # then its value is used
+Check whether the proxy is set. We use the first variable in
+=$proxy:env_vars= for the check, with the assumption that the other
+variables follow. The need to dynamically determine which variable to
+check makes this function a bit tricky - basically we create a
+temporary file (using the =mktemp= command), and then evaluate code that
+removes the file if the proxy variable is unset - then the existence
+of the file indicates the setting of the variable.
+
+#+BEGIN_SRC elvish
+  fn is-set {
+    -tmp-file = (mktemp)
+    eval "if (eq $E:"(take 1 $env_vars)" '') { rm "$-tmp-file" }"
+    -res = (bool ?(test -f $-tmp-file))
+    rm -f $-tmp-file
+    put $-res
+  }
+#+END_SRC
+
+Set the proxy variables to the given string. If no parameters are
+given but =$proxy:host= is set, then its value is used. Note that
+passing an argument to this function *does not set $param:host*, this
+needs to be done explicitly if you want it.
+
+#+BEGIN_SRC elvish
   fn set [@param]{
     proxyhost = $host
     if (> (count $param) 0) {
       proxyhost = $param[0]
     }
     if (not-eq $proxyhost "") {
-      E:http_proxy = $host
-      E:https_proxy = $host
+      eval (each [var]{ put "E:"$var" = "$host } $env_vars | joins "; ")
     }
   }
+#+END_SRC
 
-  # Unset the proxy variables
+Unset the proxy variables.
+
+#+BEGIN_SRC elvish
   fn unset {
-    del E:http_proxy
-    del E:https_proxy
+    eval (each [var]{ put "del E:"$var } $env_vars | joins "; ")
   }
+#+END_SRC
 
-  # Disable auto-set and unset the proxy
+Disable auto-set and unset the proxy.
+
+#+BEGIN_SRC elvish
   fn disable {
     disable_autoset = $true
     unset
   }
+#+END_SRC
 
-  # Enable auto-set
+Enable auto-set after it had been disabled using =proxy:disable_autoset=.
+
+#+BEGIN_SRC elvish
   fn enable {
     disable_autoset = $false
   }
+#+END_SRC
 
-  # Automatically set the proxy by running `proxy:test` and setting/unsetting depending
-  # on the result
-  fn autoset {
-    if (not $disable_autoset) {
-      if ($test) {
-        if (and $host (not (eq $host ""))) {
-          if (and $notify (not (is-set))) { echo (edit:styled "Setting proxy "$host blue) }
-          set $host
-        } else {
-          fail "You need to set $proxy:host to the proxy to use"
+This is the function that powers the auto-set feature. It runs
+=$proxy:test= and sets/unsets the variables depending on the result.
+
+#+BEGIN_SRC elvish
+  fn autoset [@_]{
+    if $disable_autoset {
+      return
+    }
+    if ($test) {
+      if (and $host (not (eq $host ""))) {
+        if (and $notify (not (is-set))) {
+          echo (edit:styled "Setting proxy "$host blue)
         }
+        set
       } else {
-        if (and $notify (is-set)) { echo (edit:styled "Unsetting proxy" blue) }
-        unset
+        fail "You need to set $proxy:host to the proxy to use"
       }
+    } else {
+      if (and $notify (is-set)) {
+        echo (edit:styled "Unsetting proxy" blue)
+      }
+      unset
     }
   }
+#+END_SRC
 
+The =proxy:setup_autoset= function sets up the auto-set feature by
+adding the =proxy:autoset= function to both the before- and
+after-command hooks.
+
+#+BEGIN_SRC elvish
   fn setup_autoset {
-    edit:before-readline=[ $@edit:before-readline { autoset } ]
-    edit:after-readline=[ $@edit:after-readline [cmd]{ autoset } ]
+    prompt_hooks:add-before-readline $autoset~
+    prompt_hooks:add-after-readline $autoset~
   }
 #+END_SRC
