@@ -1,35 +1,3 @@
-# Produce notifications for long-running commands
-# Diego Zamboni <diego@zzamboni.org>
-
-# To use it:
-#     use long-running-notifications
-#     long-running-notifications:setup
-#
-# Needs the prompt_hooks package from https://github.com/zzamboni/vcsh_elvish/blob/master/.elvish/lib/
-#
-# Tries to determine the best notification method to use based on available commands. The
-# method can be specified manually by assigning a lambda to `$long-running-notifications:notifier`.
-#
-# Built-in notifiers:
-#
-# - `$long-running-notifications:macos_notifier` (GUI notifications on macOS, used if
-#   `terminal-notifier` is available)
-# - `$long-running-notifications:text_notifier` (used if nothing else works)
-#
-# You can provide your own notification function. It can make use of the following variables:
-# `$long-running-notifications:last_cmd`, `$long-running-notifications:last_cmd_duration`
-# and `$long-running-notifications:last_cmd_duration`. For example:
-#
-#     long-running-notifications:notifier = { echo "LONG COMMAND! Lasted "$long-running-notifications:last_cmd_duration }
-#
-# The threshold for the notifications is 10 seconds by default, can be changed by
-# assigning a value to the `long-running-notifications:threshold` variable.
-
-######################################################################
-# Configuration variables
-######################################################################
-
-# Threshold in seconds for producing notifications (default 10)
 threshold=10
 
 # Automatically-computed variables to keep the last command, its start time and its duration

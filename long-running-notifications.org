@@ -1,45 +1,95 @@
-#+PROPERTY: header-args:elvish :tangle long-running-notifications.elv
-#+PROPERTY: header-args :mkdirp yes :comments no
+#+title: Notifications for long-running commands in Elvish
+#+author: Diego Zamboni
+#+email: diego@zzamboni.org
 
-#+TITLE:  Notifications for long-running commands in Elvish
-#+AUTHOR: Diego Zamboni
-#+EMAIL:  diego@zzamboni.org
+Produce notifications for long-running commands
+
+This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy
+to explain. See [[file:long-running-notifications.elv][long-running-notifications.elv]] for the generated file.
+
+* Table of Contents                                            :TOC:noexport:
+- [[#usage][Usage]]
+  - [[#notification-mechanisms][Notification mechanisms]]
+- [[#implementation][Implementation]]
+  - [[#configuration][Configuration]]
+
+* Usage
+
+Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
+
+#+begin_src elvish
+  use epm
+  epm:install github.com/zzamboni/elvish-modules
+#+end_src
+
+In your =rc.elv=, load this module and call the =setup= function:
+
+#+begin_src elvish
+  use github.com/zzamboni/elvish-modules/long-running-notifications
+  long-running-notifications:setup
+#+end_src
+
+Try it out! Run the following command:
+
+#+begin_src elvish
+  sleep 11
+#+end_src
+
+The default notification threshold is 10 seconds, so when the command
+finishes, you will see a notification. The threshold can be changed by
+assigning a value in seconds to the =long-running-notifications:threshold=
+variable. For example:
+
+#+begin_src elvish
+  =long-running-notifications:threshold = 20
+#+end_src
+
+** Notification mechanisms
+
+By default, the module tries to determine the best notification method
+to use based on available commands. The method can be specified
+manually by assigning a lambda to
+=$long-running-notifications:notifier=.
+
+Built-in notifiers:
+
+- =$long-running-notifications:macos_notifier= (GUI notifications on
+  macOS, used automatically if [[https://github.com/julienXX/terminal-notifier][terminal-notifier]] is available)
+- =$long-running-notifications:text_notifier= (used if nothing else
+  works)
+
+You can provide your own notification function. It needs to be a
+lambda which receives no parameters, but it can make use of the
+following variables: =$long-running-notifications:last_cmd= (string
+containing the command),
+=$long-running-notifications:last_cmd_start_time= (containing the start
+time of the command in Unix epoch format) and
+=$long-running-notifications:last_cmd_duration= (how long the command
+took to run, in seconds). For example:
+
+#+begin_src elvish
+  long-running-notifications:notifier = { echo "LONG COMMAND! Lasted "$long-running-notifications:last_cmd_duration }
+#+end_src
+
+If you write a new notification mechanism which you think might be
+useful to others, please submit a [[https://github.com/zzamboni/elvish-modules/pulls][pull request]]!
+
+
+* Implementation
+:PROPERTIES:
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
+:header-args: :mkdirp yes :comments no
+:END:
+
+** Configuration
+
+Threshold in seconds for producing notifications (default 10).
 
 #+BEGIN_SRC elvish
-  # Produce notifications for long-running commands
-  # Diego Zamboni <diego@zzamboni.org>
-
-  # To use it:
-  #     use long-running-notifications
-  #     long-running-notifications:setup
-  #
-  # Needs the prompt_hooks package from https://github.com/zzamboni/vcsh_elvish/blob/master/.elvish/lib/
-  #
-  # Tries to determine the best notification method to use based on available commands. The
-  # method can be specified manually by assigning a lambda to `$long-running-notifications:notifier`.
-  #
-  # Built-in notifiers:
-  #
-  # - `$long-running-notifications:macos_notifier` (GUI notifications on macOS, used if
-  #   `terminal-notifier` is available)
-  # - `$long-running-notifications:text_notifier` (used if nothing else works)
-  #
-  # You can provide your own notification function. It can make use of the following variables:
-  # `$long-running-notifications:last_cmd`, `$long-running-notifications:last_cmd_duration`
-  # and `$long-running-notifications:last_cmd_duration`. For example:
-  #
-  #     long-running-notifications:notifier = { echo "LONG COMMAND! Lasted "$long-running-notifications:last_cmd_duration }
-  #
-  # The threshold for the notifications is 10 seconds by default, can be changed by
-  # assigning a value to the `long-running-notifications:threshold` variable.
-
-  ######################################################################
-  # Configuration variables
-  ######################################################################
-
-  # Threshold in seconds for producing notifications (default 10)
   threshold=10
+#+END_SRC
 
+#+BEGIN_SRC elvish
   # Automatically-computed variables to keep the last command, its start time and its duration
   last_cmd_start_time = 0
   last_cmd = ""
