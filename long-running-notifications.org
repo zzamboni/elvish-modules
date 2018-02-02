@@ -2,7 +2,7 @@
 #+author: Diego Zamboni
 #+email: diego@zzamboni.org
 
-Produce notifications for long-running commands
+Produce notifications for long-running commands in Elvish.
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy
 to explain. See [[file:long-running-notifications.elv][long-running-notifications.elv]] for the generated file.
@@ -51,32 +51,28 @@ variable. For example:
 
 By default, the module tries to determine the best notification method
 to use based on available commands. The method can be specified
-manually by assigning a lambda to
-=$long-running-notifications:notifier=.
+manually by assigning one of the following values directly to
+=$long-running-notifications:notifier=:
 
-Built-in notifiers:
+- A string, which must be one of the predefined notification
+  mechanisms:
+  - =macos= (GUI notifications on macOS, used automatically if
+    [[https://github.com/julienXX/terminal-notifier][terminal-notifier]] is available)
+  - =text= (prints to the same terminal where the command ran)
 
-- =$long-running-notifications:macos_notifier= (GUI notifications on
-  macOS, used automatically if [[https://github.com/julienXX/terminal-notifier][terminal-notifier]] is available)
-- =$long-running-notifications:text_notifier= (used if nothing else
-  works)
+- A lambda, which must take three arguments and produce the
+  corresponding notification. The arguments contain the last command
+  (string), its duration (in seconds) and its start time (as seconds
+  in Unix epoch format). For example:
 
-You can provide your own notification function. It needs to be a
-lambda which receives no parameters, but it can make use of the
-following variables: =$long-running-notifications:last_cmd= (string
-containing the command),
-=$long-running-notifications:last_cmd_start_time= (containing the start
-time of the command in Unix epoch format) and
-=$long-running-notifications:last_cmd_duration= (how long the command
-took to run, in seconds). For example:
-
-#+begin_src elvish
-  long-running-notifications:notifier = { echo "LONG COMMAND! Lasted "$long-running-notifications:last_cmd_duration }
-#+end_src
+  #+begin_src elvish
+    long-running-notifications:notifier = [cmd duration start]{
+      echo "LONG COMMAND! Lasted "$duration
+    }
+  #+end_src
 
 If you write a new notification mechanism which you think might be
 useful to others, please submit a [[https://github.com/zzamboni/elvish-modules/pulls][pull request]]!
-
 
 * Implementation
 :PROPERTIES:
@@ -141,7 +137,9 @@ their user-visible name.
   notification_fns = [
     &text= [
       &check= { put $true }
-      &notify= [cmd dur start]{ echo (edit:styled "Command lasted "$dur"s" magenta) }
+      &notify= [cmd dur start]{
+        echo (edit:styled "Command lasted "$dur"s" magenta)
+      }
     ]
     &macos= [
       &check= { put ?(which terminal-notifier >/dev/null 2>&1) }
@@ -225,7 +223,7 @@ Note: if you modify the value of =$notifier=, you need to call =setup= again.
     use ./prompt_hooks
     prompt_hooks:add-before-readline $before_readline_hook~
     prompt_hooks:add-after-readline $after_readline_hook~
-    # Initialize to setup time to avoid spurious notification when the module is loaded
+    # Initialize to avoid spurious notification when the module is loaded
     last_cmd_start_time = (now)
   }
 #+END_SRC

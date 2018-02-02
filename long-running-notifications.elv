@@ -11,7 +11,9 @@ notifications-to-try = [ macos text ]
 notification_fns = [
   &text= [
     &check= { put $true }
-    &notify= [cmd dur start]{ echo (edit:styled "Command lasted "$dur"s" magenta) }
+    &notify= [cmd dur start]{
+      echo (edit:styled "Command lasted "$dur"s" magenta)
+    }
   ]
   &macos= [
     &check= { put ?(which terminal-notifier >/dev/null 2>&1) }
@@ -62,6 +64,6 @@ fn setup {
   use ./prompt_hooks
   prompt_hooks:add-before-readline $before_readline_hook~
   prompt_hooks:add-after-readline $after_readline_hook~
-  # Initialize to setup time to avoid spurious notification when the module is loaded
+  # Initialize to avoid spurious notification when the module is loaded
   last_cmd_start_time = (now)
 }
