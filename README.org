@@ -62,3 +62,11 @@ Convenience functions to add hooks to the prompt hook lists.
 ** [[proxy.org][github.com/zzamboni/elvish-modules/proxy]]
 
 Automated setting of proxy environment variables.
+
+** [[https://github.com/zzamboni/elvish-modules/blob/master/terminal-title.org][github.com/zzamboni/elvish-modules/terminal-title]]
+
+Automatic setting of the terminal title.
+
+** [[https://github.com/zzamboni/elvish-modules/blob/master/util.org][github.com/zzamboni/elvish-modules/util]]
+
+Various utility functions.
