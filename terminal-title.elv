@@ -3,21 +3,29 @@
 # https://github.com/zzamboni/elvish-modules/blob/master/terminal-title.org.
 # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 
+use ./prompt_hooks
+use re
+
 start = "\e]0;"
-end = "\e\\"
+end = "\007"
 
 fn set-title [title]{
   print $start$title$end > /dev/tty
 }
 
-use ./prompt_hooks
-use re
+title-during-prompt = {
+  put "elvish "(tilde-abbr $pwd)
+}
+
+title-during-command = [cmd]{
+  put (re:split '\s' $cmd | take 1)" "(tilde-abbr $pwd)
+}
 
 fn setup {
   prompt_hooks:add-before-readline {
-    set-title "elvish "(tilde-abbr $pwd)
+    set-title ($title-during-prompt)
   }
   prompt_hooks:add-after-readline [cmd]{
-    set-title (re:split '\s' $cmd | take 1)" "(tilde-abbr $pwd)
+    set-title ($title-during-command $cmd)
   }
 }

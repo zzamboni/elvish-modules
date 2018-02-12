@@ -35,8 +35,27 @@ Call =terminal-title:setup= to set up the corresponding hooks:
 #+end_src
 
 By default the terminal title will show the name of the command being
-executed or the word ~"elvish"~, followed by the current path.
+executed or the word ="elvish"=, followed by the current path. You can
+customize the titles by setting the
+=$terminal-title:title-during-prompt= and
+=$terminal-title:title-during-command= variables to lambdas that
+determine the title to set while the prompt is displayed (i.e. while
+you are typing a command) and while a command is being executed,
+respectively. These are their default values:
 
+#+name: title-during-prompt-default
+#+begin_src elvish
+  title-during-prompt = {
+    put "elvish "(tilde-abbr $pwd)
+  }
+#+end_src
+
+#+name: title-during-command-default
+#+begin_src elvish
+  title-during-command = [cmd]{
+    put (re:split '\s' $cmd | take 1)" "(tilde-abbr $pwd)
+  }
+#+end_src
 
 * Implementation
 :PROPERTIES:
@@ -51,32 +70,63 @@ executed or the word ~"elvish"~, followed by the current path.
   # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 #+END_SRC
 
-The =set-title= function takes a string and sets it as the current
-terminal title. The ANSI escape sequences to start/end the title
-setting can be configured in the =$terminal-title:start= and
-=$terminal-title:end= variables.
+We load the [[https://github.com/zzamboni/elvish-modules/blob/master/prompt_hooks.org][prompt_hooks]] and [[https://elvish.io/ref/re.html][re]] libraries.
+
+#+begin_src elvish
+  use ./prompt_hooks
+  use re
+#+end_src
+
+The ANSI escape sequences to start/end the title setting can be
+configured in the =$terminal-title:start= and =$terminal-title:end=
+variables. The default values work with [[http://tldp.org/HOWTO/Xterm-Title-3.html][xterm]] terminal types
+(including Terminal.app on macOS with the =xterm-256color= terminal
+type, which I use), but you can change them if needed.
 
 #+begin_src elvish
   start = "\e]0;"
-  end = "\e\\"
+  end = "\007"
+#+end_src
 
+The =set-title= function takes a string and sets it as the current
+terminal title.
+
+#+begin_src elvish
   fn set-title [title]{
     print $start$title$end > /dev/tty
   }
 #+end_src
 
+The =$terminal-title:title-during-prompt= and
+=$terminal-title:title-during-command= variables contain lambdas that
+determine the title to set while the prompt is displayed (i.e. while
+you are typing a command) and while a command is being executed,
+respectively.
+
+=title-during-prompt= takes no parameters, and by default shows the word
+"elvish" followed by the current directory.
+
+#+begin_src elvish :noweb yes
+  <<title-during-prompt-default>>
+#+end_src
+
+=title-during-command= received one parameter containing the command
+that will be executed. By default shows the command name followed by
+the current directory.
+
+#+begin_src elvish :noweb yes
+  <<title-during-command-default>>
+#+end_src
+
 The =setup= function sets up the corresponding prompt hooks.
 
 #+begin_src elvish
-  use ./prompt_hooks
-  use re
-
   fn setup {
     prompt_hooks:add-before-readline {
-      set-title "elvish "(tilde-abbr $pwd)
+      set-title ($title-during-prompt)
     }
     prompt_hooks:add-after-readline [cmd]{
-      set-title (re:split '\s' $cmd | take 1)" "(tilde-abbr $pwd)
+      set-title ($title-during-command $cmd)
     }
   }
 #+end_src
