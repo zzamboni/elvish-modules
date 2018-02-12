@@ -60,7 +60,7 @@ fn autoset [@_]{
   if ($test) {
     if (and $host (not (eq $host ""))) {
       if (and $notify (not (is-set))) {
-        echo (edit:styled "Setting proxy "$host blue)
+        echo (edit:styled "Setting proxy "$host blue) > /dev/tty
       }
       set
     } else {
@@ -68,7 +68,7 @@ fn autoset [@_]{
     }
   } else {
     if (and $notify (is-set)) {
-      echo (edit:styled "Unsetting proxy" blue)
+      echo (edit:styled "Unsetting proxy" blue) > /dev/tty
     }
     unset
   }

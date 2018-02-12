@@ -217,7 +217,7 @@ This is the function that powers the auto-set feature. It runs
     if ($test) {
       if (and $host (not (eq $host ""))) {
         if (and $notify (not (is-set))) {
-          echo (edit:styled "Setting proxy "$host blue)
+          echo (edit:styled "Setting proxy "$host blue) > /dev/tty
         }
         set
       } else {
@@ -225,7 +225,7 @@ This is the function that powers the auto-set feature. It runs
       }
     } else {
       if (and $notify (is-set)) {
-        echo (edit:styled "Unsetting proxy" blue)
+        echo (edit:styled "Unsetting proxy" blue) > /dev/tty
       }
       unset
     }
