@@ -8,13 +8,16 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
 to explain. See [[file:util.elv][util.elv]] for the generated file.
 
 * Table of Contents                                            :TOC:noexport:
-- [[#usage-and-implementation][Usage and implementation]]
+- [[#usage][Usage]]
+  - [[#utildotify_string][util:dotify_string]]
+  - [[#utilpipesplit][util:pipesplit]]
+  - [[#utileval][util:eval]]
 - [[#implementation][Implementation]]
   - [[#dotifying-strings][Dotifying strings]]
   - [[#parallel-redirection-of-stdoutstderr-to-different-commands][Parallel redirection of stdout/stderr to different commands]]
   - [[#evaluating-code][Evaluating code]]
 
-* Usage and implementation
+* Usage
 
 Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
 
@@ -31,30 +34,36 @@ In your =rc.elv=, load this module:
 
 The following functions are included:
 
-- =util:dotify_string= shortens a string to a maximum length, followed by dots.
+** util:dotify_string
 
-  #+begin_src elvish
-    > util:dotify_string somelongstring 5
-    ▶ somel…
-  #+end_src
+Shortens a string to a maximum length, followed by dots.
 
-- =util:pipesplit= does [[https://github.com/elves/elvish/issues/500][parallel redirection of stdout and stderr to
-  different commands]]. It takes three lambdas: The first one is
-  executed, its stdout is redirected to the second one, and its stderr
-  to the third one.
+#+begin_src elvish
+  > util:dotify_string somelongstring 5
+  ▶ somel…
+#+end_src
 
-  #+begin_src elvish
+** util:pipesplit
+
+Does [[https://github.com/elves/elvish/issues/500][parallel redirection of stdout and stderr to different
+commands]]. It takes three lambdas: The first one is executed, its
+stdout is redirected to the second one, and its stderr to the third
+one.
+
+#+begin_src elvish
   > util:pipesplit { echo stdout-test; echo stderr-test >&2 } { echo STDOUT: (cat) } { echo STDERR: (cat) }
   STDOUT: stdout-test
   STDERR: stderr-test
-  #+end_src
+#+end_src
 
-- =util:eval= allows dynamic evaluation of code.
+** util:eval
 
-  #+begin_src elvish
-    > util:eval "put foo"
-    ▶ foo
-  #+end_src
+Allows dynamic evaluation of code.
+
+#+begin_src elvish
+  > util:eval "put foo"
+  ▶ foo
+#+end_src
 
 * Implementation
 :PROPERTIES:
