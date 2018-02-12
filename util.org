@@ -46,8 +46,8 @@ dots.
 
 ** Parallel redirection of stdout/stderr to different commands
 
-=util:pipesplit= does [[https://github.com/elves/elvish/issues/500][parallel redirection of stdout and stderr to
-different commands]]. It takes three lambdas: The first one is executed,
+=util:pipesplit= does parallel redirection of stdout and stderr to
+different commands. It takes three lambdas: The first one is executed,
 its stdout is redirected to the second one, and its stderr to the
 third one.
 
@@ -89,6 +89,8 @@ third one.
 #+end_src
 
 ** Parallel redirection of stdout/stderr to different commands
+
+The implementation of this function was inspired by the discussion [[https://github.com/elves/elvish/issues/500][in this issue]].
 
 #+begin_src elvish
   fn pipesplit [l1 l2 l3]{
