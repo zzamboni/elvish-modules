@@ -18,14 +18,14 @@ to explain. See [[file:util.elv][util.elv]] for the generated file.
 
 Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
 
-#+begin_src elvish :tangle no
+#+begin_src elvish
   use epm
   epm:install github.com/zzamboni/elvish-modules
 #+end_src
 
 In your =rc.elv=, load this module:
 
-#+begin_src elvish :tangle no
+#+begin_src elvish
   use github.com/zzamboni/elvish-modules/util
 #+end_src
 
@@ -33,28 +33,28 @@ The following functions are included:
 
 - =util:dotify_string= shortens a string to a maximum length, followed by dots.
 
-  #+begin_example
+  #+begin_src elvish
     > util:dotify_string somelongstring 5
     ▶ somel…
-  #+end_example
+  #+end_src
 
 - =util:pipesplit= does [[https://github.com/elves/elvish/issues/500][parallel redirection of stdout and stderr to
   different commands]]. It takes three lambdas: The first one is
   executed, its stdout is redirected to the second one, and its stderr
   to the third one.
 
-  #+begin_example
+  #+begin_src elvish
   > util:pipesplit { echo stdout-test; echo stderr-test >&2 } { echo STDOUT: (cat) } { echo STDERR: (cat) }
   STDOUT: stdout-test
   STDERR: stderr-test
-  #+end_example
+  #+end_src
 
 - =util:eval= allows dynamic evaluation of code.
 
-  #+begin_example
+  #+begin_src elvish
     > util:eval "put foo"
     ▶ foo
-  #+end_example
+  #+end_src
 
 * Implementation
 :PROPERTIES:
