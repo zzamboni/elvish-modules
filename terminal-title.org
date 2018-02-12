@@ -7,7 +7,7 @@ escape codes. By default the current directory is shown, and the name
 of the current command while one is executing.
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy
-to explain. See [[file:$name.elv][$name.elv]] for the generated file.
+to explain. See [[file:terminal-title.elv][terminal-title.elv]] for the generated file.
 
 * Table of Contents                                            :TOC:noexport:
 - [[#usage][Usage]]
