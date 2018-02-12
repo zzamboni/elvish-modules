@@ -1,0 +1,113 @@
+#+title: Miscellaneous utility functions for Elvish
+#+author: Diego Zamboni
+#+email: diego@zzamboni.org
+
+This module includes various utility functions.
+
+This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy
+to explain. See [[file:util.elv][util.elv]] for the generated file.
+
+* Table of Contents                                            :TOC:noexport:
+- [[#usage-and-implementation][Usage and implementation]]
+- [[#implementation][Implementation]]
+  - [[#dotifying-strings][Dotifying strings]]
+  - [[#parallel-redirection-of-stdoutstderr-to-different-commands][Parallel redirection of stdout/stderr to different commands]]
+  - [[#evaluating-code][Evaluating code]]
+
+* Usage and implementation
+
+Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
+
+#+begin_src elvish :tangle no
+  use epm
+  epm:install github.com/zzamboni/elvish-modules
+#+end_src
+
+In your =rc.elv=, load this module:
+
+#+begin_src elvish :tangle no
+  use github.com/zzamboni/elvish-modules/util
+#+end_src
+
+The following functions are included:
+
+- =util:dotify_string= shortens a string to a maximum length, followed by dots.
+
+  #+begin_example
+    > util:dotify_string somelongstring 5
+    ▶ somel…
+  #+end_example
+
+- =util:pipesplit= does [[https://github.com/elves/elvish/issues/500][parallel redirection of stdout and stderr to
+  different commands]]. It takes three lambdas: The first one is
+  executed, its stdout is redirected to the second one, and its stderr
+  to the third one.
+
+  #+begin_example
+  > util:pipesplit { echo stdout-test; echo stderr-test >&2 } { echo STDOUT: (cat) } { echo STDERR: (cat) }
+  STDOUT: stdout-test
+  STDERR: stderr-test
+  #+end_example
+
+- =util:eval= allows dynamic evaluation of code.
+
+  #+begin_example
+    > util:eval "put foo"
+    ▶ foo
+  #+end_example
+
+* Implementation
+:PROPERTIES:
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
+:header-args: :mkdirp yes :comments no
+:END:
+
+#+begin_src elvish
+  use re
+#+end_src
+
+** Dotifying strings
+
+#+begin_src elvish
+  fn dotify_string [str dotify_length]{
+    if (or (== $dotify_length 0) (<= (count $str) $dotify_length)) {
+      put $str
+    } else {
+      re:replace '(.{'$dotify_length'}).*' '$1…' $str
+    }
+  }
+#+end_src
+
+** Parallel redirection of stdout/stderr to different commands
+
+#+begin_src elvish
+  fn pipesplit [l1 l2 l3]{
+    pout = (pipe)
+    perr = (pipe)
+    run-parallel {
+      $l1 > $pout 2> $perr
+      pwclose $pout
+      pwclose $perr
+    } {
+      $l2 < $pout
+      prclose $pout
+    } {
+      $l3 < $perr
+      prclose $perr
+    }
+  }
+#+end_src
+
+** Evaluating code
+
+Elvish does not include an =eval= function, but we emulate one using the
+=-source= command.
+
+#+begin_src elvish
+  fn eval [str]{
+    tmpf = (mktemp)
+    echo $str > $tmpf
+    -source $tmpf
+    rm -f $tmpf
+  }
+#+end_src
