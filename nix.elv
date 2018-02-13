@@ -5,54 +5,7 @@
 
 use re
 
-fn single-user-setup {
-  # Set up single-user Nix (no daemon)
-  if (not-eq $E:HOME "") {
-    NIX_LINK = ~/.nix-profile
-    if (not ?(test -L $NIX_LINK)) {
-      echo (edit:styled "creating "$NIX_LINK green) >&2
-      _NIX_DEF_LINK = /nix/var/nix/profiles/default
-      ln -s $_NIX_DEF_LINK $NIX_LINK
-    }
-    paths = [
-      $NIX_LINK"/bin"
-      $NIX_LINK"/sbin"
-      $@paths
-    ]
-    # Subscribe the user to the Nixpkgs channel by default.
-    if (not ?(test -e ~/.nix-channels)) {
-      echo "https://nixos.org/channels/nixpkgs-unstable nixpkgs" > ~/.nix-channels
-    }
-    # Append ~/.nix-defexpr/channels/nixpkgs to $NIX_PATH so that
-    # <nixpkgs> paths work when the user has fetched the Nixpkgs
-    # channel.
-    if (not-eq $E:NIX_PATH "") {
-      E:NIX_PATH = $E:NIX_PATH":nixpkgs="$E:HOME"/.nix-defexpr/channels/nixpkgs"
-    } else {
-      E:NIX_PATH = "nixpkgs="$E:HOME"/.nix-defexpr/channels/nixpkgs"
-    }
-
-    # Set $NIX_SSL_CERT_FILE so that Nixpkgs applications like curl work.
-    if ?(test -e  /etc/ssl/certs/ca-certificates.crt ) { # NixOS, Ubuntu, Debian, Gentoo, Arch
-      E:NIX_SSL_CERT_FILE = /etc/ssl/certs/ca-certificates.crt
-    } elif ?(test -e  /etc/ssl/ca-bundle.pem ) { # openSUSE Tumbleweed
-      E:NIX_SSL_CERT_FILE = /etc/ssl/ca-bundle.pem
-    } elif ?(test -e  /etc/ssl/certs/ca-bundle.crt ) { # Old NixOS
-      E:NIX_SSL_CERT_FILE = /etc/ssl/certs/ca-bundle.crt
-    } elif ?(test -e  /etc/pki/tls/certs/ca-bundle.crt ) { # Fedora, CentOS
-      E:NIX_SSL_CERT_FILE = /etc/pki/tls/certs/ca-bundle.crt
-    } elif ?(test -e  $NIX_LINK"/etc/ssl/certs/ca-bundle.crt" ) { # fall back to cacert in Nix profile
-      E:NIX_SSL_CERT_FILE = $NIX_LINK"/etc/ssl/certs/ca-bundle.crt"
-    } elif ?(test -e  $NIX_LINK"/etc/ca-bundle.crt" ) { # old cacert in Nix profile
-      E:NIX_SSL_CERT_FILE = $NIX_LINK"/etc/ca-bundle.crt"
-    }
-  }
-}
-
 fn multi-user-setup {
-  # Set up environment for Nix
-  # Ported to Elvish from /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-
   # Set up secure multi-user builds: non-root users build through the
   # Nix daemon.
   if (or (not-eq $E:USER root) (not ?(test -w /nix/var/nix/db))) {
@@ -120,6 +73,50 @@ fn multi-user-setup {
   #echo (edit:styled "Nix environment ready" green)
 }
 
+fn single-user-setup {
+  # Set up single-user Nix (no daemon)
+  if (not-eq $E:HOME "") {
+    NIX_LINK = ~/.nix-profile
+    if (not ?(test -L $NIX_LINK)) {
+      echo (edit:styled "creating "$NIX_LINK green) >&2
+      _NIX_DEF_LINK = /nix/var/nix/profiles/default
+      ln -s $_NIX_DEF_LINK $NIX_LINK
+    }
+    paths = [
+      $NIX_LINK"/bin"
+      $NIX_LINK"/sbin"
+      $@paths
+    ]
+    # Subscribe the user to the Nixpkgs channel by default.
+    if (not ?(test -e ~/.nix-channels)) {
+      echo "https://nixos.org/channels/nixpkgs-unstable nixpkgs" > ~/.nix-channels
+    }
+    # Append ~/.nix-defexpr/channels/nixpkgs to $NIX_PATH so that
+    # <nixpkgs> paths work when the user has fetched the Nixpkgs
+    # channel.
+    if (not-eq $E:NIX_PATH "") {
+      E:NIX_PATH = $E:NIX_PATH":nixpkgs="$E:HOME"/.nix-defexpr/channels/nixpkgs"
+    } else {
+      E:NIX_PATH = "nixpkgs="$E:HOME"/.nix-defexpr/channels/nixpkgs"
+    }
+
+    # Set $NIX_SSL_CERT_FILE so that Nixpkgs applications like curl work.
+    if ?(test -e  /etc/ssl/certs/ca-certificates.crt ) { # NixOS, Ubuntu, Debian, Gentoo, Arch
+      E:NIX_SSL_CERT_FILE = /etc/ssl/certs/ca-certificates.crt
+    } elif ?(test -e  /etc/ssl/ca-bundle.pem ) { # openSUSE Tumbleweed
+      E:NIX_SSL_CERT_FILE = /etc/ssl/ca-bundle.pem
+    } elif ?(test -e  /etc/ssl/certs/ca-bundle.crt ) { # Old NixOS
+      E:NIX_SSL_CERT_FILE = /etc/ssl/certs/ca-bundle.crt
+    } elif ?(test -e  /etc/pki/tls/certs/ca-bundle.crt ) { # Fedora, CentOS
+      E:NIX_SSL_CERT_FILE = /etc/pki/tls/certs/ca-bundle.crt
+    } elif ?(test -e  $NIX_LINK"/etc/ssl/certs/ca-bundle.crt" ) { # fall back to cacert in Nix profile
+      E:NIX_SSL_CERT_FILE = $NIX_LINK"/etc/ssl/certs/ca-bundle.crt"
+    } elif ?(test -e  $NIX_LINK"/etc/ca-bundle.crt" ) { # old cacert in Nix profile
+      E:NIX_SSL_CERT_FILE = $NIX_LINK"/etc/ca-bundle.crt"
+    }
+  }
+}
+
 fn search [@pkgs]{
   pipecmd = cat
   opts = []
@@ -156,6 +153,7 @@ fn brew-to-nix {
 }
 
 fn info [pkg]{
+  # Get data
   install-path = nil
   installed = ?(install-path = [(re:split '\s+' (nix-env -q --out-path $pkg 2>/dev/null))][1])
   flag = (if $installed { put "-q" } else { put "-qa" })
@@ -163,12 +161,22 @@ fn info [pkg]{
   top-key = (keys $data | take 1)
   pkg = $data[$top-key]
   meta = $pkg[meta]
-  echo-if = [obj key]{ if (has-key $obj $key) { echo $obj[$key] } }
+
   # Produce the output
   print (edit:styled $pkg[name] yellow)
-  if (has-key $meta description) { echo ":" $meta[description] } else { echo "" }
-  if (has-key $meta homepage)    { echo (edit:styled "Homepage: " blue) $meta[homepage] }
-  if $installed { echo (edit:styled "Installed:" green) $install-path } else { echo (edit:styled "Not installed" red) }
+  if (has-key $meta description) {
+    echo ":" $meta[description]
+  } else {
+    echo ""
+  }
+  if (has-key $meta homepage) {
+    echo (edit:styled "Homepage: " blue) $meta[homepage]
+  }
+  if $installed {
+    echo (edit:styled "Installed:" green) $install-path
+  } else {
+    echo (edit:styled "Not installed" red)
+  }
   echo From: (re:replace ':\d+' "" $meta[position])
   if (has-key $meta longDescription) {
     echo ""
