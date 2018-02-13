@@ -159,20 +159,26 @@ dynamically.
 
 ** Load-time initialization
 
-The initialization code is not within a function so it runs
-automatically when the module is loaded. We create the alias directory
-if needed, and load all the alias files to define the corresponding
-functions.
+The =init= function is run automatically when the module is loaded, but
+you can also call it manually if you want to reinitialize the
+aliases. It creates the alias directory if needed, and loads all the
+alias files to define the corresponding functions.
 
 #+BEGIN_SRC elvish
-  if (not ?(test -d $dir)) {
-    mkdir -p $dir
-  }
+  fn init {
+    if (not ?(test -d $dir)) {
+      mkdir -p $dir
+    }
 
-  for file [(_ = ?(put $dir/*.elv))] {
-    is_ok = ?(-source $file)
-    if (not $is_ok) {
-      echo (edit:styled "Error when loading alias file "$file" - please check it." red)
+    for file [(_ = ?(put $dir/*.elv))] {
+      is_ok = ?(-source $file)
+      if (not $is_ok) {
+        echo (edit:styled "Error when loading alias file "$file" - please check it." red)
+      }
     }
   }
 #+END_SRC
+
+#+begin_src elvish
+  init
+#+end_src

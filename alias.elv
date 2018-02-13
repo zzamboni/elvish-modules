@@ -51,13 +51,17 @@ fn undef [name]{
 
 fn rm [@arg]{ undef $@arg }
 
-if (not ?(test -d $dir)) {
-  mkdir -p $dir
-}
+fn init {
+  if (not ?(test -d $dir)) {
+    mkdir -p $dir
+  }
 
-for file [(_ = ?(put $dir/*.elv))] {
-  is_ok = ?(-source $file)
-  if (not $is_ok) {
-    echo (edit:styled "Error when loading alias file "$file" - please check it." red)
+  for file [(_ = ?(put $dir/*.elv))] {
+    is_ok = ?(-source $file)
+    if (not $is_ok) {
+      echo (edit:styled "Error when loading alias file "$file" - please check it." red)
+    }
   }
 }
+
+init

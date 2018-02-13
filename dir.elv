@@ -7,7 +7,6 @@
 # Example of use:
 #
 #     use dir
-#     dir:setup
 #     edit:insert:binding[Alt-b] = $dir:&left-word-or-prev-dir
 #     edit:insert:binding[Alt-f] = $dir:&right-word-or-next-dir
 #     edit:insert:binding[Alt-i] = $dir:&dir-chooser
@@ -101,7 +100,7 @@ fn back {
     -cursor = (- $-cursor 1)
     -cd $-dirstack[$-cursor]
   } else {
-    echo "Beginning of directory history!"
+    echo "Beginning of directory history!" > /dev/tty
   }
 }
 
@@ -110,7 +109,7 @@ fn forward {
     -cursor = (+ $-cursor 1)
     -cd $-dirstack[$-cursor]
   } else {
-    echo "End of directory history!"
+    echo "End of directory history!" > /dev/tty
   }
 }
 
@@ -122,7 +121,7 @@ fn pop {
     back
     -trimstack
   } else {
-    echo "No previous directory to pop!"
+    echo "No previous directory to pop!" > /dev/tty
   }
 }
 
@@ -164,7 +163,7 @@ fn history-chooser {
   } &modeline="Dir history " &ignore-case=$true &keep-bottom=$true
 }
 
-fn setup {
+fn init {
   # Set up a hook to call "dir:cd ." on every prompt, to push the new
   # directory (if any) and to run any cd hooks.
   edit:before-readline = [ $@edit:before-readline { -cd . } ]
@@ -172,3 +171,5 @@ fn setup {
   # the new directory onto the stack and run any cd hooks
   _ = ?(narrow:after-location = [ $@narrow:after-location { -cd . } ])
 }
+
+init

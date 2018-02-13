@@ -57,7 +57,7 @@ fn lastcmd {
   } &modeline="bang-bang " &auto-commit=$true &ignore-case=$true &bindings=$bindings
 }
 
-fn bind-trigger-keys [&plain-bang="Alt-!" &extra-triggers=["Alt-1"]]{
+fn init [&plain-bang="Alt-!" &extra-triggers=["Alt-1"]]{
   -plain-bang-insert = $plain-bang
   -extra-trigger-keys = $extra-triggers
   edit:insert:binding[!] = $lastcmd~
@@ -66,3 +66,5 @@ fn bind-trigger-keys [&plain-bang="Alt-!" &extra-triggers=["Alt-1"]]{
   }
   edit:insert:binding[$-plain-bang-insert] = $insert-plain-bang~
 }
+
+init

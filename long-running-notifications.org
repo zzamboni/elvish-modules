@@ -14,7 +14,7 @@ to explain. See [[file:long-running-notifications.elv][long-running-notification
   - [[#configuration-and-user-accessible-variables][Configuration and user-accessible variables]]
   - [[#notification-mechanisms-1][Notification mechanisms]]
   - [[#other-functions][Other functions]]
-  - [[#setup][Setup]]
+  - [[#initialization][Initialization]]
 
 * Usage
 
@@ -25,11 +25,10 @@ Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm
   epm:install github.com/zzamboni/elvish-modules
 #+end_src
 
-In your =rc.elv=, load this module and call the =setup= function:
+In your =rc.elv=, load this module:
 
 #+begin_src elvish
   use github.com/zzamboni/elvish-modules/long-running-notifications
-  long-running-notifications:setup
 #+end_src
 
 Try it out! Run the following command:
@@ -97,7 +96,7 @@ Variables which can be used to extract information about the last command execut
 #+END_SRC
 
 The =$notifier= variable determines which notification mechanism to
-use. By default it starts with the value ="auto"= which tells the =setup=
+use. By default it starts with the value ="auto"= which tells the =init=
 function that it should choose which one to use automatically, based
 on the value of =$notifications-to-try= (see below). But you can also
 hand-choose the method by assigning one of the following:
@@ -202,15 +201,15 @@ Record the command and its start time.
   }
 #+END_SRC
 
-** Setup
+** Initialization
 
-The =setup= function sets up the notifier function and also the prompt
+The =init= function sets up the notifier function and also the prompt
 hooks to compute times and produce notifications as needed.
 
-Note: if you modify the value of =$notifier=, you need to call =setup= again.
+Note: if you modify the value of =$notifier=, you need to call =init= again.
 
 #+BEGIN_SRC elvish
-  fn setup {
+  fn init {
     # First choose the notification mechanism to use
     if (eq $notifier auto) {
       notifier = (-choose-notification-fn)
@@ -227,3 +226,9 @@ Note: if you modify the value of =$notifier=, you need to call =setup= again.
     last_cmd_start_time = (now)
   }
 #+END_SRC
+
+We call =init= automatically on module load.
+
+#+begin_src elvish
+  init
+#+end_src

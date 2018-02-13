@@ -51,7 +51,7 @@ fn after_readline_hook [cmd]{
   last_cmd_start_time = (now)
 }
 
-fn setup {
+fn init {
   # First choose the notification mechanism to use
   if (eq $notifier auto) {
     notifier = (-choose-notification-fn)
@@ -67,3 +67,5 @@ fn setup {
   # Initialize to avoid spurious notification when the module is loaded
   last_cmd_start_time = (now)
 }
+
+init

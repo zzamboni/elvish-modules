@@ -28,12 +28,6 @@ In your =rc.elv=, load this module:
   use github.com/zzamboni/elvish-modules/terminal-title
 #+end_src
 
-Call =terminal-title:setup= to set up the corresponding hooks:
-
-#+begin_src elvish
-  terminal-title:setup
-#+end_src
-
 By default the terminal title will show the name of the command being
 executed or the word ="elvish"=, followed by the current path. You can
 customize the titles by setting the
@@ -118,10 +112,10 @@ the current directory.
   <<title-during-command-default>>
 #+end_src
 
-The =setup= function sets up the corresponding prompt hooks.
+The =init= function sets up the corresponding prompt hooks.
 
 #+begin_src elvish
-  fn setup {
+  fn init {
     prompt_hooks:add-before-readline {
       set-title ($title-during-prompt)
     }
@@ -129,4 +123,10 @@ The =setup= function sets up the corresponding prompt hooks.
       set-title ($title-during-command $cmd)
     }
   }
+#+end_src
+
+We call =init= automatically upon module load.
+
+#+begin_src elvish
+  init
 #+end_src

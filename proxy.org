@@ -55,18 +55,10 @@ example, the following function will set the proxy whenever
   proxy:test = { and ?(test -f /etc/resolv.conf) ?(egrep -q '^(search|domain).*corpnet.com' /etc/resolv.conf) }
 #+END_SRC
 
-After defining the test, you need to call =proxy:enable_autoset= to
-install the hooks that will run it automatically. The test is run
-before and after every command you type.
-
-#+begin_src elvish
-  proxy:setup_autoset
-#+end_src
-
 If you want to temporarily disable the proxy auto-set function in the
-current session, you can run the =proxy:disable= command. Use
-=proxy:enable= to reenable it when needed. Note that =proxy:disable= also
-unsets the proxy variables.
+current session after having defined a test function, you can run the
+=proxy:disable= command. Use =proxy:enable= to reenable it when
+needed. Note that =proxy:disable= also unsets the proxy variables.
 
 * Implementation
 :PROPERTIES:
@@ -99,16 +91,17 @@ in "http://host:port" format.
   host = ""
 #+END_SRC
 
-When auto-set mode is enabled using =proxy:setup_autoset=, =$proxy:test=
-contains the auto-set test function. It must be a lambda which
-receives no arguments, and return a true value (anything except =$false=
-or an error, as per [[https://elvish.io/ref/builtin.html#bool][Elvish's booleanly interpretation of values]]) when
-the proxy needs to be automatically set, false otherwise Its default
-value always returns false, you should override it with code that
-performs a meaningful check for your needs.
+=$proxy:test= contains the auto-set test function. It must be either
+=$false= (to disable auto-setting) or a lambda which receives no
+arguments, and return a true value (anything except =$false= or an
+error, as per [[https://elvish.io/ref/builtin.html#bool][Elvish's booleanly interpretation of values]]) when the
+proxy needs to be automatically set, false otherwise.
+
+To enable auto-setting you must override it with code that performs a
+meaningful check for your needs.
 
 #+BEGIN_SRC elvish
-  test = { put $false }
+  test = $false
 #+END_SRC
 
 Whether to print notifications when setting/unsetting the proxy.
@@ -211,7 +204,7 @@ This is the function that powers the auto-set feature. It runs
 
 #+BEGIN_SRC elvish
   fn autoset [@_]{
-    if $disable_autoset {
+    if (or (not $test) $disable_autoset) {
       return
     }
     if ($test) {
@@ -232,13 +225,18 @@ This is the function that powers the auto-set feature. It runs
   }
 #+END_SRC
 
-The =proxy:setup_autoset= function sets up the auto-set feature by
-adding the =proxy:autoset= function to both the before- and
-after-command hooks.
+The =proxy:init= function adds the =proxy:autoset= function to both the
+before- and after-command hooks.
 
 #+BEGIN_SRC elvish
-  fn setup_autoset {
+  fn init {
     prompt_hooks:add-before-readline $autoset~
     prompt_hooks:add-after-readline $autoset~
   }
 #+END_SRC
+
+We call =init= automatically on module load.
+
+#+begin_src elvish
+  init
+#+end_src

@@ -21,7 +21,7 @@ title-during-command = [cmd]{
   put (re:split '\s' $cmd | take 1)" "(tilde-abbr $pwd)
 }
 
-fn setup {
+fn init {
   prompt_hooks:add-before-readline {
     set-title ($title-during-prompt)
   }
@@ -29,3 +29,5 @@ fn setup {
     set-title ($title-during-command $cmd)
   }
 }
+
+init

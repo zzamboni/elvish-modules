@@ -14,7 +14,7 @@ to explain. See [[file:alias.elv][alias.elv]] for the generated file.
   - [[#configuration][Configuration]]
   - [[#inserting-a-plain-exclamation-mark][Inserting a plain exclamation mark]]
   - [[#bang-bang-mode-function][bang-bang mode function]]
-  - [[#binding-trigger-keys][Binding trigger keys]]
+  - [[#initialization][Initialization]]
 
 * Usage
 
@@ -25,11 +25,10 @@ Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm
   epm:install github.com/zzamboni/elvish-modules
 #+end_src
 
-In your =rc.elv=, load this module and bind the trigger keys.
+In your =rc.elv=, load this module.
 
 #+begin_src elvish
   use github.com/zzamboni/elvish-modules/bang-bang
-  bang-bang:bind-trigger-keys
 #+end_src
 
 When you press =!=, you will see a menu showing you the different
@@ -84,32 +83,26 @@ Pressing =$= (or =2=) at this point will insert the last argument:
 [~]─> ls -ld /var/spool/mqueue/
 #+end_example
 
-By default, =bang-bang:bind-trigger-keys= also binds the default
-"lastcmd" key (=Alt-1=), and when repeated, it will insert the full
-command. This means it fully emulates the default [[https://elvish.io/learn/cookbook.html#ui-recipes]["last command"]]
-behavior. If you want to disable this behavior or bind bang-bang to
-other keys, you can pass them in a list in the =&extra-triggers= option
-to =bang-bang:bind-trigger-keys=. For example, to avoid binding to the
-default "lastcmd" key (=Alt-1=):
+By default, =bang-bang:init= (which gets called automatically when the
+module loads) also binds the default "lastcmd" key (=Alt-1=), and when
+repeated, it will insert the full command. This means it fully
+emulates the default [[https://elvish.io/learn/cookbook.html#ui-recipes]["last command"]] behavior. If you want to bind
+bang-bang to other keys, you can pass them in a list in the
+=&extra-triggers= option to =bang-bang:init=. For example, to bind
+bang-bang to =Alt-`= in addition to =!=:
 
 #+begin_src elvish
-  bang-bang:bind-trigger-keys &extra-triggers=[]
-#+end_src
-
-or to bind it to =Alt-`= instead:
-
-#+begin_src elvish
-  bang-bang:bind-trigger-keys &extra-triggers=["Alt-`"]
+  bang-bang:init &extra-triggers=["Alt-`"]
 #+end_src
 
 By default, =Alt-!= (=Alt-Shift-1=) can be used to insert an exclamation
 mark when you really need one. This works both from insert mode or
 from "bang-mode" after you have typed the first exclamation mark. If
 you want to bind this to a different key, specify it with the
-=&plain-bang= option to =bang-bang:bind-trigger-keys=, like this:
+=&plain-bang= option to =bang-bang:init=, like this:
 
 #+begin_src elvish
-  bang-bang:bind-trigger-keys &plain-bang="Alt-3"
+  bang-bang:init &plain-bang="Alt-3"
 #+end_src
 
 * Implementation
@@ -130,7 +123,7 @@ mode, you can add them as lambdas to these variables.
 
 =$-plain-bang-insert= contains the key that is used to insert a plain =!=,
 also after entering lastcmd.  *Do not set directly*, instead pass the
-=&plain-bang= option to =bind-trigger-keys=.
+=&plain-bang= option to =init=.
 
 #+begin_src elvish
   -plain-bang-insert = ""
@@ -139,7 +132,7 @@ also after entering lastcmd.  *Do not set directly*, instead pass the
 =$-extra-trigger-keys= is an array containing the additional keys that
 will trigger bang-bang mode. These keys will also be bound, when
 pressed twice, to insert the full last command. *Do not set directly*,
-instead pass the =&-extra-triggers= option to =bind-trigger-keys=.
+instead pass the =&-extra-triggers= option to =init=.
 
 #+begin_src elvish
   -extra-trigger-keys = []
@@ -253,10 +246,10 @@ together, to display the menu and act on the corresponding choice.
   } &modeline="bang-bang " &auto-commit=$true &ignore-case=$true &bindings=$bindings
 #+end_src
 
-** Binding trigger keys
+** Initialization
 
-This is the function that gets called to set up the keybindings. This
-function can receive two options:
+The =init= function gets called to set up the keybindings. This function
+can receive two options:
 
 - =&plain-bang= (string) to specify the key to insert a plain exclamation mark
   when needed. Defaults to ="Alt-!"=.
@@ -267,7 +260,7 @@ function can receive two options:
   last-command keybinding in Elvish.
 
 #+begin_src elvish
-  fn bind-trigger-keys [&plain-bang="Alt-!" &extra-triggers=["Alt-1"]]{
+  fn init [&plain-bang="Alt-!" &extra-triggers=["Alt-1"]]{
     -plain-bang-insert = $plain-bang
     -extra-trigger-keys = $extra-triggers
     edit:insert:binding[!] = $lastcmd~
@@ -276,4 +269,12 @@ function can receive two options:
     }
     edit:insert:binding[$-plain-bang-insert] = $insert-plain-bang~
   }
+#+end_src
+
+We call =init= automatically on module load, although you can all it
+manually if you want to change the defaults for =plain-bang= or
+=extra-triggers=.
+
+#+begin_src elvish
+  init
 #+end_src

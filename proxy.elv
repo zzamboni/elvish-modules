@@ -7,7 +7,7 @@ use ./prompt_hooks
 
 host = ""
 
-test = { put $false }
+test = $false
 
 notify = $true
 
@@ -54,7 +54,7 @@ fn enable {
 }
 
 fn autoset [@_]{
-  if $disable_autoset {
+  if (or (not $test) $disable_autoset) {
     return
   }
   if ($test) {
@@ -74,7 +74,9 @@ fn autoset [@_]{
   }
 }
 
-fn setup_autoset {
+fn init {
   prompt_hooks:add-before-readline $autoset~
   prompt_hooks:add-after-readline $autoset~
 }
+
+init
