@@ -11,6 +11,17 @@
   # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 #+END_SRC
 
+* Table of Contents                                          :TOC_3:noexport:
+- [[#libraries][Libraries]]
+- [[#environment-setup][Environment setup]]
+  - [[#multi-user-setup][Multi-user setup]]
+  - [[#single-user-setup][Single-user setup]]
+- [[#utility-functions][Utility functions]]
+  - [[#searching-for-packages][Searching for packages]]
+  - [[#installing-packages][Installing packages]]
+  - [[#moving-from-homebrew-to-nix][Moving from Homebrew to Nix]]
+  - [[#displaying-package-information][Displaying package information]]
+
 * Libraries
 
 We use the =re= module.
