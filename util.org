@@ -12,10 +12,12 @@ to explain. See [[file:util.elv][util.elv]] for the generated file.
   - [[#dotifying-strings][Dotifying strings]]
   - [[#parallel-redirection-of-stdoutstderr-to-different-commands][Parallel redirection of stdout/stderr to different commands]]
   - [[#evaluating-code][Evaluating code]]
+  - [[#yes-or-no-prompts][Yes-or-no prompts]]
 - [[#implementation][Implementation]]
   - [[#dotifying-strings-1][Dotifying strings]]
   - [[#parallel-redirection-of-stdoutstderr-to-different-commands-1][Parallel redirection of stdout/stderr to different commands]]
   - [[#evaluating-code-1][Evaluating code]]
+  - [[#yes-or-no-prompts-1][Yes-or-no prompts]]
 
 * Usage
 
@@ -64,6 +66,30 @@ third one.
 #+begin_src elvish
   > util:eval "put foo"
   ▶ foo
+#+end_src
+
+** Yes-or-no prompts
+
+=y-or-n= receives a prompt string, shows the prompt to the user and
+accepts =y= or =n= as an answer. Returns =$true= if the user responds with
+=y=. The =&style= option can be used to specify the style for the prompt,
+as accepted by [[https://elvish.io/ref/edit.html#editstyled][edit:styled]].
+
+#+begin_src elvish
+  [~]─> util:y-or-n "Do you agree?"
+  Do you agree? [y/n] y
+  ▶ $true
+  [~]─> util:y-or-n &style=red "Is this green?"
+  Is this green? [y/n] n
+  ▶ $false
+#+end_src
+
+Typical use is as part of an =if= statement:
+
+#+begin_src elvish
+  [~]─> if (util:y-or-n "Are you OK?") { echo "Great!" }
+  Are you OK? [y/n] y
+  Great!
 #+end_src
 
 * Implementation
@@ -121,5 +147,19 @@ Elvish does not include an =eval= function, but we emulate one using the
     echo $str > $tmpf
     -source $tmpf
     rm -f $tmpf
+  }
+#+end_src
+
+** Yes-or-no prompts
+
+#+begin_src elvish
+  fn y-or-n [&style=default prompt]{
+    prompt = $prompt" [y/n] "
+    if (not-eq $style default) {
+      prompt = (edit:styled $prompt $style)
+    }
+    print $prompt > /dev/tty
+    resp = (head -n1 < /dev/tty)
+    eq $resp y
   }
 #+end_src

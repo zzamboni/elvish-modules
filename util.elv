@@ -30,3 +30,13 @@ fn eval [str]{
   -source $tmpf
   rm -f $tmpf
 }
+
+fn y-or-n [&style=default prompt]{
+  prompt = $prompt" [y/n] "
+  if (not-eq $style default) {
+    prompt = (edit:styled $prompt $style)
+  }
+  print $prompt > /dev/tty
+  resp = (head -n1 < /dev/tty)
+  eq $resp y
+}
