@@ -1,11 +1,11 @@
-#+PROPERTY: header-args:elvish :tangle prompt_hooks.elv
-#+PROPERTY: header-args :mkdirp yes :comments no
+#+property: header-args:elvish :tangle prompt_hooks.elv
+#+property: header-args :mkdirp yes :comments no
 
-#+TITLE:  Prompt hook manipulation library for Elvish
-#+AUTHOR: Diego Zamboni
-#+EMAIL:  diego@zzamboni.org
+#+title: Prompt hook manipulation library for Elvish
+#+author: Diego Zamboni
+#+email: diego@zzamboni.org
 
-#+BEGIN_SRC elvish
+#+begin_src elvish
   # Convenience functions to add hooks to the prompt hook lists.
   # Diego Zamboni <diego@zzamboni.org>
   #
@@ -30,4 +30,4 @@
       edit:after-readline=[ $@edit:after-readline $hook ]
     }
   }
-#+END_SRC
+#+end_src

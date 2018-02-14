@@ -1,11 +1,11 @@
-#+PROPERTY: header-args:elvish :tangle dir.elv
-#+PROPERTY: header-args :mkdirp yes :comments no
+#+property: header-args:elvish :tangle dir.elv
+#+property: header-args :mkdirp yes :comments no
 
-#+TITLE:  Directory history and functions for Elvish
-#+AUTHOR: Diego Zamboni
-#+EMAIL:  diego@zzamboni.org
+#+title: Directory history and functions for Elvish
+#+author: Diego Zamboni
+#+email: diego@zzamboni.org
 
-#+BEGIN_SRC elvish
+#+begin_src elvish
   # Directory history management
   #
   # Keep and move through the directory history, including a graphical
@@ -181,4 +181,4 @@
   }
 
   init
-#+END_SRC
+#+end_src

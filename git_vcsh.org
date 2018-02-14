@@ -1,11 +1,11 @@
-#+PROPERTY: header-args:elvish :tangle git_vcsh.elv
-#+PROPERTY: header-args :mkdirp yes :comments no 
+#+property: header-args:elvish :tangle git_vcsh.elv
+#+property: header-args :mkdirp yes :comments no
 
-#+TITLE:  Git wrapper for vcsh in Elvish
-#+AUTHOR: Diego Zamboni
-#+EMAIL:  diego@zzamboni.org
+#+title: Git wrapper for vcsh in Elvish
+#+author: Diego Zamboni
+#+email: diego@zzamboni.org
 
-#+BEGIN_SRC elvish
+#+begin_src elvish
   # Git and vcsh related functions
 
   use re
@@ -46,4 +46,4 @@
       }
     }
   }
-#+END_SRC
+#+end_src

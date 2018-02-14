@@ -83,17 +83,17 @@ useful to others, please submit a [[https://github.com/zzamboni/elvish-modules/p
 
 Threshold in seconds for producing notifications (default 10).
 
-#+BEGIN_SRC elvish
+#+begin_src elvish
   threshold=10
-#+END_SRC
+#+end_src
 
 Variables which can be used to extract information about the last command executed.
 
-#+BEGIN_SRC elvish
+#+begin_src elvish
   last_cmd_start_time = 0
   last_cmd = ""
   last_cmd_duration = 0
-#+END_SRC
+#+end_src
 
 The =$notifier= variable determines which notification mechanism to
 use. By default it starts with the value ="auto"= which tells the =init=
@@ -173,16 +173,16 @@ takes and call the notifier function if needed.
 
 Return the current time in Unix epoch value.
 
-#+BEGIN_SRC elvish
+#+begin_src elvish
   fn now {
     put (date +%s)
   }
-#+END_SRC
+#+end_src
 
 Check the duration of the last command and produce a notification if
 it exceeds the threshold.
 
-#+BEGIN_SRC elvish
+#+begin_src elvish
   fn before_readline_hook {
     _end_time = (now)
     last_cmd_duration = (- $_end_time $last_cmd_start_time)
@@ -190,16 +190,16 @@ it exceeds the threshold.
       $notifier $last_cmd $last_cmd_duration $last_cmd_start_time
     }
   }
-#+END_SRC
+#+end_src
 
 Record the command and its start time.
 
-#+BEGIN_SRC elvish
+#+begin_src elvish
   fn after_readline_hook [cmd]{
     last_cmd = $cmd
     last_cmd_start_time = (now)
   }
-#+END_SRC
+#+end_src
 
 ** Initialization
 
@@ -208,7 +208,7 @@ hooks to compute times and produce notifications as needed.
 
 Note: if you modify the value of =$notifier=, you need to call =init= again.
 
-#+BEGIN_SRC elvish
+#+begin_src elvish
   fn init {
     # First choose the notification mechanism to use
     if (eq $notifier auto) {
@@ -225,7 +225,7 @@ Note: if you modify the value of =$notifier=, you need to call =init= again.
     # Initialize to avoid spurious notification when the module is loaded
     last_cmd_start_time = (now)
   }
-#+END_SRC
+#+end_src
 
 We call =init= automatically on module load.
 
