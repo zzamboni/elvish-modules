@@ -75,11 +75,11 @@ needed. Note that =proxy:disable= also unsets the proxy variables.
 
 ** Libraries
 
-We use the =prompt_hooks= library to set up the hooks for the auto-set
+We use the =prompt-hooks= library to set up the hooks for the auto-set
 feature.
 
 #+begin_src elvish
-  use ./prompt_hooks
+  use ./prompt-hooks
 #+end_src
 
 ** Configuration
@@ -114,21 +114,21 @@ Whether autoset should be disabled (useful for temporarily stopping
 the automatic proxy setting using =proxy:disable=).
 
 #+begin_src elvish
-  disable_autoset = $false
+  disable-autoset = $false
 #+end_src
 
 The list of environment variables to set. By default only =http_proxy=
 and =https_proxy= are set.
 
 #+begin_src elvish
-  env_vars = [ http_proxy https_proxy ]
+  env-vars = [ http_proxy https_proxy ]
 #+end_src
 
 ** Functions
 
 Elvish does not include an =eval= function, but we emulate one using the
 =-source= command. We use this to dynamically query and set the
-variables according to the contents of =$proxy:env_vars=.
+variables according to the contents of =$proxy:env-vars=.
 
 #+begin_src elvish
   fn eval [str]{
@@ -140,7 +140,7 @@ variables according to the contents of =$proxy:env_vars=.
 #+end_src
 
 Check whether the proxy is set. We use the first variable in
-=$proxy:env_vars= for the check, with the assumption that the other
+=$proxy:env-vars= for the check, with the assumption that the other
 variables follow. The need to dynamically determine which variable to
 check makes this function a bit tricky - basically we create a
 temporary file (using the =mktemp= command), and then evaluate code that
@@ -150,7 +150,7 @@ of the file indicates the setting of the variable.
 #+begin_src elvish
   fn is-set {
     -tmp-file = (mktemp)
-    eval "if (eq $E:"(take 1 $env_vars)" '') { rm "$-tmp-file" }"
+    eval "if (eq $E:"(take 1 $env-vars)" '') { rm "$-tmp-file" }"
     -res = (bool ?(test -f $-tmp-file))
     rm -f $-tmp-file
     put $-res
@@ -169,7 +169,7 @@ needs to be done explicitly if you want it.
       proxyhost = $param[0]
     }
     if (not-eq $proxyhost "") {
-      eval (each [var]{ put "E:"$var" = "$host } $env_vars | joins "; ")
+      eval (each [var]{ put "E:"$var" = "$host } $env-vars | joins "; ")
     }
   }
 #+end_src
@@ -178,7 +178,7 @@ Unset the proxy variables.
 
 #+begin_src elvish
   fn unset {
-    eval (each [var]{ put "del E:"$var } $env_vars | joins "; ")
+    eval (each [var]{ put "del E:"$var } $env-vars | joins "; ")
   }
 #+end_src
 
@@ -186,16 +186,16 @@ Disable auto-set and unset the proxy.
 
 #+begin_src elvish
   fn disable {
-    disable_autoset = $true
+    disable-autoset = $true
     unset
   }
 #+end_src
 
-Enable auto-set after it had been disabled using =proxy:disable_autoset=.
+Enable auto-set after it had been disabled using =proxy:disable-autoset=.
 
 #+begin_src elvish
   fn enable {
-    disable_autoset = $false
+    disable-autoset = $false
   }
 #+end_src
 
@@ -204,7 +204,7 @@ This is the function that powers the auto-set feature. It runs
 
 #+begin_src elvish
   fn autoset [@_]{
-    if (or (not $test) $disable_autoset) {
+    if (or (not $test) $disable-autoset) {
       return
     }
     if ($test) {
@@ -230,8 +230,8 @@ before- and after-command hooks.
 
 #+begin_src elvish
   fn init {
-    prompt_hooks:add-before-readline $autoset~
-    prompt_hooks:add-after-readline $autoset~
+    prompt-hooks:add-before-readline $autoset~
+    prompt-hooks:add-after-readline $autoset~
   }
 #+end_src
 

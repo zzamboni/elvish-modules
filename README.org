@@ -39,7 +39,7 @@ Keep and move through the directory history, including a graphical
 chooser, similar to Elvish's Location mode, but showing a
 chronological directory history instead of a weighted one.
 
-** [[git_vcsh.org][github.com/zzamboni/elvish-modules/git_vcsh]]
+** [[git-vcsh.org][github.com/zzamboni/elvish-modules/git-vcsh]]
 
 A wrapper that detects whether the current directory is a git or vcsh
 directory and runs the correct command automatically.
@@ -55,7 +55,7 @@ Functions for setting up the [[https://nixos.org/nix/][Nix]] environment variabl
 utility functions for searches and for moving over from Homebrew to
 Nix.
 
-** [[prompt_hooks.org][github.com/zzamboni/elvish-modules/prompt_hooks]]
+** [[prompt-hooks.org][github.com/zzamboni/elvish-modules/prompt-hooks]]
 
 Convenience functions to add hooks to the prompt hook lists.
 

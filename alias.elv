@@ -12,16 +12,16 @@ fn def [&verbose=false name @cmd]{
   if (not-eq $verbose false) {
     echo (edit:styled "Defining alias "$name green)
   }
-  is_ok = ?(-source $file)
-  if (not $is_ok) {
-    echo (edit:styled "Your alias definition has a syntax error. Please recheck it.\nError: "(echo $is_ok) red)
+  is-ok = ?(-source $file)
+  if (not $is-ok) {
+    echo (edit:styled "Your alias definition has a syntax error. Please recheck it.\nError: "(echo $is-ok) red)
     rm $file
   }
 }
 
 fn new [@arg]{ def $@arg }
 
-fn bash_alias [@args]{
+fn bash-alias [@args]{
   line = $@args
   name cmd = (splits &max=2 '=' $line)
   def $name $cmd
@@ -57,8 +57,8 @@ fn init {
   }
 
   for file [(_ = ?(put $dir/*.elv))] {
-    is_ok = ?(-source $file)
-    if (not $is_ok) {
+    is-ok = ?(-source $file)
+    if (not $is-ok) {
       echo (edit:styled "Error when loading alias file "$file" - please check it." red)
     }
   }

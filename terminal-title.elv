@@ -3,7 +3,7 @@
 # https://github.com/zzamboni/elvish-modules/blob/master/terminal-title.org.
 # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 
-use ./prompt_hooks
+use ./prompt-hooks
 use re
 
 start = "\e]0;"
@@ -22,10 +22,10 @@ title-during-command = [cmd]{
 }
 
 fn init {
-  prompt_hooks:add-before-readline {
+  prompt-hooks:add-before-readline {
     set-title ($title-during-prompt)
   }
-  prompt_hooks:add-after-readline [cmd]{
+  prompt-hooks:add-after-readline [cmd]{
     set-title ($title-during-command $cmd)
   }
 }

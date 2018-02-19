@@ -1,4 +1,4 @@
-#+property: header-args:elvish :tangle prompt_hooks.elv
+#+property: header-args:elvish :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
 #+property: header-args :mkdirp yes :comments no
 
 #+title: Prompt hook manipulation library for Elvish
@@ -14,8 +14,8 @@
   #   the command is executed. The typed command is passed as argument.
   #
   # Use like this:
-  # prompt_hooks:add-before-readline { code to execute }
-  # prompt_hooks:add-after-readline { code to execute }
+  # prompt-hooks:add-before-readline { code to execute }
+  # prompt-hooks:add-after-readline { code to execute }
   #
   # Multiple hooks can be added, they execute in sequence.
 

@@ -1,14 +1,14 @@
 threshold=10
 
-last_cmd_start_time = 0
-last_cmd = ""
-last_cmd_duration = 0
+last-cmd-start-time = 0
+last-cmd = ""
+last-cmd-duration = 0
 
 notifier = auto
 
 notifications-to-try = [ macos text ]
 
-notification_fns = [
+notification-fns = [
   &text= [
     &check= { put $true }
     &notify= [cmd dur start]{
@@ -24,8 +24,8 @@ notification_fns = [
 ]
 
 fn -choose-notification-fn {
-  each [method_name]{
-    method = $notification_fns[$method_name]
+  each [method-name]{
+    method = $notification-fns[$method-name]
     if ($method[check]) {
       put $method[notify]
       return
@@ -38,34 +38,34 @@ fn now {
   put (date +%s)
 }
 
-fn before_readline_hook {
-  _end_time = (now)
-  last_cmd_duration = (- $_end_time $last_cmd_start_time)
-  if (> $last_cmd_duration $threshold) {
-    $notifier $last_cmd $last_cmd_duration $last_cmd_start_time
+fn before-readline-hook {
+  -end-time = (now)
+  last-cmd-duration = (- $-end-time $last-cmd-start-time)
+  if (> $last-cmd-duration $threshold) {
+    $notifier $last-cmd $last-cmd-duration $last-cmd-start-time
   }
 }
 
-fn after_readline_hook [cmd]{
-  last_cmd = $cmd
-  last_cmd_start_time = (now)
+fn after-readline-hook [cmd]{
+  last-cmd = $cmd
+  last-cmd-start-time = (now)
 }
 
 fn init {
   # First choose the notification mechanism to use
   if (eq $notifier auto) {
     notifier = (-choose-notification-fn)
-  } elif (has-key $notification_fns $notifier) {
-    notifier = $notification_fns[$notifier]
+  } elif (has-key $notification-fns $notifier) {
+    notifier = $notification-fns[$notifier]
   } elif (not-eq (kind-of $notifier fn)) {
     fail "Invalid value for $long-running-notifications:notifier: "$notifier", please double check"
   }
   # Then set up the hooks
-  use ./prompt_hooks
-  prompt_hooks:add-before-readline $before_readline_hook~
-  prompt_hooks:add-after-readline $after_readline_hook~
+  use ./prompt-hooks
+  prompt-hooks:add-before-readline $before-readline-hook~
+  prompt-hooks:add-after-readline $after-readline-hook~
   # Initialize to avoid spurious notification when the module is loaded
-  last_cmd_start_time = (now)
+  last-cmd-start-time = (now)
 }
 
 init

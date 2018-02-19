@@ -3,7 +3,7 @@
 # https://github.com/zzamboni/elvish-modules/blob/master/proxy.org.
 # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 
-use ./prompt_hooks
+use ./prompt-hooks
 
 host = ""
 
@@ -11,9 +11,9 @@ test = $false
 
 notify = $true
 
-disable_autoset = $false
+disable-autoset = $false
 
-env_vars = [ http_proxy https_proxy ]
+env-vars = [ http_proxy https_proxy ]
 
 fn eval [str]{
   tmpf = (mktemp)
@@ -24,7 +24,7 @@ fn eval [str]{
 
 fn is-set {
   -tmp-file = (mktemp)
-  eval "if (eq $E:"(take 1 $env_vars)" '') { rm "$-tmp-file" }"
+  eval "if (eq $E:"(take 1 $env-vars)" '') { rm "$-tmp-file" }"
   -res = (bool ?(test -f $-tmp-file))
   rm -f $-tmp-file
   put $-res
@@ -36,25 +36,25 @@ fn set [@param]{
     proxyhost = $param[0]
   }
   if (not-eq $proxyhost "") {
-    eval (each [var]{ put "E:"$var" = "$host } $env_vars | joins "; ")
+    eval (each [var]{ put "E:"$var" = "$host } $env-vars | joins "; ")
   }
 }
 
 fn unset {
-  eval (each [var]{ put "del E:"$var } $env_vars | joins "; ")
+  eval (each [var]{ put "del E:"$var } $env-vars | joins "; ")
 }
 
 fn disable {
-  disable_autoset = $true
+  disable-autoset = $true
   unset
 }
 
 fn enable {
-  disable_autoset = $false
+  disable-autoset = $false
 }
 
 fn autoset [@_]{
-  if (or (not $test) $disable_autoset) {
+  if (or (not $test) $disable-autoset) {
     return
   }
   if ($test) {
@@ -75,8 +75,8 @@ fn autoset [@_]{
 }
 
 fn init {
-  prompt_hooks:add-before-readline $autoset~
-  prompt_hooks:add-after-readline $autoset~
+  prompt-hooks:add-before-readline $autoset~
+  prompt-hooks:add-after-readline $autoset~
 }
 
 init

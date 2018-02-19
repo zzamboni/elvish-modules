@@ -6,8 +6,8 @@
 #   the command is executed. The typed command is passed as argument.
 #
 # Use like this:
-# prompt_hooks:add-before-readline { code to execute }
-# prompt_hooks:add-after-readline { code to execute }
+# prompt-hooks:add-before-readline { code to execute }
+# prompt-hooks:add-after-readline { code to execute }
 #
 # Multiple hooks can be added, they execute in sequence.
 

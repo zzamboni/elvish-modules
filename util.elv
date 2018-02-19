@@ -1,10 +1,10 @@
 use re
 
-fn dotify_string [str dotify_length]{
-  if (or (== $dotify_length 0) (<= (count $str) $dotify_length)) {
+fn dotify-string [str dotify-length]{
+  if (or (== $dotify-length 0) (<= (count $str) $dotify-length)) {
     put $str
   } else {
-    re:replace '(.{'$dotify_length'}).*' '$1…' $str
+    re:replace '(.{'$dotify-length'}).*' '$1…' $str
   }
 }
 

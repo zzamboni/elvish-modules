@@ -90,9 +90,9 @@ Threshold in seconds for producing notifications (default 10).
 Variables which can be used to extract information about the last command executed.
 
 #+begin_src elvish
-  last_cmd_start_time = 0
-  last_cmd = ""
-  last_cmd_duration = 0
+  last-cmd-start-time = 0
+  last-cmd = ""
+  last-cmd-duration = 0
 #+end_src
 
 The =$notifier= variable determines which notification mechanism to
@@ -129,11 +129,11 @@ be used in the current session, and =notify= must be a lambda which
 receives three arguments: the command (string), its duration (in
 seconds) and its start time (as seconds in Unix epoch format).
 
-All notification mechanisms are stored in the =notification_fns= map, by
+All notification mechanisms are stored in the =notification-fns= map, by
 their user-visible name.
 
 #+begin_src elvish
-  notification_fns = [
+  notification-fns = [
     &text= [
       &check= { put $true }
       &notify= [cmd dur start]{
@@ -155,8 +155,8 @@ use.
 
 #+begin_src elvish
   fn -choose-notification-fn {
-    each [method_name]{
-      method = $notification_fns[$method_name]
+    each [method-name]{
+      method = $notification-fns[$method-name]
       if ($method[check]) {
         put $method[notify]
         return
@@ -183,11 +183,11 @@ Check the duration of the last command and produce a notification if
 it exceeds the threshold.
 
 #+begin_src elvish
-  fn before_readline_hook {
-    _end_time = (now)
-    last_cmd_duration = (- $_end_time $last_cmd_start_time)
-    if (> $last_cmd_duration $threshold) {
-      $notifier $last_cmd $last_cmd_duration $last_cmd_start_time
+  fn before-readline-hook {
+    -end-time = (now)
+    last-cmd-duration = (- $-end-time $last-cmd-start-time)
+    if (> $last-cmd-duration $threshold) {
+      $notifier $last-cmd $last-cmd-duration $last-cmd-start-time
     }
   }
 #+end_src
@@ -195,9 +195,9 @@ it exceeds the threshold.
 Record the command and its start time.
 
 #+begin_src elvish
-  fn after_readline_hook [cmd]{
-    last_cmd = $cmd
-    last_cmd_start_time = (now)
+  fn after-readline-hook [cmd]{
+    last-cmd = $cmd
+    last-cmd-start-time = (now)
   }
 #+end_src
 
@@ -213,17 +213,17 @@ Note: if you modify the value of =$notifier=, you need to call =init= again.
     # First choose the notification mechanism to use
     if (eq $notifier auto) {
       notifier = (-choose-notification-fn)
-    } elif (has-key $notification_fns $notifier) {
-      notifier = $notification_fns[$notifier]
+    } elif (has-key $notification-fns $notifier) {
+      notifier = $notification-fns[$notifier]
     } elif (not-eq (kind-of $notifier fn)) {
       fail "Invalid value for $long-running-notifications:notifier: "$notifier", please double check"
     }
     # Then set up the hooks
-    use ./prompt_hooks
-    prompt_hooks:add-before-readline $before_readline_hook~
-    prompt_hooks:add-after-readline $after_readline_hook~
+    use ./prompt-hooks
+    prompt-hooks:add-before-readline $before-readline-hook~
+    prompt-hooks:add-after-readline $after-readline-hook~
     # Initialize to avoid spurious notification when the module is loaded
-    last_cmd_start_time = (now)
+    last-cmd-start-time = (now)
   }
 #+end_src
 

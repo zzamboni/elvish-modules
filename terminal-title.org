@@ -64,10 +64,10 @@ respectively. These are their default values:
   # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 #+end_src
 
-We load the [[https://github.com/zzamboni/elvish-modules/blob/master/prompt_hooks.org][prompt_hooks]] and [[https://elvish.io/ref/re.html][re]] libraries.
+We load the [[https://github.com/zzamboni/elvish-modules/blob/master/prompt-hooks.org][prompt-hooks]] and [[https://elvish.io/ref/re.html][re]] libraries.
 
 #+begin_src elvish
-  use ./prompt_hooks
+  use ./prompt-hooks
   use re
 #+end_src
 
@@ -116,10 +116,10 @@ The =init= function sets up the corresponding prompt hooks.
 
 #+begin_src elvish
   fn init {
-    prompt_hooks:add-before-readline {
+    prompt-hooks:add-before-readline {
       set-title ($title-during-prompt)
     }
-    prompt_hooks:add-after-readline [cmd]{
+    prompt-hooks:add-after-readline [cmd]{
       set-title ($title-during-command $cmd)
     }
   }

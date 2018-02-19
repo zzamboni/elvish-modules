@@ -37,7 +37,7 @@ To define an alias:
   alias:new alias command
 #+end_src
 
-You can also use =alias:bash_alias= to use the bash syntax
+You can also use =alias:bash-alias= to use the bash syntax
 =alias=command= for defining aliases.
 
 Each alias is stored in a separate file under =$alias:dir=
@@ -91,9 +91,9 @@ file if there is an error. =alias:new= is equivalent to =alias:def=.
     if (not-eq $verbose false) {
       echo (edit:styled "Defining alias "$name green)
     }
-    is_ok = ?(-source $file)
-    if (not $is_ok) {
-      echo (edit:styled "Your alias definition has a syntax error. Please recheck it.\nError: "(echo $is_ok) red)
+    is-ok = ?(-source $file)
+    if (not $is-ok) {
+      echo (edit:styled "Your alias definition has a syntax error. Please recheck it.\nError: "(echo $is-ok) red)
       rm $file
     }
   }
@@ -101,11 +101,11 @@ file if there is an error. =alias:new= is equivalent to =alias:def=.
   fn new [@arg]{ def $@arg }
 #+end_src
 
-The =alias:bash_alias= command simply splits the arguments on the first
+The =alias:bash-alias= command simply splits the arguments on the first
 equals sign, and calls =alias:def= with the two pieces.
 
 #+begin_src elvish
-  fn bash_alias [@args]{
+  fn bash-alias [@args]{
     line = $@args
     name cmd = (splits &max=2 '=' $line)
     def $name $cmd
@@ -171,8 +171,8 @@ alias files to define the corresponding functions.
     }
 
     for file [(_ = ?(put $dir/*.elv))] {
-      is_ok = ?(-source $file)
-      if (not $is_ok) {
+      is-ok = ?(-source $file)
+      if (not $is-ok) {
         echo (edit:styled "Error when loading alias file "$file" - please check it." red)
       }
     }

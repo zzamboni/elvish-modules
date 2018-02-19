@@ -38,11 +38,11 @@ The following functions are included:
 
 ** Dotifying strings
 
-=util:dotify_string= shortens a string to a maximum length, followed by
+=util:dotify-string= shortens a string to a maximum length, followed by
 dots.
 
 #+begin_src elvish
-  > util:dotify_string somelongstring 5
+  > util:dotify-string somelongstring 5
   ▶ somel…
 #+end_src
 
@@ -105,11 +105,11 @@ Typical use is as part of an =if= statement:
 ** Dotifying strings
 
 #+begin_src elvish
-  fn dotify_string [str dotify_length]{
-    if (or (== $dotify_length 0) (<= (count $str) $dotify_length)) {
+  fn dotify-string [str dotify-length]{
+    if (or (== $dotify-length 0) (<= (count $str) $dotify-length)) {
       put $str
     } else {
-      re:replace '(.{'$dotify_length'}).*' '$1…' $str
+      re:replace '(.{'$dotify-length'}).*' '$1…' $str
     }
   }
 #+end_src
