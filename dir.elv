@@ -13,6 +13,7 @@
 #     fn cd [@dir]{ dir:cd $@dir }
 
 use builtin
+use narrow
 
 # Hooks to run before and after the directory chooser
 before-chooser = []
