@@ -3,20 +3,26 @@
 # https://github.com/zzamboni/elvish-modules/blob/master/alias.org.
 # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 
+use re
+
 dir = ~/.elvish/aliases
+
+aliases = [&]
+
+fn _load_alias [name file]{
+  alias = [&]
+  -source $file
+  aliases[$name] = $alias[$name]
+}
 
 fn def [&verbose=false name @cmd]{
   file = $dir/$name.elv
-  echo "#alias:def" $name $@cmd > $file
-  echo fn $name '[@_args]{' $@cmd '$@_args }' >> $file
+  echo "#alias:new" $name $@cmd > $file
+  echo 'alias['$name'] = [@_args]{' $@cmd '$@_args }' >> $file
   if (not-eq $verbose false) {
     echo (edit:styled "Defining alias "$name green)
   }
-  is-ok = ?(-source $file)
-  if (not $is-ok) {
-    echo (edit:styled "Your alias definition has a syntax error. Please recheck it.\nError: "(echo $is-ok) red)
-    rm $file
-  }
+  _load_alias $name $file
 }
 
 fn new [@arg]{ def $@arg }
@@ -27,8 +33,16 @@ fn bash-alias [@args]{
   def $name $cmd
 }
 
+fn export {
+  result = [&]
+  keys $aliases | each [k]{
+    result[$k"~"] = $aliases[$k]
+  }
+  put $result
+}
+
 fn list {
-  _ = ?(grep -h '^#alias:def ' $dir/*.elv | sed 's/^#//')
+  _ = ?(grep -h '^#alias:new ' $dir/*.elv | sed 's/^#//')
 }
 
 fn ls { list } # Alias for list
@@ -38,12 +52,7 @@ fn undef [name]{
   if ?(test -f $file) {
     # Remove the definition file
     rm $file
-    # Remove the function in the current session
-    tmpf = (mktemp)
-    echo  "del "$name"~" > $tmpf
-    -source $tmpf
-    rm -f $tmpf
-    echo (edit:styled "Alias "$name" removed." green)
+    echo (edit:styled "Alias "$name" removed (will take effect on new sessions, or when you run 'del "$name"~')." green)
   } else {
     echo (edit:styled "Alias "$name" does not exist." red)
   }
@@ -57,9 +66,13 @@ fn init {
   }
 
   for file [(_ = ?(put $dir/*.elv))] {
-    is-ok = ?(-source $file)
-    if (not $is-ok) {
-      echo (edit:styled "Error when loading alias file "$file" - please check it." red)
+    content = (cat $file | slurp)
+    if (re:match '^#alias:def ' $content) {
+      m = (re:find '^#alias:def (\S+)\s+(.*)\n' $content)[groups]
+      new $m[1][text] $m[2][text]
+    } elif (re:match '^#alias:new ' $content) {
+      name = (re:find '^#alias:new (\S+)\s+(.*)\n' $content)[groups][1][text]
+      _load_alias $name $file
     }
   }
 }
