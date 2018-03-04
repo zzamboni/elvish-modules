@@ -10,15 +10,19 @@ dir = ~/.elvish/aliases
 aliases = [&]
 
 fn _load_alias [name file]{
-  alias = [&]
+  -alias = [&]
   -source $file
-  aliases[$name] = $alias[$name]
+  -tmpfile = (mktemp)
+  echo '-alias['$name'] = $'$name'~' > $-tmpfile
+  -source $-tmpfile
+  rm -f $-tmpfile
+  aliases[$name] = $-alias[$name]
 }
 
 fn def [&verbose=false name @cmd]{
   file = $dir/$name.elv
   echo "#alias:new" $name $@cmd > $file
-  echo 'alias['$name'] = [@_args]{' $@cmd '$@_args }' >> $file
+  echo 'fn '$name' [@_args]{' $@cmd '$@_args }' >> $file
   if (not-eq $verbose false) {
     echo (edit:styled "Defining alias "$name green)
   }
@@ -67,9 +71,9 @@ fn init {
 
   for file [(_ = ?(put $dir/*.elv))] {
     content = (cat $file | slurp)
-    if (re:match '^#alias:def ' $content) {
-      m = (re:find '^#alias:def (\S+)\s+(.*)\n' $content)[groups]
-      new $m[1][text] $m[2][text]
+    if (or (re:match '^#alias:def ' $content) (re:match '\nalias\[' $content)) {
+      m = (re:find '^#alias:(def|new) (\S+)\s+(.*)\n' $content)[groups]
+      new $m[2][text] $m[3][text]
     } elif (re:match '^#alias:new ' $content) {
       name = (re:find '^#alias:new (\S+)\s+(.*)\n' $content)[groups][1][text]
       _load_alias $name $file
