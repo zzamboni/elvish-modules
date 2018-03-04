@@ -9,7 +9,7 @@ dir = ~/.elvish/aliases
 
 aliases = [&]
 
-fn _load_alias [name file]{
+fn -load-alias [name file]{
   -alias = [&]
   -source $file
   -tmpfile = (mktemp)
@@ -26,7 +26,7 @@ fn def [&verbose=false name @cmd]{
   if (not-eq $verbose false) {
     echo (edit:styled "Defining alias "$name green)
   }
-  _load_alias $name $file
+  -load-alias $name $file
 }
 
 fn new [@arg]{ def $@arg }
@@ -76,7 +76,7 @@ fn init {
       new $m[2][text] $m[3][text]
     } elif (re:match '^#alias:new ' $content) {
       name = (re:find '^#alias:new (\S+)\s+(.*)\n' $content)[groups][1][text]
-      _load_alias $name $file
+      -load-alias $name $file
     }
   }
 }

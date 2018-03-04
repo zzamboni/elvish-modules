@@ -27,10 +27,13 @@ Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm
   epm:install github.com/zzamboni/elvish-modules
 #+end_src
 
-In your =rc.elv=, load this module:
+In your =rc.elv=, load this module and assign the output of =alias:export=
+to the =$-exports-= variable to make existing aliases available as
+top-level commands:
 
 #+begin_src elvish
   use github.com/zzamboni/elvish-modules/alias
+  -exports- = (alias:export)
 #+end_src
 
 To define an alias:
@@ -38,6 +41,9 @@ To define an alias:
 #+begin_src elvish
   alias:new alias command
 #+end_src
+
+Aliases are automatically stored persistently. Each alias is stored in
+a separate file under =$alias:dir= (=~/.elvish/aliases/= by default).
 
 Note that due to Elvish's scoping rules, if you want to use a module
 from your alias, you need to load the module as well, e.g. something
@@ -51,18 +57,15 @@ You can also use =alias:bash-alias= to use the bash syntax
 =alias=command= for defining aliases.
 
 Once an alias is defined, it does not become immediately available -
-you need to load and activate them by adding the following line to the
-end of your =rc.elv= file:
+it will be automatically loaded onto new sessions assuming you have
+added the corresponding code to your =rc.elv= file (see above). To load
+a new alias immediately, you can =-source= the corresponding file from
+within the =~/.elvish/aliases/= directory. For example:
 
 #+begin_src elvish
-  -exports- = (alias:export)
+  > alias:new foo echo bar
+  > source ~/.elvish/aliases/foo.elv
 #+end_src
-
-(if you are putting other things in =$-exports-= you need to merge it
-with the output of =alias:export=, instead of just assigning it)
-
-Each alias is stored in a separate file under =$alias:dir=
-(=~/.elvish/aliases/= by default).
 
 To list existing aliases:
 
@@ -109,17 +112,28 @@ The =alias:dir= variable determines where the alias files will be saved.
 
 ** Creating aliases
 
-Aliases are defined as functions, which execute the body provided as
-the alias definition. After writing the file we load it with the
-=-source= command to load it into the =$alias:aliases= map, where they are
-kept indexed by alias name.
+Aliases are defined as functions with the corresponding name, which
+execute the body provided as the alias definition, always allowing
+optional parameters to be provided to the alias, and which are added
+at the end of the alias definition. After writing the files under
+=$alias:dir=, we load them with the =-source= command and store the
+function pointers in the =$alias:aliases= map.
+
+The =$alias:aliases= map is where all the alias definitions are loaded,
+indexed by name.
 
 #+begin_src elvish
   aliases = [&]
 #+end_src
 
+The =-load-alias= function receives the name of the alias and the file
+in which it is stored. It loads the file with =-source= and stores a
+pointer to the function in =$alias:aliases=. The alias files contain
+standalone function definitions and can also be =-source='d directly
+from the prompt to load the alias in the current interactive session.
+
 #+begin_src elvish
-  fn _load_alias [name file]{
+  fn -load-alias [name file]{
     -alias = [&]
     -source $file
     -tmpfile = (mktemp)
@@ -130,6 +144,9 @@ kept indexed by alias name.
   }
 #+end_src
 
+The =alias:def= function creates a new alias. It stores the
+corresponding alias file and then loads it into memory.
+
 #+begin_src elvish
   fn def [&verbose=false name @cmd]{
     file = $dir/$name.elv
@@ -138,7 +155,7 @@ kept indexed by alias name.
     if (not-eq $verbose false) {
       echo (edit:styled "Defining alias "$name green)
     }
-    _load_alias $name $file
+    -load-alias $name $file
   }
 #+end_src
 
@@ -225,10 +242,8 @@ creates the alias directory if needed, and loads all the existing
 alias files. Note that this does not export the functions, you need to
 use =alias:export= from your =rc.elv= for that.
 
-We do on-the-fly conversion of old-style alias files into the new
-format, which includes the assignment to =$alias= elements in the
-file. Old-style files are identified because they contain a header
-with =#alias:def=, where new ones contain =#alias:new=.
+We do on-the-fly conversion of old-style alias files into the current
+format.
 
 #+begin_src elvish
   fn init {
@@ -243,7 +258,7 @@ with =#alias:def=, where new ones contain =#alias:new=.
         new $m[2][text] $m[3][text]
       } elif (re:match '^#alias:new ' $content) {
         name = (re:find '^#alias:new (\S+)\s+(.*)\n' $content)[groups][1][text]
-        _load_alias $name $file
+        -load-alias $name $file
       }
     }
   }
