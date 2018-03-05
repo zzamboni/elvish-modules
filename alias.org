@@ -134,13 +134,12 @@ from the prompt to load the alias in the current interactive session.
 
 #+begin_src elvish
   fn -load-alias [name file]{
-    -alias = [&]
+    nop $aliases
     -source $file
     -tmpfile = (mktemp)
-    echo '-alias['$name'] = $'$name'~' > $-tmpfile
+    echo 'aliases['$name'] = $'$name'~' > $-tmpfile
     -source $-tmpfile
     rm -f $-tmpfile
-    aliases[$name] = $-alias[$name]
   }
 #+end_src
 

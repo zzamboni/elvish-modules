@@ -10,13 +10,12 @@ dir = ~/.elvish/aliases
 aliases = [&]
 
 fn -load-alias [name file]{
-  -alias = [&]
+  nop $aliases
   -source $file
   -tmpfile = (mktemp)
-  echo '-alias['$name'] = $'$name'~' > $-tmpfile
+  echo 'aliases['$name'] = $'$name'~' > $-tmpfile
   -source $-tmpfile
   rm -f $-tmpfile
-  aliases[$name] = $-alias[$name]
 }
 
 fn def [&verbose=false name @cmd]{
