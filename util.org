@@ -41,10 +41,12 @@ The following functions are included:
 =util:dotify-string= shortens a string to a maximum length, followed by
 dots.
 
-#+begin_src elvish
-  > util:dotify-string somelongstring 5
-  ▶ somel…
+#+begin_src elvish :use github.com/zzamboni/elvish-modules/util
+util:dotify-string somelongstring 5
 #+end_src
+
+#+RESULTS:
+: ▶ somel…
 
 ** Parallel redirection of stdout/stderr to different commands
 
@@ -53,20 +55,28 @@ different commands. It takes three lambdas: The first one is executed,
 its stdout is redirected to the second one, and its stderr to the
 third one.
 
-#+begin_src elvish
-  > util:pipesplit { echo stdout-test; echo stderr-test >&2 } { echo STDOUT: (cat) } { echo STDERR: (cat) }
-  STDOUT: stdout-test
-  STDERR: stderr-test
+#+begin_src elvish :use github.com/zzamboni/elvish-modules/util
+  util:pipesplit { echo stdout-test; echo stderr-test >&2 } { echo STDOUT: (cat) } { echo STDERR: (cat) }
 #+end_src
+
+#+RESULTS:
+: STDOUT: stdout-test
+: STDERR: stderr-test
 
 ** Evaluating code
 
-=util:eval= does dynamic evaluation of code.
+=util:eval= does dynamic evaluation of code. Note that due to Elvish's
+scoping rules, statements are evaluated within the context of the =util=
+module, so variable assignments will not be persistent. Also, if you
+need to make use of any modules within the code, you need to
+explicitly load them with =use=.
 
-#+begin_src elvish
-  > util:eval "put foo"
-  ▶ foo
+#+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
+  util:eval "put foo"
 #+end_src
+
+#+RESULTS:
+: ▶ foo
 
 ** Yes-or-no prompts
 
