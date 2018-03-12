@@ -41,7 +41,7 @@ The following functions are included:
 =util:dotify-string= shortens a string to a maximum length, followed by
 dots.
 
-#+begin_src elvish :use github.com/zzamboni/elvish-modules/util
+#+begin_src elvish :use github.com/zzamboni/elvish-modules/util :exports both
 util:dotify-string somelongstring 5
 #+end_src
 
@@ -55,7 +55,7 @@ different commands. It takes three lambdas: The first one is executed,
 its stdout is redirected to the second one, and its stderr to the
 third one.
 
-#+begin_src elvish :use github.com/zzamboni/elvish-modules/util
+#+begin_src elvish :use github.com/zzamboni/elvish-modules/util :exports both
   util:pipesplit { echo stdout-test; echo stderr-test >&2 } { echo STDOUT: (cat) } { echo STDERR: (cat) }
 #+end_src
 
