@@ -13,11 +13,13 @@ to explain. See [[file:util.elv][util.elv]] for the generated file.
   - [[#parallel-redirection-of-stdoutstderr-to-different-commands][Parallel redirection of stdout/stderr to different commands]]
   - [[#evaluating-code][Evaluating code]]
   - [[#yes-or-no-prompts][Yes-or-no prompts]]
+  - [[#get-a-filename-from-the-macos-finder][Get a filename from the macOS Finder]]
 - [[#implementation][Implementation]]
   - [[#dotifying-strings-1][Dotifying strings]]
   - [[#parallel-redirection-of-stdoutstderr-to-different-commands-1][Parallel redirection of stdout/stderr to different commands]]
   - [[#evaluating-code-1][Evaluating code]]
   - [[#yes-or-no-prompts-1][Yes-or-no prompts]]
+  - [[#get-a-filename-from-the-macos-finder-1][Get a filename from the macOS Finder]]
 
 * Usage
 
@@ -102,6 +104,25 @@ Typical use is as part of an =if= statement:
   Great!
 #+end_src
 
+** Get a filename from the macOS Finder
+
+On macOS, dragging a file from the Finder into a Terminal window results in its path being pasted. Unfortunately it gets pasted with escape characters which Elvish does not always interpret correctly, and also with an extra space at the end. The =util:getfile= function can be used instead of the filename, and when you drag the file it captures and fixes the filename.
+
+#+begin_src elvish
+[~]─> util:getfile
+Drop a file here: /System/Library/Address\ Book\ Plug-Ins
+    # (The pathname is entered by drag-and-dropping a file from the Finder)
+▶ '/System/Library/Address Book Plug-Ins'
+#+end_src
+
+Typical use is in place of the filename you want to drag into the Terminal:
+
+#+begin_src elvish
+[~]─> ls -ld (util:getfile)
+Drop a file here: /System/Library/Address\ Book\ Plug-Ins
+drwxr-xr-x 8 root wheel 256 Oct 25 18:16 '/System/Library/Address Book Plug-Ins'
+#+end_src
+
 * Implementation
 :PROPERTIES:
 :header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
@@ -171,5 +192,17 @@ Elvish does not include an =eval= function, but we emulate one using the
     print $prompt > /dev/tty
     resp = (head -n1 < /dev/tty)
     eq $resp y
+  }
+#+end_src
+
+** Get a filename from the macOS Finder
+
+Thanks to @hanche in the Elvish channel, a short utility to convert a filename as dragged-and-dropped from the Finder into a usable filename.
+
+#+begin_src elvish
+  fn getfile {
+    use re
+    print 'Drop a file here: ' >/dev/tty
+    re:replace '\\(.)' '$1' (head -n 1 </dev/tty)[:-1]
   }
 #+end_src

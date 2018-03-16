@@ -40,3 +40,9 @@ fn y-or-n [&style=default prompt]{
   resp = (head -n1 < /dev/tty)
   eq $resp y
 }
+
+fn getfile {
+  use re
+  print 'Drop a file here: ' >/dev/tty
+  re:replace '\\(.)' '$1' (head -n 1 </dev/tty)[:-1]
+}
