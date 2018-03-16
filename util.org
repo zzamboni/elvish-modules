@@ -116,10 +116,10 @@ Typical use is as part of an =if= statement:
 
 #+begin_src elvish
   fn dotify-string [str dotify-length]{
-    if (or (== $dotify-length 0) (<= (count $str) $dotify-length)) {
+    if (or (<= $dotify-length 0) (<= (count $str) $dotify-length)) {
       put $str
     } else {
-      re:replace '(.{'$dotify-length'}).*' '$1…' $str
+      put $str[:$dotify-length]'…'
     }
   }
 #+end_src
