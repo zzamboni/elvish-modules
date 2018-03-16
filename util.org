@@ -201,7 +201,6 @@ Thanks to @hanche in the Elvish channel, a short utility to convert a filename a
 
 #+begin_src elvish
   fn getfile {
-    use re
     print 'Drop a file here: ' >/dev/tty
     re:replace '\\(.)' '$1' (head -n 1 </dev/tty)[:-1]
   }

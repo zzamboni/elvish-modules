@@ -42,7 +42,6 @@ fn y-or-n [&style=default prompt]{
 }
 
 fn getfile {
-  use re
   print 'Drop a file here: ' >/dev/tty
   re:replace '\\(.)' '$1' (head -n 1 </dev/tty)[:-1]
 }
