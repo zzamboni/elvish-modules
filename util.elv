@@ -1,5 +1,3 @@
-use re
-
 fn dotify-string [str dotify-length]{
   if (or (<= $dotify-length 0) (<= (count $str) $dotify-length)) {
     put $str
@@ -42,6 +40,7 @@ fn y-or-n [&style=default prompt]{
 }
 
 fn getfile {
+  use re
   print 'Drop a file here: ' >/dev/tty
   re:replace '\\(.)' '$1' (head -n 1 </dev/tty)[:-1]
 }

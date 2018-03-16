@@ -129,10 +129,6 @@ drwxr-xr-x 8 root wheel 256 Oct 25 18:16 '/System/Library/Address Book Plug-Ins'
 :header-args: :mkdirp yes :comments no
 :END:
 
-#+begin_src elvish
-  use re
-#+end_src
-
 ** Dotifying strings
 
 #+begin_src elvish
@@ -201,6 +197,7 @@ Thanks to @hanche in the Elvish channel, a short utility to convert a filename a
 
 #+begin_src elvish
   fn getfile {
+    use re
     print 'Drop a file here: ' >/dev/tty
     re:replace '\\(.)' '$1' (head -n 1 </dev/tty)[:-1]
   }
