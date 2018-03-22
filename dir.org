@@ -1,62 +1,131 @@
-#+property: header-args:elvish :tangle dir.elv
-#+property: header-args :mkdirp yes :comments no
-
 #+title: Directory history and functions for Elvish
 #+author: Diego Zamboni
 #+email: diego@zzamboni.org
 
-#+begin_src elvish
-  # Directory history management
-  #
-  # Keep and move through the directory history, including a graphical
-  # chooser, similar to Elvish's Location mode, but showing a chronological
-  # directory history instead of a weighted one.
-  #
-  # Example of use:
-  #
-  #     use dir
-  #     edit:insert:binding[Alt-b] = $dir:&left-word-or-prev-dir
-  #     edit:insert:binding[Alt-f] = $dir:&right-word-or-next-dir
-  #     edit:insert:binding[Alt-i] = $dir:&dir-chooser
-  #     fn cd [@dir]{ dir:cd $@dir }
+Keep and move through the directory history, including a graphical chooser, similar to Elvish's Location mode, but showing a chronological directory history instead of a weighted one.
 
+This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]]. See [[file:dir.elv][dir.elv]] for the generated file.
+
+* Table of Contents                                            :TOC:noexport:
+- [[#usage][Usage]]
+- [[#implementation][Implementation]]
+  - [[#configuration][Configuration]]
+  - [[#internal-variables-and-functions][Internal variables and functions]]
+  - [[#stack-query-functions][Stack query functions]]
+  - [[#stack-manipulation-functions][Stack manipulation functions]]
+  - [[#directory-changing][Directory changing]]
+  - [[#initialization][Initialization]]
+
+* Usage
+
+Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
+
+#+begin_src elvish
+  use epm
+  epm:install github.com/zzamboni/elvish-modules
+#+end_src
+
+In your =rc.elv=, load the =dir= module. This automatically sets up the chdir hook to keep track of directory history:
+
+#+begin_src elvish
+  use github.com/zzamboni/elvish-modules/dir
+#+end_src
+
+You can set up keybindings to navigate the directory history and to trigger the history chooser. The module includes two convenience functions =left-word-or-prev-dir= and =right-word-or-next-dir= which "do the right thing" depending on the contents of the current command. For example:
+
+#+begin_src elvish
+  edit:insert:binding[Alt-b] = $dir:&left-word-or-prev-dir
+  edit:insert:binding[Alt-f] = $dir:&right-word-or-next-dir
+  edit:insert:binding[Alt-i] = $dir:&dir-chooser
+#+end_src
+
+If you want the =cd= command to recognize a hyphen as "the previous directory", you need to set up an alias from =cd= to call =dir:cd= instead. You can use the =[[https://github.com/zzamboni/elvish-modules/blob/master/alias.org][alias]]= module for this:
+
+#+begin_src elvish
+  use github.com/zzamboni/elvish-modules/alias
+  alias:new cd "use github.com/zzamboni/elvish-modules/dir; dir:cd"
+#+end_src
+
+The =dir:cdb= function changes to the base directory of its given argument. For example, =dir:cdb ~/tmp/foo.txt= will cd to =~/tmp=. I usually set up an alias for =cdb= as well:
+
+#+begin_src elvish
+  alias:new cdb "use github.com/zzamboni/elvish-modules/dir; dir:cdb"
+#+end_src
+
+* Implementation
+:PROPERTIES:
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
+:header-args: :mkdirp yes :comments no
+:END:
+
+#+begin_src elvish
   use builtin
   use narrow
+#+end_src
 
-  # Hooks to run before and after the directory chooser
+** Configuration
+
+=before-chooser= and =after-chooser= can contain lambdas that will be run before and after starting the =dir-chooser=.
+
+#+begin_src elvish
   before-chooser = []
   after-chooser = []
+#+end_src
 
-  # Hooks to run before and after any directory change
-  before-cd = []
-  after-cd = []
+Maximum stack size, 0 for no limit
 
-  # The stack and a pointer into it, which points to the current
-  # directory. Normally the cursor points to the end of the stack, but
-  # it can move with `back` and `forward`
+#+begin_src elvish
+  max-stack-size = 100
+#+end_src
+
+** Internal variables and functions
+
+The stack and a pointer into it, which points to the current directory. Normally the cursor points to the end of the stack, but it can move with =back= and =forward=.
+
+#+begin_src elvish
   -dirstack = [ $pwd ]
   -cursor = (- (count $-dirstack) 1)
+#+end_src
 
-  # Maximum stack size, 0 for no limit
-  -max-stack-size = 100
+Remove everything after =$cursor= from the stack.
 
-  fn stack { put $@-dirstack }
-
-  fn history {
-    index = 0
-    each [dir]{
-      if (== $index $-cursor) {
-        echo (edit:styled "* "$dir green)
-      } else {
-        echo "  "$dir
-      }
-      index = (+ $index 1)
-    } $-dirstack
+#+begin_src elvish
+  fn -trimstack {
+    -dirstack = $-dirstack[0:(+ $-cursor 1)]
   }
+#+end_src
 
+** Stack query functions
+
+Return the current contents of the directory stack.
+
+#+begin_src elvish
+  fn stack { put $@-dirstack }
+#+end_src
+
+Return the number of elements in the stack.
+
+#+begin_src elvish
   fn stacksize { count $-dirstack }
+#+end_src
 
-  # Current directory in the stack, empty string if stack is empty
+Pretty-print the stack, with the current directory highlighted.
+
+#+begin_src elvish
+  fn history {
+    for index [(range 0 (stacksize))] {
+      if (== $index $-cursor) {
+        echo (edit:styled "* "$-dirstack[$index] green)
+      } else {
+        echo "  "$-dirstack[$index]
+      }
+    }
+  }
+#+end_src
+
+Return the current directory in the stack, empty string if stack is empty
+
+#+begin_src elvish
   fn curdir {
     if (> (stacksize) 0) {
       put $-dirstack[$-cursor]
@@ -64,50 +133,31 @@
       put ""
     }
   }
+#+end_src
 
-  # Cut everything after $cursor from the stack
-  fn -trimstack {
-    -dirstack = $-dirstack[0:(+ $-cursor 1)]
-  }
+** Stack manipulation functions
 
-  # Add $pwd into the stack at $-cursor, only if it's different than the
-  # current directory (i.e. you can call push multiple times in the same
-  # directory, for example as part of a prompt hook, and it will only be
-  # added once). Pushing a directory invalidates (if any) any
-  # directories after it in the history.
+Add =$pwd= into the stack at =$-cursor=, trimming it to the last =$max-stack-size= entries, only if it's different than the current directory (i.e. you can call =push= multiple times in the same directory, for example as part of a prompt hook, and it will only be added once). Pushing a directory invalidates any directories after it in the stack (i.e. if =$cursor= was not pointing at the end of the stack). After =push=, =$cursor= is always pointing to the last element of the stack.
+
+#+begin_src elvish
   fn push {
     if (or (== (stacksize) 0) (!=s $pwd (curdir))) {
       -dirstack = [ (explode $-dirstack[0:(+ $-cursor 1)]) $pwd ]
-      if (> (stacksize) $-max-stack-size) {
-        -dirstack = $-dirstack[(- $-max-stack-size):]
+      if (> (stacksize) $max-stack-size) {
+        -dirstack = $-dirstack[(- $max-stack-size):]
       }
       -cursor = (- (stacksize) 1)
     }
   }
+#+end_src
 
-  # cd wrapper which supports "-" to indicate the previous directory
-  fn -cd [@dir]{
-    for hook $before-cd { $hook }
-    if (and (== (count $dir) 1) (eq $dir[0] "-")) {
-      builtin:cd $-dirstack[(- $-cursor 1)]
-    } else {
-      builtin:cd $@dir
-    }
-    push
-    for hook $after-cd { $hook }
-  }
+Move back and forward through the stack. These functions do not alter the stack, only the value of =$cursor=.
 
-  # Wrapper entrypoint for -cd
-  fn cd [@dir]{ -cd $@dir }
-
-  # cd to the base directory of the argument
-  fn cdb [p]{ cd (dirname $p) }
-
-  # Move back and forward through the stack.
+#+begin_src elvish
   fn back {
     if (> $-cursor 0) {
       -cursor = (- $-cursor 1)
-      -cd $-dirstack[$-cursor]
+      builtin:cd $-dirstack[$-cursor]
     } else {
       echo "Beginning of directory history!" > /dev/tty
     }
@@ -116,15 +166,16 @@
   fn forward {
     if (< $-cursor (- (stacksize) 1)) {
       -cursor = (+ $-cursor 1)
-      -cd $-dirstack[$-cursor]
+      builtin:cd $-dirstack[$-cursor]
     } else {
       echo "End of directory history!" > /dev/tty
     }
   }
+#+end_src
 
-  # Pop the previous directory on the stack, removes the current
-  # one. Pop doesn't do a push afterwards, so successive pops walk back
-  # the stack until it's empty.
+Pop the previous directory on the stack, removes the current one. Successive pops walk back the stack until it's empty, but don't allow you to move forward again.
+
+#+begin_src elvish
   fn pop {
     if (> $-cursor 0) {
       back
@@ -133,9 +184,31 @@
       echo "No previous directory to pop!" > /dev/tty
     }
   }
+#+end_src
 
-  # Utility functions to move the cursor by a word or move through
-  # the directory history, depending on the contents of the command
+** Directory changing
+
+=cd= wrapper which supports ="-"= to indicate the previous directory. Can be aliased to the =cd= command.
+
+#+begin_src elvish
+  fn cd [@dir]{
+    if (and (== (count $dir) 1) (eq $dir[0] "-")) {
+      builtin:cd $-dirstack[(- $-cursor 1)]
+    } else {
+      builtin:cd $@dir
+    }
+  }
+#+end_src
+
+=cd= to the base directory of the argument.
+
+#+begin_src elvish
+  fn cdb [p]{ cd (dirname $p) }
+#+end_src
+
+Utility functions to move the cursor by a word or move through the directory history, depending on the contents of the command. These only work when bound to keys, due to their use of =$edit:current-command=.
+
+#+begin_src elvish
   fn left-word-or-prev-dir {
     if (> (count $edit:current-command) 0) {
       edit:move-dot-left-word
@@ -151,8 +224,11 @@
       forward
     }
   }
+#+end_src
 
-  # Interactive dir history chooser
+Interactive dir history chooser.
+
+#+begin_src elvish
   fn history-chooser {
     for hook $before-chooser { $hook }
     index = 0
@@ -167,18 +243,19 @@
     edit:-narrow-read {
       put $@candidates
     } [arg]{
-      -cd $arg[content]
+      builtin:cd $arg[content]
       for hook $after-chooser { $hook }
     } &modeline="Dir history " &ignore-case=$true &keep-bottom=$true
   }
+#+end_src
 
+** Initialization
+
+Set up a hook to push the current directory after every =cd=, to automatically populate the directory history.
+
+#+begin_src elvish
   fn init {
-    # Set up a hook to call "dir:cd ." on every prompt, to push the new
-    # directory (if any) and to run any cd hooks.
-    edit:before-readline = [ $@edit:before-readline { -cd . } ]
-    # If `narrow` is loaded, call "dir:cd ." after every change, to push
-    # the new directory onto the stack and run any cd hooks
-    _ = ?(narrow:after-location = [ $@narrow:after-location { -cd . } ])
+    after-chdir = [ $@after-chdir [dir]{ push } ]
   }
 
   init
