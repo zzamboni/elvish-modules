@@ -6,13 +6,19 @@ last-cmd-duration = 0
 
 notifier = auto
 
-notifications-to-try = [ macos text ]
+notifications-to-try = [ macos libnotify text ]
 
 notification-fns = [
   &text= [
     &check= { put $true }
     &notify= [cmd dur start]{
       echo (edit:styled "Command lasted "$dur"s" magenta) > /dev/tty
+    }
+  ]
+  &libnotify= [
+    &check= { put ?(which notify-send >/dev/null 2>&1) }
+    &notify= [cmd duration start]{
+      notify-send "Finished: "$cmd "Running time: "$duration"s"
     }
   ]
   &macos= [
