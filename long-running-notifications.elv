@@ -12,7 +12,7 @@ notification-fns = [
   &text= [
     &check= { put $true }
     &notify= [cmd dur start]{
-      echo (edit:styled "Command lasted "$dur"s" magenta)
+      echo (edit:styled "Command lasted "$dur"s" magenta) > /dev/tty
     }
   ]
   &macos= [
@@ -56,7 +56,7 @@ fn init {
   if (eq $notifier auto) {
     notifier = (-choose-notification-fn)
   } elif (has-key $notification-fns $notifier) {
-    notifier = $notification-fns[$notifier]
+    notifier = $notification-fns[$notifier][notify]
   } elif (not-eq (kind-of $notifier fn)) {
     fail "Invalid value for $long-running-notifications:notifier: "$notifier", please double check"
   }
