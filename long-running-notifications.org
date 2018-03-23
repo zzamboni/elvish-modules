@@ -4,8 +4,7 @@
 
 Produce notifications for long-running commands in Elvish.
 
-This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy
-to explain. See [[file:long-running-notifications.elv][long-running-notifications.elv]] for the generated file.
+This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:long-running-notifications.elv][long-running-notifications.elv]] for the generated file.
 
 * Table of Contents                                            :TOC:noexport:
 - [[#usage][Usage]]
@@ -13,7 +12,7 @@ to explain. See [[file:long-running-notifications.elv][long-running-notification
 - [[#implementation][Implementation]]
   - [[#configuration-and-user-accessible-variables][Configuration and user-accessible variables]]
   - [[#notification-mechanisms-1][Notification mechanisms]]
-  - [[#other-functions][Other functions]]
+  - [[#time-tracking-functions][Time tracking functions]]
   - [[#initialization][Initialization]]
 
 * Usage
@@ -37,10 +36,7 @@ Try it out! Run the following command:
   sleep 11
 #+end_src
 
-The default notification threshold is 10 seconds, so when the command
-finishes, you will see a notification. The threshold can be changed by
-assigning a value in seconds to the =long-running-notifications:threshold=
-variable. For example:
+The default notification threshold is 10 seconds, so when the command finishes, you will see a notification. The threshold can be changed by assigning a value in seconds to the =long-running-notifications:threshold= variable. For example:
 
 #+begin_src elvish
   long-running-notifications:threshold = 20
@@ -48,22 +44,14 @@ variable. For example:
 
 ** Notification mechanisms
 
-By default, the module tries to determine the best notification method
-to use based on available commands. The method can be specified
-manually by assigning one of the following values directly to
-=$long-running-notifications:notifier=:
+By default, the module tries to determine the best notification method to use based on available commands. The method can be specified manually by assigning one of the following values directly to =$long-running-notifications:notifier=:
 
-- A string, which must be one of the predefined notification
-  mechanisms:
-  - =macos= (GUI notifications on macOS, used automatically if
-    [[https://github.com/julienXX/terminal-notifier][terminal-notifier]] is available)
+- A string, which must be one of the predefined notification mechanisms:
+  - =macos= (GUI notifications on macOS, used automatically if [[https://github.com/julienXX/terminal-notifier][terminal-notifier]] is available)
   - =libnotify= (GUI notifications using libnotify, used automatically if notify-send is available)
   - =text= (prints to the same terminal where the command ran)
 
-- A lambda, which must take three arguments and produce the
-  corresponding notification. The arguments contain the last command
-  (string), its duration (in seconds) and its start time (as seconds
-  in Unix epoch format). For example:
+- A lambda, which must take three arguments and produce the corresponding notification. The arguments contain the last command (string), its duration (in seconds) and its start time (as seconds in Unix epoch format). For example:
 
   #+begin_src elvish
     long-running-notifications:notifier = [cmd duration start]{
@@ -71,8 +59,9 @@ manually by assigning one of the following values directly to
     }
   #+end_src
 
-If you write a new notification mechanism which you think might be
-useful to others, please submit a [[https://github.com/zzamboni/elvish-modules/pulls][pull request]]!
+*Note: if you modify the value of =$notifier=, you need to call =init= again.*
+
+If you write a new notification mechanism which you think might be useful to others, please submit a [[https://github.com/zzamboni/elvish-modules/pulls][pull request]]!
 
 * Implementation
 :PROPERTIES:
@@ -96,27 +85,16 @@ Variables which can be used to extract information about the last command execut
   last-cmd-duration = 0
 #+end_src
 
-The =$notifier= variable determines which notification mechanism to
-use. By default it starts with the value ="auto"= which tells the =init=
-function that it should choose which one to use automatically, based
-on the value of =$notifications-to-try= (see below). But you can also
-hand-choose the method by assigning one of the following:
+The =$notifier= variable determines which notification mechanism to use. By default it starts with the value ="auto"= which tells the =init= function that it should choose which one to use automatically, based on the value of =$notifications-to-try= (see below). But you can also hand-choose the method by assigning one of the following:
 
-- A string, which must be one of the predefined notification
-  mechanisms (at the moment =text=, =macos= or =libnotify=).
-- A lambda, which must take three arguments and produce the
-  corresponding notification. The arguments contain the last command
-  (string), its duration (in seconds) and its start time (as seconds
-  in Unix epoch format).
+- A string, which must be one of the predefined notification mechanisms (at the moment =text=, =macos= or =libnotify=).
+- A lambda, which must take three arguments and produce the corresponding notification. The arguments contain the last command (string), its duration (in seconds) and its start time (as seconds in Unix epoch format).
 
 #+begin_src elvish
   notifier = auto
 #+end_src
 
-The =$notifications-to-try= variable contains the order in which
-notification mechanisms should be attempted. For each one, their =check=
-function is executed, and the first one for which it returns =$true= is
-used.
+The =$notifications-to-try= variable contains the order in which notification mechanisms should be attempted. For each one, their =check= function is executed, and the first one for which it returns =$true= is used.
 
 #+begin_src elvish
   notifications-to-try = [ macos libnotify text ]
@@ -124,14 +102,9 @@ used.
 
 ** Notification mechanisms
 
-Each notification mechanism is defined as a map with two elements:
-=check= should be a lambda which returns =$true= if that mechanism can
-be used in the current session, and =notify= must be a lambda which
-receives three arguments: the command (string), its duration (in
-seconds) and its start time (as seconds in Unix epoch format).
+Each notification mechanism is defined as a map with two elements: =check= should be a lambda which returns =$true= if that mechanism can be used in the current session, and =notify= must be a lambda which receives three arguments: the command (string), its duration (in seconds) and its start time (as seconds in Unix epoch format).
 
-All notification mechanisms are stored in the =notification-fns= map, by
-their user-visible name.
+All notification mechanisms are stored in the =notification-fns= map, by their user-visible name.
 
 #+begin_src elvish
   notification-fns = [
@@ -156,9 +129,7 @@ their user-visible name.
   ]
 #+end_src
 
-The =-choose-notification-fn= goes through the notification mechanisms
-in the order defined by =$notifications-to-try= and chooses which one to
-use.
+The =-choose-notification-fn= goes through the notification mechanisms in the order defined by =$notifications-to-try= and chooses which one to use.
 
 #+begin_src elvish
   fn -choose-notification-fn {
@@ -173,10 +144,9 @@ use.
   }
 #+end_src
 
-** Other functions
+** Time tracking functions
 
-These are the main functions which keep track of how long a command
-takes and call the notifier function if needed.
+These are the main functions which keep track of how long a command takes and call the notifier function if needed.
 
 Return the current time in Unix epoch value.
 
@@ -186,8 +156,7 @@ Return the current time in Unix epoch value.
   }
 #+end_src
 
-Check the duration of the last command and produce a notification if
-it exceeds the threshold.
+Check the duration of the last command and produce a notification if it exceeds the threshold.
 
 #+begin_src elvish
   fn before-readline-hook {
@@ -210,8 +179,7 @@ Record the command and its start time.
 
 ** Initialization
 
-The =init= function sets up the notifier function and also the prompt
-hooks to compute times and produce notifications as needed.
+The =init= function sets up the notifier function and also the prompt hooks to compute times and produce notifications as needed.
 
 Note: if you modify the value of =$notifier=, you need to call =init= again.
 
