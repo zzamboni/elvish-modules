@@ -40,6 +40,19 @@ fn -choose-notification-fn {
   fail "No valid notification mechanism was found"
 }
 
+fn -produce-notification {
+  if (not-eq (kind-of $notifier) fn) {
+    if (eq $notifier auto) {
+      notifier = (-choose-notification-fn)
+    } elif (has-key $notification-fns $notifier) {
+      notifier = $notification-fns[$notifier][notify]
+    } else {
+      fail "Invalid value for $long-running-notifications:notifier: "$notifier", please double check"
+    }
+  }
+  $notifier $last-cmd $last-cmd-duration $last-cmd-start-time
+}
+
 fn now {
   put (date +%s)
 }
@@ -48,7 +61,7 @@ fn before-readline-hook {
   -end-time = (now)
   last-cmd-duration = (- $-end-time $last-cmd-start-time)
   if (> $last-cmd-duration $threshold) {
-    $notifier $last-cmd $last-cmd-duration $last-cmd-start-time
+    -produce-notification
   }
 }
 
@@ -58,15 +71,7 @@ fn after-readline-hook [cmd]{
 }
 
 fn init {
-  # First choose the notification mechanism to use
-  if (eq $notifier auto) {
-    notifier = (-choose-notification-fn)
-  } elif (has-key $notification-fns $notifier) {
-    notifier = $notification-fns[$notifier][notify]
-  } elif (not-eq (kind-of $notifier fn)) {
-    fail "Invalid value for $long-running-notifications:notifier: "$notifier", please double check"
-  }
-  # Then set up the hooks
+  # Set up the hooks
   use ./prompt-hooks
   prompt-hooks:add-before-readline $before-readline-hook~
   prompt-hooks:add-after-readline $after-readline-hook~

@@ -59,8 +59,6 @@ By default, the module tries to determine the best notification method to use ba
     }
   #+end_src
 
-*Note: if you modify the value of =$notifier=, you need to call =init= again.*
-
 If you write a new notification mechanism which you think might be useful to others, please submit a [[https://github.com/zzamboni/elvish-modules/pulls][pull request]]!
 
 * Implementation
@@ -85,7 +83,7 @@ Variables which can be used to extract information about the last command execut
   last-cmd-duration = 0
 #+end_src
 
-The =$notifier= variable determines which notification mechanism to use. By default it starts with the value ="auto"= which tells the =init= function that it should choose which one to use automatically, based on the value of =$notifications-to-try= (see below). But you can also hand-choose the method by assigning one of the following:
+The =$notifier= variable determines which notification mechanism to use. By default it starts with the value ="auto"= which chooses which one to use automatically, based on the value of =$notifications-to-try= (see below). But you can also hand-choose the method by assigning one of the following:
 
 - A string, which must be one of the predefined notification mechanisms (at the moment =text=, =macos= or =libnotify=).
 - A lambda, which must take three arguments and produce the corresponding notification. The arguments contain the last command (string), its duration (in seconds) and its start time (as seconds in Unix epoch format).
@@ -144,6 +142,23 @@ The =-choose-notification-fn= goes through the notification mechanisms in the or
   }
 #+end_src
 
+The =-produce-notification= function chooses (if needed) a notification function, and calls it with the correct arguments.
+
+#+begin_src elvish
+  fn -produce-notification {
+    if (not-eq (kind-of $notifier) fn) {
+      if (eq $notifier auto) {
+        notifier = (-choose-notification-fn)
+      } elif (has-key $notification-fns $notifier) {
+        notifier = $notification-fns[$notifier][notify]
+      } else {
+        fail "Invalid value for $long-running-notifications:notifier: "$notifier", please double check"
+      }
+    }
+    $notifier $last-cmd $last-cmd-duration $last-cmd-start-time
+  }
+#+end_src
+
 ** Time tracking functions
 
 These are the main functions which keep track of how long a command takes and call the notifier function if needed.
@@ -163,7 +178,7 @@ Check the duration of the last command and produce a notification if it exceeds 
     -end-time = (now)
     last-cmd-duration = (- $-end-time $last-cmd-start-time)
     if (> $last-cmd-duration $threshold) {
-      $notifier $last-cmd $last-cmd-duration $last-cmd-start-time
+      -produce-notification
     }
   }
 #+end_src
@@ -179,21 +194,11 @@ Record the command and its start time.
 
 ** Initialization
 
-The =init= function sets up the notifier function and also the prompt hooks to compute times and produce notifications as needed.
-
-Note: if you modify the value of =$notifier=, you need to call =init= again.
+The =init= function sets up the prompt hooks to compute times and produce notifications as needed.
 
 #+begin_src elvish
   fn init {
-    # First choose the notification mechanism to use
-    if (eq $notifier auto) {
-      notifier = (-choose-notification-fn)
-    } elif (has-key $notification-fns $notifier) {
-      notifier = $notification-fns[$notifier][notify]
-    } elif (not-eq (kind-of $notifier fn)) {
-      fail "Invalid value for $long-running-notifications:notifier: "$notifier", please double check"
-    }
-    # Then set up the hooks
+    # Set up the hooks
     use ./prompt-hooks
     prompt-hooks:add-before-readline $before-readline-hook~
     prompt-hooks:add-after-readline $after-readline-hook~
