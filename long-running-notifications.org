@@ -57,6 +57,7 @@ manually by assigning one of the following values directly to
   mechanisms:
   - =macos= (GUI notifications on macOS, used automatically if
     [[https://github.com/julienXX/terminal-notifier][terminal-notifier]] is available)
+  - =libnotify= (GUI notifications using libnotify, used automatically if notify-send is available)
   - =text= (prints to the same terminal where the command ran)
 
 - A lambda, which must take three arguments and produce the
@@ -102,7 +103,7 @@ on the value of =$notifications-to-try= (see below). But you can also
 hand-choose the method by assigning one of the following:
 
 - A string, which must be one of the predefined notification
-  mechanisms (at the moment =text= or =macos=).
+  mechanisms (at the moment =text=, =macos= or =libnotify=).
 - A lambda, which must take three arguments and produce the
   corresponding notification. The arguments contain the last command
   (string), its duration (in seconds) and its start time (as seconds
@@ -118,7 +119,7 @@ function is executed, and the first one for which it returns =$true= is
 used.
 
 #+begin_src elvish
-  notifications-to-try = [ macos text ]
+  notifications-to-try = [ macos libnotify text ]
 #+end_src
 
 ** Notification mechanisms
@@ -138,6 +139,12 @@ their user-visible name.
       &check= { put $true }
       &notify= [cmd dur start]{
         echo (edit:styled "Command lasted "$dur"s" magenta) > /dev/tty
+      }
+    ]
+    &libnotify= [
+      &check= { put ?(which notify-send >/dev/null 2>&1) }
+      &notify= [cmd duration start]{
+        notify-send "Finished: "$cmd "Running time: "$duration"s"
       }
     ]
     &macos= [
