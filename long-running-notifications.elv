@@ -1,4 +1,4 @@
-threshold=10
+threshold = 10
 
 last-cmd-start-time = 0
 last-cmd = ""

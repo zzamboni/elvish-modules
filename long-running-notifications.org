@@ -48,7 +48,7 @@ By default, the module tries to determine the best notification method to use ba
 
 - A string, which must be one of the predefined notification mechanisms:
   - =macos= (GUI notifications on macOS, used automatically if [[https://github.com/julienXX/terminal-notifier][terminal-notifier]] is available)
-  - =libnotify= (GUI notifications using libnotify, used automatically if notify-send is available)
+  - =libnotify= (GUI notifications using [[https://developer.gnome.org/libnotify/][libnotify]], used automatically if =notify-send= is available)
   - =text= (prints to the same terminal where the command ran)
 
 - A lambda, which must take three arguments and produce the corresponding notification. The arguments contain the last command (string), its duration (in seconds) and its start time (as seconds in Unix epoch format). For example:
@@ -72,7 +72,7 @@ If you write a new notification mechanism which you think might be useful to oth
 Threshold in seconds for producing notifications (default 10).
 
 #+begin_src elvish
-  threshold=10
+  threshold = 10
 #+end_src
 
 Variables which can be used to extract information about the last command executed.
