@@ -18,17 +18,18 @@ fn -load-alias [name file]{
   rm -f $-tmpfile
 }
 
-fn def [&verbose=false name @cmd]{
+fn def [&verbose=false &use=[] name @cmd]{
   file = $dir/$name.elv
-  echo "#alias:new" $name $@cmd > $file
-  echo 'fn '$name' [@_args]{' $@cmd '$@_args }' >> $file
+  use-statements = [(each [m]{ put "use "$m";" } $use)]
+  echo "#alias:new" $name (if (not-eq $use []) { put "&use="(to-string $use) }) $@cmd > $file
+  echo 'fn '$name' [@_args]{' $@use-statements $@cmd '$@_args }' >> $file
   if (not-eq $verbose false) {
     echo (edit:styled "Defining alias "$name green)
   }
   -load-alias $name $file
 }
 
-fn new [@arg]{ def $@arg }
+fn new [&verbose=false &use=[] @arg]{ def &verbose=$verbose &use=$use $@arg }
 
 fn bash-alias [@args]{
   line = $@args

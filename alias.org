@@ -46,8 +46,14 @@ Aliases are automatically stored persistently. Each alias is stored in
 a separate file under =$alias:dir= (=~/.elvish/aliases/= by default).
 
 Note that due to Elvish's scoping rules, if you want to use a module
-from your alias, you need to load the module as well, e.g. something
+from your alias, you need to load the module as well by specifying the =&use= option when defining the alias, which receives a list of module names to load,
 like this:
+
+#+begin_src elvish
+  alias:new cd &use=[github.com/zzamboni/elvish-modules/dir] dir:cd
+#+end_src
+
+You can also specify the =use= command as part of the alias:
 
 #+begin_src elvish
   alias:new cd "use github.com/zzamboni/elvish-modules/dir; dir:cd"
@@ -56,7 +62,7 @@ like this:
 You can also use =alias:bash-alias= to use the bash syntax
 =alias=command= for defining aliases.
 
-Once an alias is defined, it does not become immediately available -
+*Once an alias is defined, it does not become immediately available* -
 it will be automatically loaded onto new sessions assuming you have
 added the corresponding code to your =rc.elv= file (see above). To load
 a new alias immediately, you can =-source= the corresponding file from
@@ -144,13 +150,14 @@ from the prompt to load the alias in the current interactive session.
 #+end_src
 
 The =alias:def= function creates a new alias. It stores the
-corresponding alias file and then loads it into memory.
+corresponding alias file and then loads it into memory. The =&use= option can be used to specify a list of modules to load within the alias function (you can also specify the =use= command by hand as part of the alias).
 
 #+begin_src elvish
-  fn def [&verbose=false name @cmd]{
+  fn def [&verbose=false &use=[] name @cmd]{
     file = $dir/$name.elv
-    echo "#alias:new" $name $@cmd > $file
-    echo 'fn '$name' [@_args]{' $@cmd '$@_args }' >> $file
+    use-statements = [(each [m]{ put "use "$m";" } $use)]
+    echo "#alias:new" $name (if (not-eq $use []) { put "&use="(to-string $use) }) $@cmd > $file
+    echo 'fn '$name' [@_args]{' $@use-statements $@cmd '$@_args }' >> $file
     if (not-eq $verbose false) {
       echo (edit:styled "Defining alias "$name green)
     }
@@ -161,7 +168,7 @@ corresponding alias file and then loads it into memory.
 =alias:new= is equivalent to =alias:def=.
 
 #+begin_src elvish
-  fn new [@arg]{ def $@arg }
+  fn new [&verbose=false &use=[] @arg]{ def &verbose=$verbose &use=$use $@arg }
 #+end_src
 
 The =alias:bash-alias= command simply splits the arguments on the first
