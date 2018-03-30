@@ -2,11 +2,9 @@
 #+author: Diego Zamboni
 #+email: diego@zzamboni.org
 
-Implement the =!!= (last command), =!$= (last argument of last command)
-and =!<n>= (nth argument of last command) shortcuts in Elvish.
+Implement the =!!= (last command), =!$= (last argument of last command) and =!<n>= (nth argument of last command) shortcuts in Elvish.
 
-This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy
-to explain. See [[file:alias.elv][alias.elv]] for the generated file.
+This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:alias.elv][alias.elv]] for the generated file.
 
 * Table of Contents                                            :TOC:noexport:
 - [[#usage][Usage]]
@@ -31,19 +29,12 @@ In your =rc.elv=, load this module.
   use github.com/zzamboni/elvish-modules/bang-bang
 #+end_src
 
-When you press =!=, you will see a menu showing you the different
-keys your can press, for example, if you try to execute a command that
-requires =root= privileges:
+When you press =!=, you will see a menu showing you the different keys your can press, for example, if you try to execute a command that requires =root= privileges:
 
 #+begin_example
 [~]─> ls /var/spool/mqueue/
 ls: cannot open directory '/var/spool/mqueue/': Permission denied
 Exception: ls exited with 2
-Traceback:
-  /Users/taazadi1/.elvish/aliases/ls.elv, line 2:
-    fn ls [@_args]{ e:ls --color=auto $@_args }
-  [tty], line 1:
-    ls /var/spool/mqueue/
 #+end_example
 
 You can type =sudo= and then press =!=, which will show you the menu:
@@ -57,15 +48,13 @@ bang-lastcmd [A C]
 Alt-! !
 #+end_example
 
-If you press =!= a second time, the full command will be inserted at the
-point:
+If you press =!= a second time, the full command will be inserted at the point:
 
 #+begin_example
 [~]─> sudo ls /var/spool/mqueue/
 #+end_example
 
-If you wanted to see the permissions on that directory next, you could
-use the =!$= shortcut instead:
+If you wanted to see the permissions on that directory next, you could use the =!$= shortcut instead:
 
 #+begin_example
 [~]─> ls -ld <!>
@@ -83,23 +72,13 @@ Pressing =$= (or =2=) at this point will insert the last argument:
 [~]─> ls -ld /var/spool/mqueue/
 #+end_example
 
-By default, =bang-bang:init= (which gets called automatically when the
-module loads) also binds the default "lastcmd" key (=Alt-1=), and when
-repeated, it will insert the full command. This means it fully
-emulates the default [[https://elvish.io/learn/cookbook.html#ui-recipes]["last command"]] behavior. If you want to bind
-bang-bang to other keys, you can pass them in a list in the
-=&extra-triggers= option to =bang-bang:init=. For example, to bind
-bang-bang to =Alt-`= in addition to =!=:
+By default, =bang-bang:init= (which gets called automatically when the module loads) also binds the default "lastcmd" key (=Alt-1=), and when repeated, it will insert the full command. This means it fully emulates the default [[https://elvish.io/learn/cookbook.html#ui-recipes]["last command"]] behavior. If you want to bind bang-bang to other keys, you can pass them in a list in the =&extra-triggers= option to =bang-bang:init=. For example, to bind bang-bang to =Alt-`= in addition to =!=:
 
 #+begin_src elvish
   bang-bang:init &extra-triggers=["Alt-`"]
 #+end_src
 
-By default, =Alt-!= (=Alt-Shift-1=) can be used to insert an exclamation
-mark when you really need one. This works both from insert mode or
-from "bang-mode" after you have typed the first exclamation mark. If
-you want to bind this to a different key, specify it with the
-=&plain-bang= option to =bang-bang:init=, like this:
+By default, =Alt-!= (=Alt-Shift-1=) can be used to insert an exclamation mark when you really need one. This works both from insert mode or from "bang-mode" after you have typed the first exclamation mark. If you want to bind this to a different key, specify it with the =&plain-bang= option to =bang-bang:init=, like this:
 
 #+begin_src elvish
   bang-bang:init &plain-bang="Alt-3"
@@ -113,26 +92,20 @@ you want to bind this to a different key, specify it with the
 
 ** Configuration
 
-If you want hooks to be run either before or after entering bang-bang
-mode, you can add them as lambdas to these variables.
+If you want hooks to be run either before or after entering bang-bang mode, you can add them as lambdas to these variables.
 
 #+begin_src elvish
   before-lastcmd = []
   after-lastcmd = []
 #+end_src
 
-=$-plain-bang-insert= contains the key that is used to insert a plain =!=,
-also after entering lastcmd.  *Do not set directly*, instead pass the
-=&plain-bang= option to =init=.
+=$-plain-bang-insert= contains the key that is used to insert a plain =!=, also after entering lastcmd.  *Do not set directly*, instead pass the =&plain-bang= option to =init=.
 
 #+begin_src elvish
   -plain-bang-insert = ""
 #+end_src
 
-=$-extra-trigger-keys= is an array containing the additional keys that
-will trigger bang-bang mode. These keys will also be bound, when
-pressed twice, to insert the full last command. *Do not set directly*,
-instead pass the =&-extra-triggers= option to =init=.
+=$-extra-trigger-keys= is an array containing the additional keys that will trigger bang-bang mode. These keys will also be bound, when pressed twice, to insert the full last command. *Do not set directly*, instead pass the =&-extra-triggers= option to =init=.
 
 #+begin_src elvish
   -extra-trigger-keys = []
@@ -169,12 +142,7 @@ We get the last command and split it in words for later use.
   parts = [(edit:wordify $last[cmd])]
 #+end_src
 
-We create the two "fixed" items of the bang-bang menu: the full
-command and the plain exclamation mark. Each menu item is a map with
-three keys: =content= is the text to insert when the option is selected,
-=display= is the text to show in the menu, and =filter-text= is the text
-which can be used by the user to filter options - usually it's the
-same as =content=.
+We create the two "fixed" items of the bang-bang menu: the full command and the plain exclamation mark. Each menu item is a map with three keys: =content= is the text to insert when the option is selected, =display= is the text to show in the menu, and =filter-text= is the text which can be used by the user to filter options - usually it's the same as =content=.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
   cmd = [
@@ -189,8 +157,7 @@ same as =content=.
   ]
 #+end_src
 
-We now populate the menu items for each word of the command. For the
-last one, we also indicate that it can be selected with =$=.
+We now populate the menu items for each word of the command. For the last one, we also indicate that it can be selected with =$=.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
   nitems = (count $parts)
@@ -215,8 +182,7 @@ Finally, we put the whole list together.
   candidates = [$cmd $@items $bang]
 #+end_src
 
-Now we create a list with the keybindings for the different elements
-of the menu.
+Now we create a list with the keybindings for the different elements of the menu.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
   insert-full-cmd = { edit:insert:start; edit:insert-at-dot $last[cmd] }
@@ -234,8 +200,7 @@ of the menu.
   }
 #+end_src
 
-Finally, we invoke narrow mode with all the information we have put
-together, to display the menu and act on the corresponding choice.
+Finally, we invoke narrow mode with all the information we have put together, to display the menu and act on the corresponding choice.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
   edit:-narrow-read {
@@ -248,16 +213,10 @@ together, to display the menu and act on the corresponding choice.
 
 ** Initialization
 
-The =init= function gets called to set up the keybindings. This function
-can receive two options:
+The =init= function gets called to set up the keybindings. This function can receive two options:
 
-- =&plain-bang= (string) to specify the key to insert a plain exclamation mark
-  when needed. Defaults to ="Alt-!"=.
-- =&extra-triggers= (array of strings) to specify additional keys (other
-  than =!=) to trigger bang-bang mode. All of these keys will also be
-  bound, when pressed twice, to insert the full last command (just
-  like =!!=). Defaults to =["Alt-1"]=, which emulates the default
-  last-command keybinding in Elvish.
+- =&plain-bang= (string) to specify the key to insert a plain exclamation mark when needed. Defaults to ="Alt-!"=.
+- =&extra-triggers= (array of strings) to specify additional keys (other than =!=) to trigger bang-bang mode. All of these keys will also be bound, when pressed twice, to insert the full last command (just like =!!=). Defaults to =["Alt-1"]=, which emulates the default last-command keybinding in Elvish.
 
 #+begin_src elvish
   fn init [&plain-bang="Alt-!" &extra-triggers=["Alt-1"]]{
@@ -271,9 +230,7 @@ can receive two options:
   }
 #+end_src
 
-We call =init= automatically on module load, although you can all it
-manually if you want to change the defaults for =plain-bang= or
-=extra-triggers=.
+We call =init= automatically on module load, although you can all it manually if you want to change the defaults for =plain-bang= or =extra-triggers=.
 
 #+begin_src elvish
   init
