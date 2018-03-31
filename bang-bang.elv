@@ -11,43 +11,55 @@ fn lastcmd {
   for hook $before-lastcmd { $hook }
   last = (edit:command-history -1)
   parts = [(edit:wordify $last[cmd])]
+  use ./util
+  
+  nitems = (count $parts)
+  indicator-width = (util:max (count $nitems) (count $-plain-bang-insert))
+  filler = (repeat $indicator-width ' ' | joins '')
+  fn -display-text [ind text]{
+    indcol = $filler$ind
+    put $indcol[(- $indicator-width):]" "$text
+  }
   cmd = [
     &content=     $last[cmd]
-    &display=     "! "$last[cmd]
+    &display=     (-display-text "!" $last[cmd])
     &filter-text= $last[cmd]
   ]
   bang = [
     &content=     "!"
-    &display=     $-plain-bang-insert" !"
+    &display=     (-display-text $-plain-bang-insert "!")
     &filter-text= "!"
   ]
-  nitems = (count $parts)
   items = [
     (range $nitems |
       each [i]{
         text = $parts[$i]
-        if (eq $i (- $nitems 1)) { i = $i"/$" }
+        if (eq $i (- $nitems 1)) {
+          i = "$"
+        } elif (> $i 9) {
+          i = ""
+        }
         put [
           &content=     $text
-          &display=     $i" "$text
+          &display=     (-display-text $i $text)
           &filter-text= $text
         ]
       }
     )
   ]
   candidates = [$cmd $@items $bang]
-  insert-full-cmd = { edit:insert:start; edit:insert-at-dot $last[cmd] }
-  insert-part-n = [n]{ edit:insert:start; edit:insert-at-dot $parts[$n] }
+  fn insert-full-cmd { edit:insert:start; edit:insert-at-dot $last[cmd] }
+  fn insert-part [n]{ edit:insert:start; edit:insert-at-dot $parts[$n] }
   bindings = [
-    &!=                   $insert-full-cmd
-    &"$"=                 { $insert-part-n -1 }
+    &!=                   $insert-full-cmd~
+    &"$"=                 { insert-part -1 }
     &$-plain-bang-insert= $insert-plain-bang~
   ]
   for k $-extra-trigger-keys {
-    bindings[$k] = $insert-full-cmd
+    bindings[$k] = $insert-full-cmd~
   }
-  range (count $parts) | each [i]{
-    bindings[$i] = { $insert-part-n $i }
+  range (util:min (count $parts) 10) | each [i]{
+    bindings[$i] = { insert-part $i }
   }
   edit:-narrow-read {
     put $@candidates
