@@ -14,12 +14,14 @@ to explain. See [[file:util.elv][util.elv]] for the generated file.
   - [[#evaluating-code][Evaluating code]]
   - [[#yes-or-no-prompts][Yes-or-no prompts]]
   - [[#get-a-filename-from-the-macos-finder][Get a filename from the macOS Finder]]
+  - [[#maximumminimum][Maximum/minimum]]
 - [[#implementation][Implementation]]
   - [[#dotifying-strings-1][Dotifying strings]]
   - [[#parallel-redirection-of-stdoutstderr-to-different-commands-1][Parallel redirection of stdout/stderr to different commands]]
   - [[#evaluating-code-1][Evaluating code]]
   - [[#yes-or-no-prompts-1][Yes-or-no prompts]]
   - [[#get-a-filename-from-the-macos-finder-1][Get a filename from the macOS Finder]]
+  - [[#maximumminimum-1][Maximum/minimum]]
 
 * Usage
 
@@ -123,6 +125,19 @@ Drop a file here: /System/Library/Address\ Book\ Plug-Ins
 drwxr-xr-x 8 root wheel 256 Oct 25 18:16 '/System/Library/Address Book Plug-Ins'
 #+end_src
 
+** Maximum/minimum
+
+Return the maximum/minimum in a list of numbers.
+
+#+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
+  util:max 3 4 5 2 -1 4 0
+  util:min 3 4 5 2 -1 4 0
+#+end_src
+
+#+RESULTS:
+: ▶ 5
+: ▶ -1
+
 * Implementation
 :PROPERTIES:
 :header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
@@ -200,5 +215,21 @@ Thanks to @hanche in the Elvish channel, a short utility to convert a filename a
     use re
     print 'Drop a file here: ' >/dev/tty
     re:replace '\\(.)' '$1' (head -n 1 </dev/tty)[:-1]
+  }
+#+end_src
+
+** Maximum/minimum
+
+#+begin_src elvish
+  fn max [a @rest]{
+    res = $a
+    each [n]{ if (> $n $res) { res = $n } } $rest
+    put $res
+  }
+
+  fn min [a @rest]{
+    res = $a
+    each [n]{ if (< $n $res) { res = $n } } $rest
+    put $res
   }
 #+end_src

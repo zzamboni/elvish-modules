@@ -44,3 +44,15 @@ fn getfile {
   print 'Drop a file here: ' >/dev/tty
   re:replace '\\(.)' '$1' (head -n 1 </dev/tty)[:-1]
 }
+
+fn max [a @rest]{
+  res = $a
+  each [n]{ if (> $n $res) { res = $n } } $rest
+  put $res
+}
+
+fn min [a @rest]{
+  res = $a
+  each [n]{ if (< $n $res) { res = $n } } $rest
+  put $res
+}
