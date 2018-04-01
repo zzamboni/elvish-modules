@@ -2,11 +2,9 @@
 #+author: Diego Zamboni
 #+email: diego@zzamboni.org
 
-Manipulation of proxy-related environment variables (including
-auto-setting/unsetting based on a user-defined test) for [[http://elvish.io][Elvish]].
+Manipulation of proxy-related environment variables (including auto-setting/unsetting based on a user-defined test) for [[http://elvish.io][Elvish]].
 
-This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy
-to explain. See [[file:proxy.elv][proxy.elv]] for the generated file.
+This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:proxy.elv][proxy.elv]] for the generated file.
 
 * Table of Contents                                            :TOC:noexport:
 - [[#usage][Usage]]
@@ -30,35 +28,23 @@ In your =rc.elv=, load this module:
   use github.com/zzamboni/elvish-modules/proxy
 #+end_src
 
-Set your default proxy host (including port number) by assigning it to
-the =$proxy:host= variable. For example:
+Set your default proxy host (including port number) by assigning it to the =$proxy:host= variable. For example:
 
 #+begin_src elvish
   proxy:host = "proxy.corpnet.com:8079"
 #+end_src
 
-You can now manually set/unset the proxy environment variables by
-calling =proxy:set= and =proxy:unset=, respectively.
+You can now manually set/unset the proxy environment variables by calling =proxy:set= and =proxy:unset=, respectively.
 
-For now only the =http_proxy= and =https_proxy= environment variables are
-set.
+For now only the =http_proxy= and =https_proxy= environment variables are set.
 
-If you want to enable automatic proxy switching, you need to define a
-check function and assign it to the =$proxy:test= variable. It should be
-a lambda which receives no arguments, and returns a true/false
-value. When the function returns true, the proxy will be set. For
-example, the following function will set the proxy whenever
-=/etc/resolv.conf= contains any search or domain definitions ending in
-"corpnet.com":
+If you want to enable automatic proxy switching, you need to define a check function and assign it to the =$proxy:test= variable. It should be a lambda which receives no arguments, and returns a true/false value. When the function returns true, the proxy will be set. For example, the following function will set the proxy whenever =/etc/resolv.conf= contains any search or domain definitions ending in "corpnet.com":
 
 #+begin_src elvish
   proxy:test = { and ?(test -f /etc/resolv.conf) ?(egrep -q '^(search|domain).*corpnet.com' /etc/resolv.conf) }
 #+end_src
 
-If you want to temporarily disable the proxy auto-set function in the
-current session after having defined a test function, you can run the
-=proxy:disable= command. Use =proxy:enable= to reenable it when
-needed. Note that =proxy:disable= also unsets the proxy variables.
+If you want to temporarily disable the proxy auto-set function in the current session after having defined a test function, you can run the =proxy:disable= command. Use =proxy:enable= to reenable it when needed. Note that =proxy:disable= also unsets the proxy variables.
 
 * Implementation
 :PROPERTIES:
@@ -75,8 +61,7 @@ needed. Note that =proxy:disable= also unsets the proxy variables.
 
 ** Libraries
 
-We use the =prompt-hooks= library to set up the hooks for the auto-set
-feature.
+We use the =prompt-hooks= library to set up the hooks for the auto-set feature.
 
 #+begin_src elvish
   use ./prompt-hooks
@@ -84,21 +69,15 @@ feature.
 
 ** Configuration
 
-The =$proxy:host= variable contains the proxy host to used by default,
-in "http://host:port" format.
+The =$proxy:host= variable contains the proxy host to used by default, in "http://host:port" format.
 
 #+begin_src elvish
   host = ""
 #+end_src
 
-=$proxy:test= contains the auto-set test function. It must be either
-=$false= (to disable auto-setting) or a lambda which receives no
-arguments, and return a true value (anything except =$false= or an
-error, as per [[https://elvish.io/ref/builtin.html#bool][Elvish's booleanly interpretation of values]]) when the
-proxy needs to be automatically set, false otherwise.
+=$proxy:test= contains the auto-set test function. It must be either =$false= (to disable auto-setting) or a lambda which receives no arguments, and return a true value (anything except =$false= or an error, as per [[https://elvish.io/ref/builtin.html#bool][Elvish's booleanly interpretation of values]]) when the proxy needs to be automatically set, false otherwise.
 
-To enable auto-setting you must override it with code that performs a
-meaningful check for your needs.
+To enable auto-setting you must override it with code that performs a meaningful check for your needs.
 
 #+begin_src elvish
   test = $false
@@ -110,15 +89,13 @@ Whether to print notifications when setting/unsetting the proxy.
   notify = $true
 #+end_src
 
-Whether autoset should be disabled (useful for temporarily stopping
-the automatic proxy setting using =proxy:disable=).
+Whether autoset should be disabled (useful for temporarily stopping the automatic proxy setting using =proxy:disable=).
 
 #+begin_src elvish
   disable-autoset = $false
 #+end_src
 
-The list of environment variables to set. By default only =http_proxy=
-and =https_proxy= are set.
+The list of environment variables to set. By default only =http_proxy= and =https_proxy= are set.
 
 #+begin_src elvish
   env-vars = [ http_proxy https_proxy ]
@@ -126,9 +103,7 @@ and =https_proxy= are set.
 
 ** Functions
 
-Elvish does not include an =eval= function, but we emulate one using the
-=-source= command. We use this to dynamically query and set the
-variables according to the contents of =$proxy:env-vars=.
+Elvish does not include an =eval= function, but we emulate one using the =-source= command. We use this to dynamically query and set the variables according to the contents of =$proxy:env-vars=.
 
 #+begin_src elvish
   fn eval [str]{
@@ -139,13 +114,7 @@ variables according to the contents of =$proxy:env-vars=.
   }
 #+end_src
 
-Check whether the proxy is set. We use the first variable in
-=$proxy:env-vars= for the check, with the assumption that the other
-variables follow. The need to dynamically determine which variable to
-check makes this function a bit tricky - basically we create a
-temporary file (using the =mktemp= command), and then evaluate code that
-removes the file if the proxy variable is unset - then the existence
-of the file indicates the setting of the variable.
+Check whether the proxy is set. We use the first variable in =$proxy:env-vars= for the check, with the assumption that the other variables follow. The need to dynamically determine which variable to check makes this function a bit tricky - basically we create a temporary file (using the =mktemp= command), and then evaluate code that removes the file if the proxy variable is unset - then the existence of the file indicates the setting of the variable.
 
 #+begin_src elvish
   fn is-set {
@@ -157,10 +126,7 @@ of the file indicates the setting of the variable.
   }
 #+end_src
 
-Set the proxy variables to the given string. If no parameters are
-given but =$proxy:host= is set, then its value is used. Note that
-passing an argument to this function *does not set $param:host*, this
-needs to be done explicitly if you want it.
+Set the proxy variables to the given string. If no parameters are given but =$proxy:host= is set, then its value is used. Note that passing an argument to this function *does not set $param:host*, this needs to be done explicitly if you want it.
 
 #+begin_src elvish
   fn set [@param]{
@@ -199,8 +165,7 @@ Enable auto-set after it had been disabled using =proxy:disable-autoset=.
   }
 #+end_src
 
-This is the function that powers the auto-set feature. It runs
-=$proxy:test= and sets/unsets the variables depending on the result.
+This is the function that powers the auto-set feature. It runs =$proxy:test= and sets/unsets the variables depending on the result.
 
 #+begin_src elvish
   fn autoset [@_]{
@@ -225,8 +190,7 @@ This is the function that powers the auto-set feature. It runs
   }
 #+end_src
 
-The =proxy:init= function adds the =proxy:autoset= function to both the
-before- and after-command hooks.
+The =proxy:init= function adds the =proxy:autoset= function to both the before- and after-command hooks.
 
 #+begin_src elvish
   fn init {

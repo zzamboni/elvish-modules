@@ -42,8 +42,7 @@ The following functions are included:
 
 ** Dotifying strings
 
-=util:dotify-string= shortens a string to a maximum length, followed by
-dots.
+=util:dotify-string= shortens a string to a maximum length, followed by dots.
 
 #+begin_src elvish :use github.com/zzamboni/elvish-modules/util :exports both
 util:dotify-string somelongstring 5
@@ -54,10 +53,7 @@ util:dotify-string somelongstring 5
 
 ** Parallel redirection of stdout/stderr to different commands
 
-=util:pipesplit= does parallel redirection of stdout and stderr to
-different commands. It takes three lambdas: The first one is executed,
-its stdout is redirected to the second one, and its stderr to the
-third one.
+=util:pipesplit= does parallel redirection of stdout and stderr to different commands. It takes three lambdas: The first one is executed, its stdout is redirected to the second one, and its stderr to the third one.
 
 #+begin_src elvish :use github.com/zzamboni/elvish-modules/util :exports both
   util:pipesplit { echo stdout-test; echo stderr-test >&2 } { echo STDOUT: (cat) } { echo STDERR: (cat) }
@@ -69,11 +65,7 @@ third one.
 
 ** Evaluating code
 
-=util:eval= does dynamic evaluation of code. Note that due to Elvish's
-scoping rules, statements are evaluated within the context of the =util=
-module, so variable assignments will not be persistent. Also, if you
-need to make use of any modules within the code, you need to
-explicitly load them with =use=.
+=util:eval= does dynamic evaluation of code. Note that due to Elvish's scoping rules, statements are evaluated within the context of the =util= module, so variable assignments will not be persistent. Also, if you need to make use of any modules within the code, you need to explicitly load them with =use=.
 
 #+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
   util:eval "put foo"
@@ -84,10 +76,7 @@ explicitly load them with =use=.
 
 ** Yes-or-no prompts
 
-=y-or-n= receives a prompt string, shows the prompt to the user and
-accepts =y= or =n= as an answer. Returns =$true= if the user responds with
-=y=. The =&style= option can be used to specify the style for the prompt,
-as accepted by [[https://elvish.io/ref/edit.html#editstyled][edit:styled]].
+=y-or-n= receives a prompt string, shows the prompt to the user and accepts =y= or =n= as an answer. Returns =$true= if the user responds with =y=. The =&style= option can be used to specify the style for the prompt, as accepted by [[https://elvish.io/ref/edit.html#editstyled][edit:styled]].
 
 #+begin_src elvish
   [~]─> util:y-or-n "Do you agree?"
@@ -180,8 +169,7 @@ The implementation of this function was inspired by the discussion [[https://git
 
 ** Evaluating code
 
-Elvish does not include an =eval= function, but we emulate one using the
-=-source= command.
+Elvish does not include an =eval= function, but we emulate one using the =-source= command.
 
 #+begin_src elvish
   fn eval [str]{
@@ -219,6 +207,8 @@ Thanks to @hanche in the Elvish channel, a short utility to convert a filename a
 #+end_src
 
 ** Maximum/minimum
+
+Choose the maximum and minimum numbers from the given list.
 
 #+begin_src elvish
   fn max [a @rest]{
