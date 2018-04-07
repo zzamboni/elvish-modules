@@ -9,6 +9,9 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
 * Table of Contents                                            :TOC:noexport:
 - [[#usage][Usage]]
 - [[#implementation][Implementation]]
+  - [[#support-functions][Support functions]]
+  - [[#main-comparison-function][Main comparison function]]
+  - [[#comparing-lists-of-version-numbers][Comparing lists of version numbers]]
 
 * Usage
 
@@ -104,23 +107,39 @@ semver:not-eq 1.0.0 1.0.1 2.0.0
 :header-args: :mkdirp yes :comments no
 :END:
 
+We start by including some necessary libraries.
+
 #+begin_src elvish
   use re
   use builtin
   use ./util
+#+end_src
 
+** Support functions
+
+The =-signed-compare= function compares two values using an arbitrary function which should return whether the first is "less than" the second, and return =$true= or =$false= accordingly. Based on this, it returns -1, 0 or -1 to represent the order of the two values.
+
+#+begin_src elvish
   fn -signed-compare [ltfn v1 v2]{
     if     ($ltfn $v1 $v2) { put  1
     } elif ($ltfn $v2 $v1) { put -1
     } else                 { put  0 }
   }
+#+end_src
 
+The =-num-str-cmp= function compares two values numerically if they both are integers, and lexically (as strings) otherwise.
+
+#+begin_src elvish
   fn -num-str-cmp [e1 e2]{
     lt = $<s~
     if (re:match '^\d+$' $e1$e2) { lt = $<~ }
     -signed-compare $lt $e1 $e2
   }
+#+end_src
 
+The =-part-compare= function receives two period-separated strings and returns their order according to the first component that differs (0 is both are equal).
+
+#+begin_src elvish
   fn -part-compare [v1 v2]{
     v1s = [(splits '.' $v1)]
     v2s = [(splits '.' $v2)]
@@ -135,7 +154,18 @@ semver:not-eq 1.0.0 1.0.1 2.0.0
     }
     put 0
   }
+#+end_src
 
+** Main comparison function
+
+The =semver:cmp= function receives two version numbers in the form MAJOR.MINOR.PATCH-LABEL (where all components except for MAJOR) are optional and returns their order as -1, 0 or 1. The [[semver:>  1.0.0 1.0.0-rc1 0.9.0][algorithm]] is as follows:
+
+- If the MAJOR.MINOR.PATCH parts of the two version numbers differ, return their order (missing MINOR or PATCH components are treated as 0)
+- Otherwise:
+  - If one of them has a LABEL part but the other not, the one without the label is higher.
+  - If both have a LABEL part, return the order of the labels.
+
+#+begin_src elvish
   fn cmp [v1 v2]{
     rel1 prerel1 @_ = (splits '-' $v1) $false
     rel2 prerel2 @_ = (splits '-' $v2) $false
@@ -152,6 +182,10 @@ semver:not-eq 1.0.0 1.0.1 2.0.0
   }
 #+end_src
 
+** Comparing lists of version numbers
+
+The =-seq-compare= function receives a list of version numbers, an operator and an expected value. All neighboring pairs in the list are compared using =semver:cmp=, and the result is compared against the expected using the operator. The function returns =$true= if the list is empty, or if all the pairs satisfy the condition. This allows us to implement all the list-comparison functions below just by modifying the operator and the expected value.
+
 #+begin_src elvish
   fn -seq-compare [op expected @vers]{
     res = $true
@@ -165,6 +199,8 @@ semver:not-eq 1.0.0 1.0.1 2.0.0
     put $res
   }
 #+end_src
+
+All of the user-facing functions are implemented by passing the corresponding functions and values to =-seq-compare=.
 
 #+begin_src elvish
   fn '<' [@vers]{
