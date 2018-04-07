@@ -80,14 +80,14 @@ semver:cmp 1.0 1
 The =semver:eq=, =semver:not-eq=, =semver:<=, =semver:<==, =semver:>= and =semver:>== functions behave just like their [[https://elvish.io/ref/builtin.html#section-3][numeric or string versions]], but with version numbers. They all use =semver:cmp= to do the comparison.
 
 #+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/semver
-semver:<      1.0.0 2.0.0 2.1.0
-semver:<      1.0.0-alpha 1.0.0 2.1.0
-semver:<=     1.0.0 1.0.0 2.1.0
-semver:>      1.0.0 1.0.0-rc1 0.9.0
-semver:>=     1.0.0-rc1 1.0.0-rc1 0.9.0
-semver:eq     1.0.0 1.0 1
-semver:not-eq 1.0.0 1.0 1
-semver:not-eq 1.0.0 1.0.1 2.0.0
+  semver:<      1.0.0 2.0.0 2.1.0
+  semver:<      1.0.0-alpha 1.0.0 2.1.0
+  semver:<=     1.0.0 1.0.0 2.1.0
+  semver:>      1.0.0 1.0.0-rc1 0.9.0
+  semver:>=     1.0.0-rc1 1.0.0-rc1 0.9.0
+  semver:eq     1.0.0 1.0 1
+  semver:not-eq 1.0.0 1.0 1
+  semver:not-eq 1.0.0 1.0.1 2.0.0
 #+end_src
 
 #+RESULTS:
@@ -158,12 +158,13 @@ The =-part-compare= function receives two period-separated strings and returns t
 
 ** Main comparison function
 
-The =semver:cmp= function receives two version numbers in the form MAJOR.MINOR.PATCH-LABEL (where all components except for MAJOR) are optional and returns their order as -1, 0 or 1. The [[semver:>  1.0.0 1.0.0-rc1 0.9.0][algorithm]] is as follows:
+The =semver:cmp= function receives two version numbers in the form MAJOR.MINOR.PATCH-LABEL (where all components except for MAJOR) are optional and returns their order as -1, 0 or 1. The [[https://semver.org/#spec-item-11][algorithm]] is as follows:
 
 - If the MAJOR.MINOR.PATCH parts of the two version numbers differ, return their order (missing MINOR or PATCH components are treated as 0)
 - Otherwise:
   - If one of them has a LABEL part but the other not, the one without the label is higher.
   - If both have a LABEL part, return the order of the labels.
+
 
 #+begin_src elvish
   fn cmp [v1 v2]{
