@@ -100,7 +100,6 @@ The =semver:eq=, =semver:not-eq=, =semver:<=, =semver:<==, =semver:>= and =semve
 : ▶ $false
 : ▶ $true
 
-
 * Implementation
 :PROPERTIES:
 :header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
