@@ -3,14 +3,18 @@ use builtin
 use ./util
 
 fn -signed-compare [ltfn v1 v2]{
-  if     ($ltfn $v1 $v2) { put  1
-  } elif ($ltfn $v2 $v1) { put -1
-  } else                 { put  0 }
+  util:cond [
+    { $ltfn $v1 $v2 }  1
+    { $ltfn $v2 $v1 } -1
+    :else              0
+  ]
 }
 
 fn -num-str-cmp [e1 e2]{
-  lt = $<s~
-  if (re:match '^\d+$' $e1$e2) { lt = $<~ }
+  lt = (util:cond [
+      { re:match '^\d+$' $e1$e2 } $<~
+      :else                       $<s~
+  ])
   -signed-compare $lt $e1 $e2
 }
 
@@ -56,26 +60,9 @@ fn -seq-compare [op expected @vers]{
   put $res
 }
 
-fn '<' [@vers]{
-  -seq-compare $builtin:eq~ 1 $@vers
-}
-
-fn '>' [@vers]{
-  -seq-compare $builtin:eq~ -1 $@vers
-}
-
-fn eq [@vers]{
-  -seq-compare $builtin:eq~ 0 $@vers
-}
-
-fn not-eq [@vers]{
-  -seq-compare $builtin:not-eq~ 0 $@vers
-}
-
-fn '<=' [@vers]{
-  -seq-compare $builtin:not-eq~ -1 $@vers
-}
-
-fn '>=' [@vers]{
-  -seq-compare $builtin:not-eq~ 1 $@vers
-}
+fn '<'    [@vers]{ -seq-compare $builtin:eq~      1 $@vers }
+fn '>'    [@vers]{ -seq-compare $builtin:eq~     -1 $@vers }
+fn eq     [@vers]{ -seq-compare $builtin:eq~      0 $@vers }
+fn not-eq [@vers]{ -seq-compare $builtin:not-eq~  0 $@vers }
+fn '<='   [@vers]{ -seq-compare $builtin:not-eq~ -1 $@vers }
+fn '>='   [@vers]{ -seq-compare $builtin:not-eq~  1 $@vers }

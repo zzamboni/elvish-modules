@@ -121,9 +121,11 @@ The =-signed-compare= function compares two values using an arbitrary function w
 
 #+begin_src elvish
   fn -signed-compare [ltfn v1 v2]{
-    if     ($ltfn $v1 $v2) { put  1
-    } elif ($ltfn $v2 $v1) { put -1
-    } else                 { put  0 }
+    util:cond [
+      { $ltfn $v1 $v2 }  1
+      { $ltfn $v2 $v1 } -1
+      :else              0
+    ]
   }
 #+end_src
 
@@ -131,8 +133,10 @@ The =-num-str-cmp= function compares two values numerically if they both are int
 
 #+begin_src elvish
   fn -num-str-cmp [e1 e2]{
-    lt = $<s~
-    if (re:match '^\d+$' $e1$e2) { lt = $<~ }
+    lt = (util:cond [
+        { re:match '^\d+$' $e1$e2 } $<~
+        :else                       $<s~
+    ])
     -signed-compare $lt $e1 $e2
   }
 #+end_src
@@ -204,27 +208,10 @@ The =-seq-compare= function receives a list of version numbers, an operator and 
 All of the user-facing functions are implemented by passing the corresponding functions and values to =-seq-compare=.
 
 #+begin_src elvish
-  fn '<' [@vers]{
-    -seq-compare $builtin:eq~ 1 $@vers
-  }
-
-  fn '>' [@vers]{
-    -seq-compare $builtin:eq~ -1 $@vers
-  }
-
-  fn eq [@vers]{
-    -seq-compare $builtin:eq~ 0 $@vers
-  }
-
-  fn not-eq [@vers]{
-    -seq-compare $builtin:not-eq~ 0 $@vers
-  }
-
-  fn '<=' [@vers]{
-    -seq-compare $builtin:not-eq~ -1 $@vers
-  }
-
-  fn '>=' [@vers]{
-    -seq-compare $builtin:not-eq~ 1 $@vers
-  }
+  fn '<'    [@vers]{ -seq-compare $builtin:eq~      1 $@vers }
+  fn '>'    [@vers]{ -seq-compare $builtin:eq~     -1 $@vers }
+  fn eq     [@vers]{ -seq-compare $builtin:eq~      0 $@vers }
+  fn not-eq [@vers]{ -seq-compare $builtin:not-eq~  0 $@vers }
+  fn '<='   [@vers]{ -seq-compare $builtin:not-eq~ -1 $@vers }
+  fn '>='   [@vers]{ -seq-compare $builtin:not-eq~  1 $@vers }
 #+end_src
