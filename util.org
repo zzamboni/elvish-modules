@@ -15,6 +15,7 @@ to explain. See [[file:util.elv][util.elv]] for the generated file.
   - [[#yes-or-no-prompts][Yes-or-no prompts]]
   - [[#get-a-filename-from-the-macos-finder][Get a filename from the macOS Finder]]
   - [[#maximumminimum][Maximum/minimum]]
+  - [[#conditionals][Conditionals]]
 - [[#implementation][Implementation]]
   - [[#dotifying-strings-1][Dotifying strings]]
   - [[#parallel-redirection-of-stdoutstderr-to-different-commands-1][Parallel redirection of stdout/stderr to different commands]]
@@ -22,6 +23,7 @@ to explain. See [[file:util.elv][util.elv]] for the generated file.
   - [[#yes-or-no-prompts-1][Yes-or-no prompts]]
   - [[#get-a-filename-from-the-macos-finder-1][Get a filename from the macOS Finder]]
   - [[#maximumminimum-1][Maximum/minimum]]
+  - [[#conditionals-1][Conditionals]]
 
 * Usage
 
@@ -127,6 +129,31 @@ Return the maximum/minimum in a list of numbers.
 : ▶ 5
 : ▶ -1
 
+** Conditionals
+
+=util:cond= emulates [[https://clojuredocs.org/clojure.core/cond][Clojure's cond]] function. It receives a list of /expression value/ pairs. Puts the first /value/ whose /expression/ is a true value, if any. Expressions which are closures are executed and their return value used in the evaluation. Expressions which are already a scalar value are evaluated according to their [[https://elvish.io/ref/builtin.html#bool][booleanly value]].
+
+In the example below, =:else= has no special significance - it's simply evaluated as a string, which represents a booleanly true value. Any other true value (e.g. =:default=, =$true=, etc.) could be used.
+
+#+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
+  fn pos-neg-or-zero [n]{
+    util:cond [
+      { < $n 0 } "negative"
+      { > $n 0 } "positive"
+      :else      "zero"
+    ]
+  }
+
+  pos-neg-or-zero 5
+  pos-neg-or-zero -1
+  pos-neg-or-zero 0
+#+end_src
+
+#+RESULTS:
+: ▶ positive
+: ▶ negative
+: ▶ zero
+
 * Implementation
 :PROPERTIES:
 :header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
@@ -221,5 +248,21 @@ Choose the maximum and minimum numbers from the given list.
     res = $a
     each [n]{ if (< $n $res) { res = $n } } $rest
     put $res
+  }
+#+end_src
+** Conditionals
+
+We simply step through the /expression value/ pairs, and =put= the first value whose expression (or its result, if it's a closure) returns true.
+
+#+begin_src elvish
+  fn cond [clauses]{
+    range &step=2 (count $clauses) | each [i]{
+      exp = $clauses[$i]
+      if (eq (kind-of $exp) fn) { exp = ($exp) }
+      if $exp {
+        put $clauses[(+ $i 1)]
+        return
+      }
+    }
   }
 #+end_src

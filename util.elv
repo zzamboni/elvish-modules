@@ -56,3 +56,14 @@ fn min [a @rest]{
   each [n]{ if (< $n $res) { res = $n } } $rest
   put $res
 }
+
+fn cond [clauses]{
+  range &step=2 (count $clauses) | each [i]{
+    exp = $clauses[$i]
+    if (eq (kind-of $exp) fn) { exp = ($exp) }
+    if $exp {
+      put $clauses[(+ $i 1)]
+      return
+    }
+  }
+}
