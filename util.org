@@ -4,8 +4,7 @@
 
 This module includes various utility functions.
 
-This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy
-to explain. See [[file:util.elv][util.elv]] for the generated file.
+This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:util.elv][util.elv]] for the generated file.
 
 * Table of Contents                                            :TOC:noexport:
 - [[#usage][Usage]]

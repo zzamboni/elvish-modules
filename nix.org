@@ -1,4 +1,5 @@
-#+property: header-args :mkdirp yes :comments no :tangle nix.elv
+#+property: header-args:emacs-lisp :tangle (concat (file-name-sans-extension (buffer-file-name)) ".el")
+#+property: header-args :mkdirp yes :comments no
 
 #+title: Nix environment setup library for Elvish
 #+author: Diego Zamboni
@@ -32,13 +33,11 @@ We use the =re= module.
 
 * Environment setup
 
-I have two environment setup functions, one for a multi-user
-environment (default on macOS) and the other for a single-user setup.
+I have two environment setup functions, one for a multi-user environment (default on macOS) and the other for a single-user setup.
 
 ** Multi-user setup
 
-This is the default setup on macOS. This script was ported to Elvish
-from =/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh=.
+This is the default setup on macOS. This script was ported to Elvish from =/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh=.
 
 #+begin_src elvish
   fn multi-user-setup {
@@ -164,9 +163,7 @@ This is not fully tested as I don't use this setup - use with care!
 
 ** Searching for packages
 
-=nix:search= is a wrapper around =nix-env -qa=, which removes the
-automatic pager wrapper, and pipes through =json_pp= if the first
-argument is =--json=.
+=nix:search= is a wrapper around =nix-env -qa=, which removes the automatic pager wrapper, and pipes through =json_pp= if the first argument is =--json=.
 
 #+begin_src elvish
   fn search [@pkgs]{
@@ -191,11 +188,7 @@ argument is =--json=.
 
 ** Moving from Homebrew to Nix
 
-=nix:brew-to-nix= is a simple interactive function to go through
-installed Homebrew packages and allow you to replace them with their
-Nix equivalents.  Only loops through the "leaves" - i.e. Homebrew
-packages that do not have any dependents, so it will not loop through
-everything. You may need to run it a few times to fully clean up.
+=nix:brew-to-nix= is a simple interactive function to go through installed Homebrew packages and allow you to replace them with their Nix equivalents.  Only loops through the "leaves" - i.e. Homebrew packages that do not have any dependents, so it will not loop through everything. You may need to run it a few times to fully clean up.
 
 #+begin_src elvish
   fn brew-to-nix {
@@ -223,9 +216,7 @@ everything. You may need to run it a few times to fully clean up.
 
 ** Displaying package information
 
-=nix:info= is a wrapper to query nix packages, but showing more
-information than what =nix-env= usually provides, by extracting it from
-the package metadata.
+=nix:info= is a wrapper to query nix packages, but showing more information than what =nix-env= usually provides, by extracting it from the package metadata.
 
 #+begin_src elvish
   fn info [pkg]{
