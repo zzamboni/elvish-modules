@@ -1,0 +1,81 @@
+#+TITLE:  OpsGenie API functions for Elvish
+#+AUTHOR: Diego Zamboni
+#+EMAIL:  diego@zzamboni.org
+
+This module implements a few common operations for the [[https://docs.opsgenie.com/docs/api-overview][OpsGenie API]] in Elvish.
+
+This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:$name.elv][$name.elv]] for the generated file.
+
+* Table of Contents                                            :TOC:noexport:
+- [[#usage][Usage]]
+- [[#implementation][Implementation]]
+
+* Usage
+
+Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
+
+#+begin_src elvish
+  use epm
+  epm:install github.com/zzamboni/elvish-modules
+#+end_src
+
+In your =rc.elv=, load this module:
+
+#+begin_src elvish
+  use github.com/zzamboni/elvish-modules/opsgenie
+#+end_src
+
+You need to specify your API key so that it can be used in the requests:
+
+#+begin_src elvish
+  opsgenie:api-key = 'xxxx00x0-0xxx-0000-x00x-00x0000xx0xx'
+#+end_src
+
+=opsgenie:admins= returns a map containing the users which have =admin= role in their teams as keys, with the value being the team in which they have that role.
+
+#+begin_src elvish :use private,github.com/zzamboni/elvish-modules/opsgenie
+  opsgenie:admins
+#+end_src
+
+#+RESULTS:
+: ▶ [&user1@company.com=team1 &user2@company.com=team2 ...]
+
+* Implementation
+:PROPERTIES:
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
+:header-args: :mkdirp yes :comments no
+:END:
+
+First, we declare the variable that will contain the API key.
+
+#+begin_src elvish
+  api-key = ''
+#+end_src
+
+#+begin_src elvish
+  fn admins {
+    admins = [&]
+    auth-hdr = 'Authorization: GenieKey '$api-key
+    url = 'https://api.opsgenie.com/v2/teams'
+    put (explode (curl -s -X GET -H $auth-hdr $url | from-json)[data])[name] | each [id]{
+      #put $id
+      try {
+        put (explode (curl -s -X GET -H $auth-hdr $url'/'$id'?identifierType=name' | from-json)[data][members]) | each [user]{
+          #put $user
+          if (eq $user[role] admin) {
+            admins[$user[user][username]] = $id
+          }
+        }
+      } except e {
+        # This is here to skip teams without members
+      }
+    }
+    put $admins
+  }
+
+  fn list [what &key=name]{
+    auth-hdr = 'Authorization: GenieKey '$api-key
+    url = 'https://api.opsgenie.com/v2/'$what
+    put (explode (curl -s -X GET -H $auth-hdr $url | from-json)[data])[$key]
+  }
+#+end_src
