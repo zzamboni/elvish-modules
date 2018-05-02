@@ -1,13 +1,30 @@
 api-key = ''
 
+fn request [url]{
+  auth-hdr = 'Authorization: GenieKey '$api-key
+  curl -s -X GET -H $auth-hdr $url | from-json
+}
+
+fn request-data [url &paged=$true]{
+  response = (request $url)
+  data = $response[data]
+  if $paged {
+    while (and (has-key $response paging) (has-key $response[paging] next)) {
+      response = (request $response[paging][next])
+      newdata = $response[data]
+      data = [ $@data $@newdata ]
+    }
+  }
+  put $data
+}
+
 fn admins {
   admins = [&]
-  auth-hdr = 'Authorization: GenieKey '$api-key
   url = 'https://api.opsgenie.com/v2/teams'
-  put (explode (curl -s -X GET -H $auth-hdr $url | from-json)[data])[name] | each [id]{
+  put (explode (request-data $url))[name] | each [id]{
     #put $id
     try {
-      put (explode (curl -s -X GET -H $auth-hdr $url'/'$id'?identifierType=name' | from-json)[data][members]) | each [user]{
+      put (explode (request-data $url'/'$id'?identifierType=name')[members]) | each [user]{
         #put $user
         if (eq $user[role] admin) {
           admins[$user[user][username]] = $id
@@ -20,8 +37,16 @@ fn admins {
   put $admins
 }
 
-fn list [what &key=name]{
+fn list [what &keys=[name] &params=[&]]{
   auth-hdr = 'Authorization: GenieKey '$api-key
-  url = 'https://api.opsgenie.com/v2/'$what
-  put (explode (curl -s -X GET -H $auth-hdr $url | from-json)[data])[$key]
+  params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
+  url = 'https://api.opsgenie.com/v2/'$what'?'$params-str
+  put (explode (request-data $url))[$@keys]
+}
+
+fn get [what &params=[&]]{
+  auth-hdr = 'Authorization: GenieKey '$api-key
+  params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
+  url = 'https://api.opsgenie.com/v2/'$what'?'$params-str
+  request-data $url
 }
