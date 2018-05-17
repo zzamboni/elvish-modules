@@ -37,14 +37,24 @@ fn admins {
   put $admins
 }
 
+fn url-for [what &params=[&]]{
+  params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
+  put 'https://api.opsgenie.com/v2/'$what'?'$params-str
+}
+
 fn list [what &keys=[name] &params=[&]]{
   auth-hdr = 'Authorization: GenieKey '$api-key
-  params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
-  url = 'https://api.opsgenie.com/v2/'$what'?'$params-str
-  put (explode (request-data $url))[$@keys]
+  put (explode (request-data (url-for &params=$params $what)))[$@keys]
 }
 
 fn get [what &params=[&]]{
+  auth-hdr = 'Authorization: GenieKey '$api-key
+  params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
+  url = 'https://api.opsgenie.com/v2/'$what'?'$params-str
+  request $url
+}
+
+fn get-data [what &params=[&]]{
   auth-hdr = 'Authorization: GenieKey '$api-key
   params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
   url = 'https://api.opsgenie.com/v2/'$what'?'$params-str
