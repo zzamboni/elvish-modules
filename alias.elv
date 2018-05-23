@@ -7,6 +7,8 @@ use re
 
 dir = ~/.elvish/aliases
 
+arg-replacer = '{}'
+
 aliases = [&]
 
 fn -load-alias [name file]{
@@ -25,7 +27,7 @@ fn def [&verbose=false &use=[] name @cmd]{
   args-at-end = '$@_args'
   new-cmd = [
     (each [e]{
-        if (eq $e '{}') {
+        if (eq $e $arg-replacer) {
           put '$@_args'
           args-at-end = ''
         } else {
