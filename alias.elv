@@ -22,7 +22,18 @@ fn def [&verbose=false &use=[] name @cmd]{
   file = $dir/$name.elv
   use-statements = [(each [m]{ put "use "$m";" } $use)]
   echo "#alias:new" $name (if (not-eq $use []) { put "&use="(to-string $use) }) $@cmd > $file
-  echo 'fn '$name' [@_args]{' $@use-statements $@cmd '$@_args }' >> $file
+  args-at-end = '$@_args'
+  new-cmd = [
+    (each [e]{
+        if (eq $e '{}') {
+          put '$@_args'
+          args-at-end = ''
+        } else {
+          put $e
+        }
+    } $cmd)
+  ]
+  echo 'fn '$name' [@_args]{' $@use-statements $@new-cmd $args-at-end ' }' >> $file
   if (not-eq $verbose false) {
     echo (edit:styled "Defining alias "$name green)
   }

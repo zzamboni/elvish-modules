@@ -53,6 +53,12 @@ You can also specify the =use= command as part of the alias:
   alias:new cd "use github.com/zzamboni/elvish-modules/dir; dir:cd"
 #+end_src
 
+Normally, any arguments you specify to the alias are appended at the end of its definition. However, you can specify where they should appear by inserting the string ={}= (in Elvish you have to quote it like this ='{}'= ), then the arguments are inserted at that place in the command:
+
+#+begin_src elvish
+  alias:new fdirs find '{}' -name foo
+#+end_src
+
 You can also use =alias:bash-alias= to use the bash syntax =alias=command= for defining aliases.
 
 *Once an alias is defined, it does not become immediately available* - it will be automatically loaded onto new sessions assuming you have added the corresponding code to your =rc.elv= file (see above). To load a new alias immediately, you can =-source= the corresponding file from within the =~/.elvish/aliases/= directory. For example:
@@ -126,14 +132,25 @@ The =-load-alias= function receives the name of the alias and the file in which 
   }
 #+end_src
 
-The =alias:def= function creates a new alias. It stores the corresponding alias file and then loads it into memory. The =&use= option can be used to specify a list of modules to load within the alias function (you can also specify the =use= command by hand as part of the alias).
+The =alias:def= function creates a new alias. It stores the corresponding alias file and then loads it into memory. The =&use= option can be used to specify a list of modules to load within the alias function (you can also specify the =use= command by hand as part of the alias). By default, an alias will add any arguments it receives to the end of its definition. But if the string ={}= appears in the definition (it has to appear as a space-separated word), then the arguments are inserted in its place, and NOT added at the end.
 
 #+begin_src elvish
   fn def [&verbose=false &use=[] name @cmd]{
     file = $dir/$name.elv
     use-statements = [(each [m]{ put "use "$m";" } $use)]
     echo "#alias:new" $name (if (not-eq $use []) { put "&use="(to-string $use) }) $@cmd > $file
-    echo 'fn '$name' [@_args]{' $@use-statements $@cmd '$@_args }' >> $file
+    args-at-end = '$@_args'
+    new-cmd = [
+      (each [e]{
+          if (eq $e '{}') {
+            put '$@_args'
+            args-at-end = ''
+          } else {
+            put $e
+          }
+      } $cmd)
+    ]
+    echo 'fn '$name' [@_args]{' $@use-statements $@new-cmd $args-at-end ' }' >> $file
     if (not-eq $verbose false) {
       echo (edit:styled "Defining alias "$name green)
     }
