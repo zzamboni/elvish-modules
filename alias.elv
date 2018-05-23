@@ -35,7 +35,7 @@ fn def [&verbose=false &use=[] name @cmd]{
         }
     } $cmd)
   ]
-  echo 'fn '$name' [@_args]{' $@use-statements $@new-cmd $args-at-end ' }' >> $file
+  echo 'fn '$name' [@_args]{' $@use-statements $@new-cmd $args-at-end '}' >> $file
   if (not-eq $verbose false) {
     echo (edit:styled "Defining alias "$name green)
   }
