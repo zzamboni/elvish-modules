@@ -12,7 +12,7 @@ notification-fns = [
   &text= [
     &check= { put $true }
     &notify= [cmd dur start]{
-      echo (edit:styled "Command lasted "$dur"s" magenta) > /dev/tty
+      echo (styled "Command lasted "$dur"s" magenta) > /dev/tty
     }
   ]
   &libnotify= [

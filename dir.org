@@ -115,7 +115,7 @@ Pretty-print the stack, with the current directory highlighted.
   fn history {
     for index [(range 0 (stacksize))] {
       if (== $index $-cursor) {
-        echo (edit:styled "* "$-dirstack[$index] green)
+        echo (styled "* "$-dirstack[$index] green)
       } else {
         echo "  "$-dirstack[$index]
       }

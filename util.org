@@ -77,7 +77,7 @@ util:dotify-string somelongstring 5
 
 ** Yes-or-no prompts
 
-=y-or-n= receives a prompt string, shows the prompt to the user and accepts =y= or =n= as an answer. Returns =$true= if the user responds with =y=. The =&style= option can be used to specify the style for the prompt, as accepted by [[https://elvish.io/ref/edit.html#editstyled][edit:styled]].
+=y-or-n= receives a prompt string, shows the prompt to the user and accepts =y= or =n= as an answer. Returns =$true= if the user responds with =y=. The =&style= option can be used to specify the style for the prompt, as accepted by [[https://elvish.io/ref/edit.html#editstyled][styled]].
 
 #+begin_src elvish
   [~]─> util:y-or-n "Do you agree?"
@@ -233,7 +233,7 @@ Elvish does not include an =eval= function, but we emulate one using the =-sourc
   fn y-or-n [&style=default prompt]{
     prompt = $prompt" [y/n] "
     if (not-eq $style default) {
-      prompt = (edit:styled $prompt $style)
+      prompt = (styled $prompt $style)
     }
     print $prompt > /dev/tty
     resp = (head -n1 < /dev/tty)

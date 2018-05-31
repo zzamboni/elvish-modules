@@ -22,7 +22,7 @@ fn multi-user-setup {
   # Set up the per-user profile.
   mkdir -m 0755 -p $E:NIX_USER_PROFILE_DIR
   if (not ?(test -O $E:NIX_USER_PROFILE_DIR)) {
-    echo (edit:styled "WARNING: bad ownership on "$E:NIX_USER_PROFILE_DIR yellow) >&2
+    echo (styled "WARNING: bad ownership on "$E:NIX_USER_PROFILE_DIR yellow) >&2
   }
 
   if ?(test -w $E:HOME) {
@@ -44,7 +44,7 @@ fn multi-user-setup {
     nix-user-gcroots-dir = "/nix/var/nix/gcroots/per-user/"$E:USER
     mkdir -m 0755 -p $nix-user-gcroots-dir
     if (not ?(test -O $nix-user-gcroots-dir)) {
-      echo (edit:styled "WARNING: bad ownership on "$nix-user-gcroots-dir yellow) >&2
+      echo (styled "WARNING: bad ownership on "$nix-user-gcroots-dir yellow) >&2
     }
 
     # Set up a default Nix expression from which to install stuff.
@@ -70,7 +70,7 @@ fn multi-user-setup {
     $@paths
   ]
 
-  #echo (edit:styled "Nix environment ready" green)
+  #echo (styled "Nix environment ready" green)
 }
 
 fn single-user-setup {
@@ -78,7 +78,7 @@ fn single-user-setup {
   if (not-eq $E:HOME "") {
     nix-link = ~/.nix-profile
     if (not ?(test -L $nix-link)) {
-      echo (edit:styled "creating "$nix-link green) >&2
+      echo (styled "creating "$nix-link green) >&2
       -nix-def-link = /nix/var/nix/profiles/default
       ln -s $-nix-def-link $nix-link
     }
@@ -132,12 +132,12 @@ fn install [@pkgs]{
 
 fn brew-to-nix {
   brew leaves | each [pkg]{
-    echo (edit:styled "Package "$pkg green)
+    echo (styled "Package "$pkg green)
     brew info $pkg
     loop = $true
     while $loop {
       loop = $false
-      print (edit:styled $pkg": [R]emove/[Q]uery nix/[K]eep/Remove and [I]nstall with nix? " yellow)
+      print (styled $pkg": [R]emove/[Q]uery nix/[K]eep/Remove and [I]nstall with nix? " yellow)
       resp = (head -n1 </dev/tty)
       if (eq $resp "r") {
         brew uninstall --force $pkg
@@ -163,19 +163,19 @@ fn info [pkg]{
   meta = $pkg[meta]
 
   # Produce the output
-  print (edit:styled $pkg[name] yellow)
+  print (styled $pkg[name] yellow)
   if (has-key $meta description) {
     echo ":" $meta[description]
   } else {
     echo ""
   }
   if (has-key $meta homepage) {
-    echo (edit:styled "Homepage: " blue) $meta[homepage]
+    echo (styled "Homepage: " blue) $meta[homepage]
   }
   if $installed {
-    echo (edit:styled "Installed:" green) $install-path
+    echo (styled "Installed:" green) $install-path
   } else {
-    echo (edit:styled "Not installed" red)
+    echo (styled "Not installed" red)
   }
   echo From: (re:replace ':\d+' "" $meta[position])
   if (has-key $meta longDescription) {

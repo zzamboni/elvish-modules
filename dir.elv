@@ -20,7 +20,7 @@ fn stacksize { count $-dirstack }
 fn history {
   for index [(range 0 (stacksize))] {
     if (== $index $-cursor) {
-      echo (edit:styled "* "$-dirstack[$index] green)
+      echo (styled "* "$-dirstack[$index] green)
     } else {
       echo "  "$-dirstack[$index]
     }

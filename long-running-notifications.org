@@ -109,7 +109,7 @@ All notification mechanisms are stored in the =notification-fns= map, by their u
     &text= [
       &check= { put $true }
       &notify= [cmd dur start]{
-        echo (edit:styled "Command lasted "$dur"s" magenta) > /dev/tty
+        echo (styled "Command lasted "$dur"s" magenta) > /dev/tty
       }
     ]
     &libnotify= [

@@ -37,7 +37,7 @@ fn def [&verbose=false &use=[] name @cmd]{
   ]
   echo 'fn '$name' [@_args]{' $@use-statements $@new-cmd $args-at-end '}' >> $file
   if (not-eq $verbose false) {
-    echo (edit:styled "Defining alias "$name green)
+    echo (styled "Defining alias "$name green)
   }
   -load-alias $name $file
 }
@@ -69,9 +69,9 @@ fn undef [name]{
   if ?(test -f $file) {
     # Remove the definition file
     rm $file
-    echo (edit:styled "Alias "$name" removed (will take effect on new sessions, or when you run 'del "$name"~')." green)
+    echo (styled "Alias "$name" removed (will take effect on new sessions, or when you run 'del "$name"~')." green)
   } else {
-    echo (edit:styled "Alias "$name" does not exist." red)
+    echo (styled "Alias "$name" does not exist." red)
   }
 }
 
