@@ -23,6 +23,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
   - [[#get-a-filename-from-the-macos-finder-1][Get a filename from the macOS Finder]]
   - [[#maximumminimum-1][Maximum/minimum]]
   - [[#conditionals-1][Conditionals]]
+- [[#test-suite][Test suite]]
 
 * Usage
 
@@ -290,4 +291,19 @@ We simply step through the /expression value/ pairs, and =put= the first value w
        }
      }
    }
+#+end_src
+* Test suite
+:PROPERTIES:
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) "_test.elv")
+:header-args: :mkdirp yes :comments no
+:END:
+
+#+begin_src elvish
+  use github.com/zzamboni/elvish-modules/test
+
+  test:set util:dotify-string {
+    use github.com/zzamboni/elvish-modules/util
+    test:is { util:dotify-string "somelongstring" 5 } "somel…"
+    test:is { util:dotify-string "short" 5 } "short"
+  }
 #+end_src

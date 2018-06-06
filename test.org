@@ -1,0 +1,106 @@
+#+TITLE:  Test framework for Elvish
+#+AUTHOR: Diego Zamboni
+#+EMAIL:  diego@zzamboni.org
+
+A very simplistic test framework for Elvish.
+
+This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:test.elv][test.elv]] for the generated file.
+
+* Table of Contents                                            :TOC:noexport:
+- [[#usage][Usage]]
+- [[#implementation][Implementation]]
+
+* Usage
+
+Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
+
+#+begin_src elvish
+  use epm
+  epm:install github.com/zzamboni/elvish-modules
+#+end_src
+
+In your =rc.elv=, load this module:
+
+#+begin_src elvish
+  use github.com/zzamboni/elvish-modules/test
+#+end_src
+
+The basic blocks are =test:is= and =test:is-not=. Both take a lambda and a value - the lambda is executed, and its output compared to the value. The test passes depending on whether the result is/is-not equal to the given value.
+
+#+begin_src elvish :use github.com/zzamboni/elvish-modules/test
+test:is { + 2 2 } 4
+test:is { + 2 2 } 5
+test:is-not { + 2 2 } 5
+test:is-not { + 2 2 } 4
+#+end_src
+
+#+RESULTS:
+: OK (eq ( + 2 2 ) 4)
+: FAIL ( + 2 2 )
+:   expected: 5
+:     actual: 4
+: OK (not-eq ( + 2 2 ) 5)
+: FAIL ( + 2 2 )
+:   expected: not 4
+:     actual: 4
+
+Tests can be grouped using =test:set=, which takes an identifier and a list of lambdas, which get executed in sequence.
+
+#+begin_src elvish :use github.com/zzamboni/elvish-modules/test
+  test:set util:dotify-string {
+    use github.com/zzamboni/elvish-modules/util
+    test:is { util:dotify-string "somelongstring" 5 } "somel…"
+    test:is { util:dotify-string "short" 5 } "short"
+  }
+#+end_src
+
+#+RESULTS:
+: Testing util:dotify-string
+: OK (eq ( util:dotify-string "somelongstring" 5 ) somel…)
+: OK (eq ( util:dotify-string "short" 5 ) short)
+
+
+* Implementation
+:PROPERTIES:
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
+:header-args: :mkdirp yes :comments no
+:END:
+
+=test:is= takes a lamda and a value, and verifies that the output of the lambda is equal the value.
+
+#+begin_src elvish
+  fn is [f v]{
+    res = ($f)
+    if (eq $res $v) {
+      echo (styled "OK" green) '(eq ('$f[body]') '(to-string $v)')'
+    } else {
+      echo (styled "FAIL" red) '('$f[body]')'
+      echo "  expected: "(to-string $v)
+      echo "    actual: "(to-string $res)
+    }
+  }
+#+end_src
+
+=test:is-not= is the opposite of =test:is=: takes a lamda and a value, and verifies that the output of the lambda is not equal the value.
+
+#+begin_src elvish
+  fn is-not [f v]{
+    res = ($f)
+    if (not-eq $res $v) {
+      echo (styled "OK" green) '(not-eq ('$f[body]') '(to-string $v)')'
+    } else {
+      echo (styled "FAIL" red) '('$f[body]')'
+      echo "  expected: not "(to-string $v)
+      echo "    actual: "(to-string $res)
+    }
+  }
+#+end_src
+
+=test:set= for now simply prints a header with the given identifier.
+
+#+begin_src elvish
+  fn set [id @fs]{
+    echo (styled "Testing "$id blue)
+    each [f]{ $f } $fs
+  }
+#+end_src
