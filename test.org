@@ -27,7 +27,7 @@ In your =rc.elv=, load this module:
 
 The basic blocks are =test:is= and =test:is-not=. Both take a lambda and a value - the lambda is executed, and its output compared to the value. The test passes depending on whether the result is/is-not equal to the given value.
 
-#+begin_src elvish :use github.com/zzamboni/elvish-modules/test
+#+begin_src elvish :use github.com/zzamboni/elvish-modules/test :export both
 test:is { + 2 2 } 4
 test:is { + 2 2 } 5
 test:is-not { + 2 2 } 5
@@ -69,12 +69,16 @@ Tests can be grouped using =test:set=, which takes an identifier and a list of l
 =test:is= takes a lamda and a value, and verifies that the output of the lambda is equal the value.
 
 #+begin_src elvish
-  fn is [f v]{
+  fn is [f v @d]{
     res = ($f)
+    msg = ""
+    if (> (count $d) 0) {
+      msg = (styled (joins " " $d) blue)
+    }
     if (eq $res $v) {
-      echo (styled "OK" green) '(eq ('$f[body]') '(to-string $v)')'
+      echo (styled "OK" green) $msg '(eq ('$f[body]') '(to-string $v)')'
     } else {
-      echo (styled "FAIL" red) '('$f[body]')'
+      echo (styled "FAIL" red) $msg '('$f[body]')'
       echo "  expected: "(to-string $v)
       echo "    actual: "(to-string $res)
     }
@@ -84,12 +88,16 @@ Tests can be grouped using =test:set=, which takes an identifier and a list of l
 =test:is-not= is the opposite of =test:is=: takes a lamda and a value, and verifies that the output of the lambda is not equal the value.
 
 #+begin_src elvish
-  fn is-not [f v]{
+  fn is-not [f v @d]{
     res = ($f)
+    msg = ""
+    if (> (count $d) 0) {
+      msg = (styled (joins " " $d) blue)
+    }
     if (not-eq $res $v) {
-      echo (styled "OK" green) '(not-eq ('$f[body]') '(to-string $v)')'
+      echo (styled "OK" green) $msg '(not-eq ('$f[body]') '(to-string $v)')'
     } else {
-      echo (styled "FAIL" red) '('$f[body]')'
+      echo (styled "FAIL" red) $msg '('$f[body]')'
       echo "  expected: not "(to-string $v)
       echo "    actual: "(to-string $res)
     }
