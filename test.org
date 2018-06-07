@@ -25,39 +25,36 @@ In your =rc.elv=, load this module:
   use github.com/zzamboni/elvish-modules/test
 #+end_src
 
-The basic blocks are =test:is= and =test:is-not=. Both take a lambda and a value - the lambda is executed, and its output compared to the value. The test passes depending on whether the result is/is-not equal to the given value.
+The basic block is =test:is=. It takes a lambda and an optional description, and returns a function which executes the lambda, and reports the test as passed if it returns a booleanly true value. The description, if given, is printed together with the results.
+
+Note that =test:is= returns a function, so to actually run the test, you need to execute its result by enclosing the call in parenthesis (this is so that test functions can be aggregated using =test:set=, see below).
 
 #+begin_src elvish :use github.com/zzamboni/elvish-modules/test :export both
-test:is { + 2 2 } 4
-test:is { + 2 2 } 5
-test:is-not { + 2 2 } 5
-test:is-not { + 2 2 } 4
+(test:is { eq ( + 2 2 ) 4 } True arithmetic)
+(test:is { eq ( + 2 2 ) 5 } Funky arithmetic)
 #+end_src
 
 #+RESULTS:
-: OK (eq ( + 2 2 ) 4)
-: FAIL ( + 2 2 )
-:   expected: 5
-:     actual: 4
-: OK (not-eq ( + 2 2 ) 5)
-: FAIL ( + 2 2 )
-:   expected: not 4
-:     actual: 4
+: OK True arithmetic  eq ( + 2 2 ) 4
+: FAIL Funky arithmetic  eq ( + 2 2 ) 5
+:     actual: $false
 
-Tests can be grouped using =test:set=, which takes an identifier and a list of lambdas, which get executed in sequence.
+Tests can be grouped using =test:set=, which takes an identifier and a list of test functions, which get executed in sequence. =test:set= objects can be nested.
 
-#+begin_src elvish :use github.com/zzamboni/elvish-modules/test
-  test:set util:dotify-string {
-    use github.com/zzamboni/elvish-modules/util
-    test:is { util:dotify-string "somelongstring" 5 } "somel…"
-    test:is { util:dotify-string "short" 5 } "short"
-  }
+#+begin_src elvish :use github.com/zzamboni/elvish-modules/test,github.com/zzamboni/elvish-modules/util
+  (test:set github.com/zzamboni/elvish-modules/util \
+    (test:set dotify-string \
+      (test:is { eq (util:dotify-string "somelongstring" 5) "somel…" } Long string gets dotified) \
+      (test:is { eq (util:dotify-string "short" 5) "short" } Equal-as-limit string stays the same) \
+      (test:is { eq (util:dotify-string "bah" 5) "bah" } Short string stays the same)))
 #+end_src
 
 #+RESULTS:
-: Testing util:dotify-string
-: OK (eq ( util:dotify-string "somelongstring" 5 ) somel…)
-: OK (eq ( util:dotify-string "short" 5 ) short)
+: Testing github.com/zzamboni/elvish-modules/util
+: Testing github.com/zzamboni/elvish-modules/util dotify-string
+: OK Long string gets dotified  eq (util:dotify-string "somelongstring" 5) "somel…"
+: OK Equal-as-limit string stays the same  eq (util:dotify-string "short" 5) "short"
+: OK Short string stays the same  eq (util:dotify-string "bah" 5) "bah"
 
 
 * Implementation
@@ -66,49 +63,36 @@ Tests can be grouped using =test:set=, which takes an identifier and a list of l
 :header-args: :mkdirp yes :comments no
 :END:
 
-=test:is= takes a lamda and a value, and verifies that the output of the lambda is equal the value.
+=test:is= takes a lamda, and returns a function which verifies that the output of the lambda is true. Optionally a description of the test can be passed, which gets printed together with the result of the test.
 
 #+begin_src elvish
-  fn is [f v @d]{
-    res = ($f)
-    msg = ""
-    if (> (count $d) 0) {
-      msg = (styled (joins " " $d) blue)
-    }
-    if (eq $res $v) {
-      echo (styled "OK" green) $msg '(eq ('$f[body]') '(to-string $v)')'
-    } else {
-      echo (styled "FAIL" red) $msg '('$f[body]')'
-      echo "  expected: "(to-string $v)
-      echo "    actual: "(to-string $res)
+  fn is [f @d]{
+    put [&top-id='']{
+      msg = ""
+      if (> (count $d) 0) {
+        msg = (styled (joins " " $d) blue)
+      }
+      res = ($f)
+      if $res {
+        echo (styled "OK" green) $msg $f[body]
+      } else {
+        echo (styled "FAIL" red) $msg $f[body]
+        echo "    actual: "(to-string $res)
+      }
     }
   }
 #+end_src
 
-=test:is-not= is the opposite of =test:is=: takes a lamda and a value, and verifies that the output of the lambda is not equal the value.
+=test:set= receives a description and a set of test functions (can be either other =test:set= or =test:is=), and returns a function which calls them in sequence. A header with the description is printed. In nested =test:set= objects, the description of the enclosing set gets prepended, separated by a space.
 
 #+begin_src elvish
-  fn is-not [f v @d]{
-    res = ($f)
-    msg = ""
-    if (> (count $d) 0) {
-      msg = (styled (joins " " $d) blue)
+  fn set [id @tests]{
+    put [&top-id=""]{
+      if (not-eq $top-id '') {
+        id = $top-id' '$id
+      }
+      echo (styled "Testing "$id blue)
+      each [t]{ $t &top-id=$id } $tests
     }
-    if (not-eq $res $v) {
-      echo (styled "OK" green) $msg '(not-eq ('$f[body]') '(to-string $v)')'
-    } else {
-      echo (styled "FAIL" red) $msg '('$f[body]')'
-      echo "  expected: not "(to-string $v)
-      echo "    actual: "(to-string $res)
-    }
-  }
-#+end_src
-
-=test:set= for now simply prints a header with the given identifier.
-
-#+begin_src elvish
-  fn set [id @fs]{
-    echo (styled "Testing "$id blue)
-    each [f]{ $f } $fs
   }
 #+end_src
