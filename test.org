@@ -29,7 +29,7 @@ The basic block is =test:is=. It takes a lambda and an optional description, and
 
 Note that =test:is= returns a function, so to actually run the test, you need to execute its result by enclosing the call in parenthesis (this is so that test functions can be aggregated using =test:set=, see below).
 
-#+begin_src elvish :use github.com/zzamboni/elvish-modules/test :export both
+#+begin_src elvish :use github.com/zzamboni/elvish-modules/test :exports both
 (test:is { eq ( + 2 2 ) 4 } True arithmetic)
 (test:is { eq ( + 2 2 ) 5 } Funky arithmetic)
 #+end_src
@@ -41,7 +41,7 @@ Note that =test:is= returns a function, so to actually run the test, you need to
 
 Tests can be grouped using =test:set=, which takes an identifier and a list of test functions, which get executed in sequence. =test:set= objects can be nested.
 
-#+begin_src elvish :use github.com/zzamboni/elvish-modules/test,github.com/zzamboni/elvish-modules/util
+#+begin_src elvish :use github.com/zzamboni/elvish-modules/test,github.com/zzamboni/elvish-modules/util :exports both
   (test:set github.com/zzamboni/elvish-modules/util \
     (test:set dotify-string \
       (test:is { eq (util:dotify-string "somelongstring" 5) "somel…" } Long string gets dotified) \
