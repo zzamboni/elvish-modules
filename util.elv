@@ -62,13 +62,8 @@ fn cond [clauses]{
     exp = $clauses[$i]
     if (eq (kind-of $exp) fn) { exp = ($exp) }
     if $exp {
-      val = $clauses[(+ $i 1)]
-      if (eq (kind-of $val) fn) {
-       $val
-     } else {
-       put $val
-     }
-     return
+      put $clauses[(+ $i 1)]
+      return
     }
   }
 }

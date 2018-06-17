@@ -131,7 +131,7 @@ Return the maximum/minimum in a list of numbers.
 
 ** Conditionals
 
-=util:cond= emulates [[https://clojuredocs.org/clojure.core/cond][Clojure's cond]] function. It receives a list of /expression value/ pairs. Puts the first /value/ whose /expression/ is a true value, if any. Both /expressions/ and /values/ can be a closure (in which case they are executed and their return value used) or other types, which are used as-is.
+=util:cond= emulates [[https://clojuredocs.org/clojure.core/cond][Clojure's cond]] function. It receives a list of /expression value/ pairs. Puts the first /value/ whose /expression/ is a true value, if any.  /Expressions/ can be closures (in which case they are executed and their return value used) or other types, which are used as-is. /Values/ are always returned as-is, even if they are closures.
 
 In the example below, the values are scalars. Note that =:else= has no special significance - it's simply evaluated as a string, which represents a booleanly true value. Any other true value (e.g. =:default=, =$true=, etc.) could be used.
 
@@ -153,27 +153,6 @@ In the example below, the values are scalars. Note that =:else= has no special s
 : ▶ positive
 : ▶ negative
 : ▶ zero
-
-In this example, the values are closures.
-
-#+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
-  fn do [cmd]{
-    util:cond [
-      { eq $cmd "speak" } { echo "Hi" }
-      { eq $cmd "yell" }  { echo "YOOHOO!" }
-      :else               { echo "Unknown command" }
-    ]
-  }
-
-  do speak
-  do yell
-  do what
-#+end_src
-
-#+RESULTS:
-: Hi
-: YOOHOO!
-: Unknown command
 
 * Implementation
 :PROPERTIES:
@@ -276,21 +255,16 @@ Choose the maximum and minimum numbers from the given list.
 We simply step through the /expression value/ pairs, and =put= the first value whose expression (or its result, if it's a closure) returns true.
 
 #+begin_src elvish
-   fn cond [clauses]{
-     range &step=2 (count $clauses) | each [i]{
-       exp = $clauses[$i]
-       if (eq (kind-of $exp) fn) { exp = ($exp) }
-       if $exp {
-         val = $clauses[(+ $i 1)]
-         if (eq (kind-of $val) fn) {
-          $val
-        } else {
-          put $val
-        }
+  fn cond [clauses]{
+    range &step=2 (count $clauses) | each [i]{
+      exp = $clauses[$i]
+      if (eq (kind-of $exp) fn) { exp = ($exp) }
+      if $exp {
+        put $clauses[(+ $i 1)]
         return
-       }
-     }
-   }
+      }
+    }
+  }
 #+end_src
 * Test suite
 :PROPERTIES:
