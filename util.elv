@@ -67,3 +67,19 @@ fn cond [clauses]{
     }
   }
 }
+
+fn select [p]{
+  input = [(all)]
+  each [i]{ if ($p $i) { put $i} } $input
+}
+
+fn remove [p]{
+  input = [(all)]
+  each [i]{ if (not ($p $i)) { put $i} } $input
+}
+
+fn partial [f @p-args]{
+  put [@args]{
+    $f $@p-args $@args
+  }
+}

@@ -23,6 +23,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
   - [[#get-a-filename-from-the-macos-finder-1][Get a filename from the macOS Finder]]
   - [[#maximumminimum-1][Maximum/minimum]]
   - [[#conditionals-1][Conditionals]]
+  - [[#functional-programming-utilities][Functional programming utilities]]
 - [[#test-suite][Test suite]]
 
 * Usage
@@ -266,6 +267,34 @@ We simply step through the /expression value/ pairs, and =put= the first value w
     }
   }
 #+end_src
+** Functional programming utilities
+
+=util:select= and =util:remove= filter those for which the provided closure is true/false.
+
+#+begin_src elvish
+  fn select [p]{
+    input = [(all)]
+    each [i]{ if ($p $i) { put $i} } $input
+  }
+#+end_src
+
+#+begin_src elvish
+  fn remove [p]{
+    input = [(all)]
+    each [i]{ if (not ($p $i)) { put $i} } $input
+  }
+#+end_src
+
+=util:partial=, build a partial function call
+
+#+begin_src elvish
+  fn partial [f @p-args]{
+    put [@args]{
+      $f $@p-args $@args
+    }
+  }
+#+end_src
+
 * Test suite
 :PROPERTIES:
 :header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) "_test.elv")
