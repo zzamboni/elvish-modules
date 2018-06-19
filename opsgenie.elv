@@ -44,7 +44,13 @@ fn url-for [what &params=[&]]{
 
 fn list [what &keys=[name] &params=[&]]{
   auth-hdr = 'Authorization: GenieKey '$api-key
-  put (explode (request-data (url-for &params=$params $what)))[$@keys]
+  each [r]{
+    res = [&]
+    each [k]{
+      res[$k] = $r[$k]
+    } $keys
+    put $res
+  } (request-data (url-for &params=$params $what))
 }
 
 fn get [what &params=[&]]{
