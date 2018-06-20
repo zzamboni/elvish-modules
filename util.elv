@@ -68,14 +68,23 @@ fn cond [clauses]{
   }
 }
 
-fn select [p]{
-  input = [(all)]
-  each [i]{ if ($p $i) { put $i} } $input
+fn optional-input [@input]{
+  if (eq $input []) {
+    input = [(all)]
+  } elif (eq (count $input) 1) {
+    input = [ (explode $input[0]) ]
+  } else {
+    fail "util:optional-input: want 0 or 1 arguments, got "(count $input)
+  }
+  put $input
 }
 
-fn remove [p]{
-  input = [(all)]
-  each [i]{ if (not ($p $i)) { put $i} } $input
+fn select [p @input]{
+  each [i]{ if ($p $i) { put $i} } (optional-input $@input)
+}
+
+fn remove [p @input]{
+  each [i]{ if (not ($p $i)) { put $i} } (optional-input $@input)
 }
 
 fn partial [f @p-args]{
