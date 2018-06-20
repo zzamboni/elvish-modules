@@ -399,9 +399,11 @@ We simply step through the /expression value/ pairs, and =put= the first value w
 
 * Test suite
 
-Closing the test suite file.
+All the test cases above are collected by the =<<tests>>= stanza below, and stored in the file =util_test.elv=, which can be executed as follows:
 
-We initialize the test suite file, as each function is accompanied below by its test cases.
+#+begin_src elvish
+elvish util_test.elv
+#+end_src
 
 #+begin_src elvish :tangle (concat (file-name-sans-extension (buffer-file-name)) "_test.elv") :mkdirp yes :comments no :noweb yes
     use github.com/zzamboni/elvish-modules/test
