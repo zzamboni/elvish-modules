@@ -6,7 +6,7 @@ This module includes various utility functions.
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:util.elv][util.elv]] for the generated file.
 
-* Table of Contents                                            :TOC_3:noexport:
+* Table of Contents                                          :TOC_3:noexport:
 - [[#usage][Usage]]
   - [[#dotifying-strings][Dotifying strings]]
   - [[#parallel-redirection-of-stdoutstderr-to-different-commands][Parallel redirection of stdout/stderr to different commands]]
@@ -56,10 +56,10 @@ The following functions are included:
 =util:dotify-string= shortens a string to a maximum length, followed by dots.
 
 #+begin_src elvish :use github.com/zzamboni/elvish-modules/util :exports both
-util:dotify-string somelongstring 5
+  util:dotify-string somelongstring 5
 #+end_src
 
-#+RESULTS:
+#+results:
 : ▶ somel…
 
 ** Parallel redirection of stdout/stderr to different commands
@@ -70,7 +70,7 @@ util:dotify-string somelongstring 5
   util:pipesplit { echo stdout-test; echo stderr-test >&2 } { echo STDOUT: (cat) } { echo STDERR: (cat) }
 #+end_src
 
-#+RESULTS:
+#+results:
 : STDOUT: stdout-test
 : STDERR: stderr-test
 
@@ -82,7 +82,7 @@ util:dotify-string somelongstring 5
   util:eval "put foo"
 #+end_src
 
-#+RESULTS:
+#+results:
 : ▶ foo
 
 ** Yes-or-no prompts
@@ -111,18 +111,18 @@ Typical use is as part of an =if= statement:
 On macOS, dragging a file from the Finder into a Terminal window results in its path being pasted. Unfortunately it gets pasted with escape characters which Elvish does not always interpret correctly, and also with an extra space at the end. The =util:getfile= function can be used instead of the filename, and when you drag the file it captures and fixes the filename.
 
 #+begin_src elvish
-[~]─> util:getfile
-Drop a file here: /System/Library/Address\ Book\ Plug-Ins
-    # (The pathname is entered by drag-and-dropping a file from the Finder)
-▶ '/System/Library/Address Book Plug-Ins'
+  [~]─> util:getfile
+  Drop a file here: /System/Library/Address\ Book\ Plug-Ins
+  # (The pathname is entered by drag-and-dropping a file from the Finder)
+  ▶ '/System/Library/Address Book Plug-Ins'
 #+end_src
 
 Typical use is in place of the filename you want to drag into the Terminal:
 
 #+begin_src elvish
-[~]─> ls -ld (util:getfile)
-Drop a file here: /System/Library/Address\ Book\ Plug-Ins
-drwxr-xr-x 8 root wheel 256 Oct 25 18:16 '/System/Library/Address Book Plug-Ins'
+  [~]─> ls -ld (util:getfile)
+  Drop a file here: /System/Library/Address\ Book\ Plug-Ins
+  drwxr-xr-x 8 root wheel 256 Oct 25 18:16 '/System/Library/Address Book Plug-Ins'
 #+end_src
 
 ** Maximum/minimum
@@ -134,7 +134,7 @@ Return the maximum/minimum in a list of numbers.
   util:min 3 4 5 2 -1 4 0
 #+end_src
 
-#+RESULTS:
+#+results:
 : ▶ 5
 : ▶ -1
 
@@ -158,7 +158,7 @@ In the example below, the values are scalars. Note that =:else= has no special s
   pos-neg-or-zero 0
 #+end_src
 
-#+RESULTS:
+#+results:
 : ▶ positive
 : ▶ negative
 : ▶ zero
@@ -184,11 +184,11 @@ In the example below, the values are scalars. Note that =:else= has no special s
 *** Tests
 
 #+begin_src elvish :tangle no :noweb-ref tests
-        (test:set dotify-string [
-            (test:is { util:dotify-string "somelongstring" 5 } "somel…" Long string gets dotified)
-            (test:is { util:dotify-string "short" 5 }          "short"  Equal-as-limit string stays the same)
-            (test:is { util:dotify-string "bah" 5 }            "bah"    Short string stays the same)
-        ])
+  (test:set dotify-string [
+      (test:is { util:dotify-string "somelongstring" 5 } "somel…" Long string gets dotified)
+      (test:is { util:dotify-string "short" 5 }          "short"  Equal-as-limit string stays the same)
+      (test:is { util:dotify-string "bah" 5 }            "bah"    Short string stays the same)
+  ])
 #+end_src
 
 ** Parallel redirection of stdout/stderr to different commands
@@ -347,11 +347,11 @@ We simply step through the /expression value/ pairs, and =put= the first value w
 *** Tests
 
 #+begin_src elvish :tangle no :noweb-ref tests
-      (test:set optional-input [
-          (test:is { util:optional-input [foo bar] }         [foo bar]     Input from list)
-          (test:is { put foo bar baz | util:optional-input } [foo bar baz] Input from pipeline)
-          (test:is { util:optional-input }                   []            Empty input)
-      ])
+  (test:set optional-input [
+      (test:is { util:optional-input [foo bar] }         [foo bar]     Input from list)
+      (test:is { put foo bar baz | util:optional-input } [foo bar baz] Input from pipeline)
+      (test:is { util:optional-input }                   []            Empty input)
+  ])
 #+end_src
 
 ** Functional programming utilities
@@ -382,19 +382,19 @@ We simply step through the /expression value/ pairs, and =put= the first value w
 
 *** Tests
 
-#+begin_src elvish  :tangle no :noweb-ref tests
-        (test:set select-and-remove [
-            (test:is { put [(util:select [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [0]        Select zeros from a list)
-            (test:is { put [(util:remove [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [3 2 2 -1] Remove zeros from a list)
-        ])
+#+begin_src elvish :tangle no :noweb-ref tests
+  (test:set select-and-remove [
+      (test:is { put [(util:select [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [0]        Select zeros from a list)
+      (test:is { put [(util:remove [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [3 2 2 -1] Remove zeros from a list)
+  ])
 #+end_src
 
 #+begin_src elvish :tangle no :noweb-ref tests
-        (test:set partial [
-            (test:is { (util:partial $+~ 3) 5 }                       8     Partial addition)
-            (test:is { (util:partial $eq~ 3) 3 }                      $true Partial eq)
-            (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } 120   Partial custom function with rest arg)
-        ])
+  (test:set partial [
+      (test:is { (util:partial $+~ 3) 5 }                       8     Partial addition)
+      (test:is { (util:partial $eq~ 3) 3 }                      $true Partial eq)
+      (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } 120   Partial custom function with rest arg)
+  ])
 #+end_src
 
 * Test suite
@@ -402,14 +402,14 @@ We simply step through the /expression value/ pairs, and =put= the first value w
 All the test cases above are collected by the =<<tests>>= stanza below, and stored in the file =util_test.elv=, which can be executed as follows:
 
 #+begin_src elvish
-elvish util_test.elv
+  elvish util_test.elv
 #+end_src
 
 #+begin_src elvish :tangle (concat (file-name-sans-extension (buffer-file-name)) "_test.elv") :mkdirp yes :comments no :noweb yes
-    use github.com/zzamboni/elvish-modules/test
-    use github.com/zzamboni/elvish-modules/util
+  use github.com/zzamboni/elvish-modules/test
+  use github.com/zzamboni/elvish-modules/util
 
-    (test:set github.com/zzamboni/elvish-modules/util [
+  (test:set github.com/zzamboni/elvish-modules/util [
       <<tests>>
-    ])
+  ])
 #+end_src
