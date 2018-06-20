@@ -53,7 +53,7 @@ fn is-not [f v @d]{
   compare not-eq $not-eq~ $f $v $@d
 }
 
-fn set [id @tests]{
+fn set [id tests]{
   put [&top-id="" &level=0]{
     if (not-eq $top-id '') {
       id = $top-id' '$id

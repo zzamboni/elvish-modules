@@ -31,7 +31,7 @@ In your =rc.elv=, load this module:
 
 ** Writing tests
 
-The basic block is the =test:check= function. It takes a lambda and an optional description, and returns a /function/ which executes the lambda, and reports the test as passed if it returns a booleanly true value. The description, if given, is printed together with the results.
+The basic block is the =test:check= function. It takes a lambda and an optional description, and returns a /function/ which executes the lambda, and reports the test as passed if it returns a booleanly true value. The description, if given, is printed together with the results. All test functions return =$true= if all the tests it contains passed, =$false= otherwise.
 
 Note that =test:check= returns a function, so to actually run the test, you need to execute its result by enclosing the call in parenthesis (this is so that test functions can be aggregated using =test:set=, see below).
 
@@ -58,15 +58,15 @@ Note that =test:check= returns a function, so to actually run the test, you need
   ▶ $false
 #+end_src
 
-Test functions generated with =test:check=, =test:is= and =test:is-not= can be grouped using =test:set=, which takes an identifier and a list of test functions, which get executed in sequence. The list can also contain other =test:set= objects. Each nested =test:set= counts as a single test to its outer set.
+Test functions generated with =test:check=, =test:is= and =test:is-not= can be grouped using =test:set=, which takes an identifier and a list of test functions, which get executed in sequence. The list can also contain other =test:set= objects. Each nested =test:set= counts as a single test to its outer set, but it reports its own results.
 
 #+begin_src elvish
   ~> use github.com/zzamboni/elvish-modules/util
-  ~> (test:set github.com/zzamboni/elvish-modules/util \
-      (test:set dotify-string \
-        (test:is { util:dotify-string "somelongstring" 5 } "somel…" Long string gets dotified) \
-        (test:is { util:dotify-string "short" 5 } "short" Equal-as-limit string stays the same) \
-        (test:is { util:dotify-string "bah" 5 } "bah" Short string stays the same)))
+  ~> (test:set github.com/zzamboni/elvish-modules/util [
+      (test:set dotify-string [
+        (test:is { util:dotify-string "somelongstring" 5 } "somel…" Long string gets dotified)
+        (test:is { util:dotify-string "short" 5 } "short" Equal-as-limit string stays the same)
+        (test:is { util:dotify-string "bah" 5 } "bah" Short string stays the same)])])
    Testing github.com/zzamboni/elvish-modules/util
      Testing github.com/zzamboni/elvish-modules/util dotify-string
        PASS Long string gets dotified (eq ( util:dotify-string "somelongstring" 5 ) somel…)
@@ -174,10 +174,10 @@ Some utility functions to produce the test output.
   }
 #+end_src
 
-=test:set= receives a description and a set of test functions (can be other =test:set='s, =test:check=, =test:compare=, =test:is= or =test:is-not=) and returns a function which calls them in sequence. A header with the description is printed. In nested =test:set= objects, the description of the enclosing set gets prepended, separated by a space. It keeps count of how many of the checks succeed, and prints a report at the end. It returns =$true= if all the checks passed, =$false= otherwise.
+=test:set= receives a description and an array containing test functions (can be other =test:set='s, =test:check=, =test:compare=, =test:is= or =test:is-not=) and returns a function which calls them in sequence. A header with the description is printed. In nested =test:set= objects, the description of the enclosing set gets prepended, separated by a space. It keeps count of how many of the checks succeed, and prints a report at the end. It returns =$true= if all the checks passed, =$false= otherwise.
 
 #+begin_src elvish
-  fn set [id @tests]{
+  fn set [id tests]{
     put [&top-id="" &level=0]{
       if (not-eq $top-id '') {
         id = $top-id' '$id
