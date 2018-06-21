@@ -52,6 +52,12 @@ First, we declare the variable that will contain the API key.
   api-key = ''
 #+end_src
 
+We initialize the API URL.
+
+#+begin_src elvish
+  api-url = 'https://api.eu.opsgenie.com/v2'
+#+end_src
+
 The =opsgenie:request= function is the lowest-level function - it simply queries an API URL, parses and returns the result.
 
 #+begin_src elvish
@@ -81,7 +87,7 @@ The =opsgenie:request-data= returns the =data= field in the response.
 #+begin_src elvish
   fn admins {
     admins = [&]
-    url = 'https://api.opsgenie.com/v2/teams'
+    url = $api-url'/teams'
     put (explode (request-data $url))[name] | each [id]{
       #put $id
       try {
@@ -100,32 +106,25 @@ The =opsgenie:request-data= returns the =data= field in the response.
 
   fn url-for [what &params=[&]]{
     params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
-    put 'https://api.opsgenie.com/v2/'$what'?'$params-str
+    put $api-url'/'$what'?'$params-str
   }
 
   fn list [what &keys=[name] &params=[&]]{
-    auth-hdr = 'Authorization: GenieKey '$api-key
     each [r]{
       res = [&]
       each [k]{
         res[$k] = $r[$k]
       } $keys
       put $res
-    } (request-data (url-for &params=$params $what))
+    } (request-data (url-for $what &params=$params))
   }
 
   fn get [what &params=[&]]{
-    auth-hdr = 'Authorization: GenieKey '$api-key
-    params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
-    url = 'https://api.opsgenie.com/v2/'$what'?'$params-str
-    request $url
+    request (url-for $what &params=$params)
   }
 
   fn get-data [what &params=[&]]{
-    auth-hdr = 'Authorization: GenieKey '$api-key
-    params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
-    url = 'https://api.opsgenie.com/v2/'$what'?'$params-str
-    request-data $url
+    request-data (url-for $what &params=$params)
   }
 
 #+end_src

@@ -1,5 +1,7 @@
 api-key = ''
 
+api-url = 'https://api.eu.opsgenie.com/v2'
+
 fn request [url]{
   auth-hdr = 'Authorization: GenieKey '$api-key
   curl -s -X GET -H $auth-hdr $url | from-json
@@ -20,7 +22,7 @@ fn request-data [url &paged=$true]{
 
 fn admins {
   admins = [&]
-  url = 'https://api.opsgenie.com/v2/teams'
+  url = $api-url'/teams'
   put (explode (request-data $url))[name] | each [id]{
     #put $id
     try {
@@ -39,30 +41,23 @@ fn admins {
 
 fn url-for [what &params=[&]]{
   params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
-  put 'https://api.opsgenie.com/v2/'$what'?'$params-str
+  put $api-url'/'$what'?'$params-str
 }
 
 fn list [what &keys=[name] &params=[&]]{
-  auth-hdr = 'Authorization: GenieKey '$api-key
   each [r]{
     res = [&]
     each [k]{
       res[$k] = $r[$k]
     } $keys
     put $res
-  } (request-data (url-for &params=$params $what))
+  } (request-data (url-for $what &params=$params))
 }
 
 fn get [what &params=[&]]{
-  auth-hdr = 'Authorization: GenieKey '$api-key
-  params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
-  url = 'https://api.opsgenie.com/v2/'$what'?'$params-str
-  request $url
+  request (url-for $what &params=$params)
 }
 
 fn get-data [what &params=[&]]{
-  auth-hdr = 'Authorization: GenieKey '$api-key
-  params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
-  url = 'https://api.opsgenie.com/v2/'$what'?'$params-str
-  request-data $url
+  request-data (url-for $what &params=$params)
 }
