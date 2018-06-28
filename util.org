@@ -2,7 +2,8 @@
 #+author: Diego Zamboni
 #+email: diego@zzamboni.org
 
-This module includes various utility functions.
+#+name: module-summary
+Various utility functions.
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:util.elv][util.elv]] for the generated file.
 

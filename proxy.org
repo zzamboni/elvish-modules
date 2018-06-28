@@ -2,6 +2,7 @@
 #+author: Diego Zamboni
 #+email: diego@zzamboni.org
 
+#+name: module-summary
 Manipulation of proxy-related environment variables (including auto-setting/unsetting based on a user-defined test) for [[http://elvish.io][Elvish]].
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:proxy.elv][proxy.elv]] for the generated file.

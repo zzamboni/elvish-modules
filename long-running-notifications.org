@@ -2,6 +2,7 @@
 #+author: Diego Zamboni
 #+email: diego@zzamboni.org
 
+#+name: module-summary
 Produce notifications for long-running commands in Elvish.
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:long-running-notifications.elv][long-running-notifications.elv]] for the generated file.

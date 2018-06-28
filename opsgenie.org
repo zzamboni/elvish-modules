@@ -2,6 +2,7 @@
 #+AUTHOR: Diego Zamboni
 #+EMAIL:  diego@zzamboni.org
 
+#+name: module-summary
 This module implements a few common operations for the [[https://docs.opsgenie.com/docs/api-overview][OpsGenie API]] in Elvish.
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:$name.elv][$name.elv]] for the generated file.

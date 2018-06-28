@@ -2,7 +2,8 @@
 #+AUTHOR: Diego Zamboni
 #+EMAIL:  diego@zzamboni.org
 
-This module implements comparison of semantic version numbers, as described in [[https://semver.org/#spec-item-11][the Semantic Versioning specification]].
+#+name: module-summary
+Comparison of semantic version numbers, as described in [[https://semver.org/#spec-item-11][the Semantic Versioning specification]].
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:$name.elv][$name.elv]] for the generated file.
 

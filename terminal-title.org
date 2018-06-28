@@ -2,7 +2,8 @@
 #+author: Diego Zamboni
 #+email: diego@zzamboni.org
 
-This module allows setting the terminal title dynamically using ANSI escape codes. By default the current directory is shown, and the name of the current command while one is executing.
+#+name: module-summary
+Sets the terminal title dynamically using ANSI escape codes. By default the current directory is shown, and the name of the current command while one is executing.
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:terminal-title.elv][terminal-title.elv]] for the generated file.
 

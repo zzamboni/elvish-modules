@@ -2,6 +2,7 @@
 #+author: Diego Zamboni
 #+email: diego@zzamboni.org
 
+#+name: module-summary
 Convenience functions to add hooks to the prompt hook lists.
 
 * Table of Contents                                            :TOC:noexport:

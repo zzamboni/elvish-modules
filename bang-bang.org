@@ -2,6 +2,7 @@
 #+author: Diego Zamboni
 #+email: diego@zzamboni.org
 
+#+name: module-summary
 Implement the =!!= (last command), =!$= (last argument of last command) and =!<n>= (nth argument of last command) shortcuts in Elvish.
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:alias.elv][alias.elv]] for the generated file.
