@@ -20,8 +20,6 @@ your =rc.elv= file.
 The following modules are included (you can see detailed usage
 instructions in each module):
 
-* Modules
-
 {{{module-summary(alias)}}}
 {{{module-summary(bang-bang)}}}
 {{{module-summary(dir)}}}

@@ -1,4 +1,4 @@
-# Created 2018-06-29 Fri 11:30
+# Created 2018-06-29 Fri 11:32
 #+TITLE:
 #+AUTHOR: Zamboni Diego
 #+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][github.com/zzamboni/elvish-modules/" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
@@ -22,8 +22,6 @@ your =rc.elv= file.
 
 The following modules are included (you can see detailed usage
 instructions in each module):
-
-* Modules
 
 - [[file:alias.org][github.com/zzamboni/elvish-modules/alias]] ::
      #+name: module-summary
