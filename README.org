@@ -1,4 +1,8 @@
-#+MACRO: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
+# Created 2018-06-29 Fri 11:30
+#+TITLE:
+#+AUTHOR: Zamboni Diego
+#+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][github.com/zzamboni/elvish-modules/" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
+#+export_file_name: README.org
 
 * zzamboni's Elvish libraries
 
@@ -21,15 +25,50 @@ instructions in each module):
 
 * Modules
 
-{{{module-summary(alias)}}}
-{{{module-summary(bang-bang)}}}
-{{{module-summary(dir)}}}
-{{{module-summary(long-running-notifications)}}}
-{{{module-summary(nix)}}}
-{{{module-summary(opsgenie)}}}
-{{{module-summary(prompt-hooks)}}}
-{{{module-summary(proxy)}}}
-{{{module-summary(semver)}}}
-{{{module-summary(terminal-title)}}}
-{{{module-summary(test)}}}
-{{{module-summary(util)}}}
+- [[file:alias.org][github.com/zzamboni/elvish-modules/alias]] ::
+     #+name: module-summary
+     Implementation of aliases for [[http://elvish.io][Elvish]].
+
+- [[file:bang-bang.org][github.com/zzamboni/elvish-modules/bang-bang]] ::
+     #+name: module-summary
+     Implement the =!!= (last command), =!$= (last argument of last command) and =!<n>= (nth argument of last command) shortcuts in Elvish.
+
+- [[file:dir.org][github.com/zzamboni/elvish-modules/dir]] ::
+     #+name: module-summary
+     Keep and move through the directory history, including a graphical chooser, similar to Elvish's Location mode, but showing a chronological directory history instead of a weighted one.
+
+- [[file:long-running-notifications.org][github.com/zzamboni/elvish-modules/long-running-notifications]] ::
+     #+name: module-summary
+     Produce notifications for long-running commands in Elvish.
+
+- [[file:nix.org][github.com/zzamboni/elvish-modules/nix]] ::
+     #+name: module-summary
+     Functions to set up the Nix environment variables for Elvish.
+
+- [[file:opsgenie.org][github.com/zzamboni/elvish-modules/opsgenie]] ::
+     #+name: module-summary
+     This module implements a few common operations for the [[https://docs.opsgenie.com/docs/api-overview][OpsGenie API]] in Elvish.
+
+- [[file:prompt-hooks.org][github.com/zzamboni/elvish-modules/prompt-hooks]] ::
+     #+name: module-summary
+     Convenience functions to add hooks to the prompt hook lists.
+
+- [[file:proxy.org][github.com/zzamboni/elvish-modules/proxy]] ::
+     #+name: module-summary
+     Manipulation of proxy-related environment variables (including auto-setting/unsetting based on a user-defined test) for [[http://elvish.io][Elvish]].
+
+- [[file:semver.org][github.com/zzamboni/elvish-modules/semver]] ::
+     #+name: module-summary
+     Comparison of semantic version numbers, as described in [[https://semver.org/#spec-item-11][the Semantic Versioning specification]].
+
+- [[file:terminal-title.org][github.com/zzamboni/elvish-modules/terminal-title]] ::
+     #+name: module-summary
+     Sets the terminal title dynamically using ANSI escape codes. By default the current directory is shown, and the name of the current command while one is executing.
+
+- [[file:test.org][github.com/zzamboni/elvish-modules/test]] ::
+     #+name: module-summary
+     A very simplistic test framework for Elvish.
+
+- [[file:util.org][github.com/zzamboni/elvish-modules/util]] ::
+     #+name: module-summary
+     Various utility functions.
