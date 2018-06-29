@@ -3,9 +3,7 @@
 
 * zzamboni's Elvish libraries
 
-This Elvish package contains various modules I have written for the
-Elvish shell, except for [[https://github.com/zzamboni/elvish-themes/][themes]] and [[https://github.com/zzamboni/elvish-completions][completions]], which are kept in
-separate packages.
+This Elvish package contains various modules I have written for the [[https://elv.sh/][Elvish shell]]. [[https://github.com/zzamboni/elvish-themes/][Themes]] and [[https://github.com/zzamboni/elvish-completions][completions]] are kept in separate packages.
 
 To install, use [[https://elvish.io/ref/epm.html][epm]]:
 
