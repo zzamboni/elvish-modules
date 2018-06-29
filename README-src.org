@@ -1,4 +1,4 @@
-#+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][github.com/zzamboni/elvish-modules/" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
+#+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
 #+EXPORT_FILE_NAME: README.org
 
 * zzamboni's Elvish libraries
@@ -14,11 +14,15 @@ To install, use [[https://elvish.io/ref/epm.html][epm]]:
   epm:install github.com/zzamboni/elvish-modules
 #+end_src
 
-For each module you want to use, you need to run =use <modulename>= in
-your =rc.elv= file.
+For each module you want to use, you need to add the following to your =rc.elv= file:
 
-The following modules are included (you can see detailed usage
-instructions in each module):
+#+begin_src elvish
+  use github.com/zzamboni/elvish-modules/<modulename>
+#+end_src
+
+See each module's page for detailed usage instructions.
+
+The following modules are included:
 
 {{{module-summary(alias)}}}
 {{{module-summary(bang-bang)}}}
