@@ -53,6 +53,12 @@ First, we declare the variable that will contain the API key.
   api-key = ''
 #+end_src
 
+For write operations, we can set a secondary key which has the necessary privileges.
+
+#+begin_src elvish
+  write-api-key = ''
+#+end_src
+
 We initialize the API URL.
 
 #+begin_src elvish
@@ -65,6 +71,16 @@ The =opsgenie:request= function is the lowest-level function - it simply queries
   fn request [url]{
     auth-hdr = 'Authorization: GenieKey '$api-key
     curl -s -X GET -H $auth-hdr $url | from-json
+  }
+#+end_src
+
+The =opsgenie:post-request= function is similar but receives a =$data= payload which should be a map, and is posted as JSON together with the request.
+
+#+begin_src elvish
+  fn post-request [url data]{
+    auth-hdr = 'Authorization: GenieKey '$write-api-key
+    json-data = (put $data | to-json)
+    curl -X POST -H $auth-hdr -H 'Content-Type: application/json' --data $json-data $url
   }
 #+end_src
 
@@ -128,4 +144,14 @@ The =opsgenie:request-data= returns the =data= field in the response.
     request-data (url-for $what &params=$params)
   }
 
+#+end_src
+
+#+begin_src elvish
+  fn create-user [username fullname role otherfields]{
+    payload = $otherfields
+    payload[username] = $username
+    payload[fullName] = $fullname
+    payload[role] = [&name= $role]
+    post-request (url-for users) $payload
+  }
 #+end_src

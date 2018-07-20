@@ -1,10 +1,18 @@
 api-key = ''
 
+write-api-key = ''
+
 api-url = 'https://api.eu.opsgenie.com/v2'
 
 fn request [url]{
   auth-hdr = 'Authorization: GenieKey '$api-key
   curl -s -X GET -H $auth-hdr $url | from-json
+}
+
+fn post-request [url data]{
+  auth-hdr = 'Authorization: GenieKey '$write-api-key
+  json-data = (put $data | to-json)
+  curl -X POST -H $auth-hdr -H 'Content-Type: application/json' --data $json-data $url
 }
 
 fn request-data [url &paged=$true]{
@@ -60,4 +68,12 @@ fn get [what &params=[&]]{
 
 fn get-data [what &params=[&]]{
   request-data (url-for $what &params=$params)
+}
+
+fn create-user [username fullname role otherfields]{
+  payload = $otherfields
+  payload[username] = $username
+  payload[fullName] = $fullname
+  payload[role] = [&name= $role]
+  post-request (url-for users) $payload
 }
