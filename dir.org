@@ -227,6 +227,24 @@ Utility functions to move the cursor by a word or move through the directory his
   }
 #+end_src
 
+#+begin_src elvish
+  fn left-small-word-or-prev-dir {
+    if (> (count $edit:current-command) 0) {
+      edit:move-dot-left-small-word
+    } else {
+      back
+    }
+  }
+
+  fn right-small-word-or-next-dir {
+    if (> (count $edit:current-command) 0) {
+      edit:move-dot-right-small-word
+    } else {
+      forward
+    }
+  }
+#+end_src
+
 Interactive dir history chooser.
 
 #+begin_src elvish

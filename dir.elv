@@ -98,6 +98,22 @@ fn right-word-or-next-dir {
   }
 }
 
+fn left-small-word-or-prev-dir {
+  if (> (count $edit:current-command) 0) {
+    edit:move-dot-left-small-word
+  } else {
+    back
+  }
+}
+
+fn right-small-word-or-next-dir {
+  if (> (count $edit:current-command) 0) {
+    edit:move-dot-right-small-word
+  } else {
+    forward
+  }
+}
+
 fn history-chooser {
   for hook $before-chooser { $hook }
   index = 0
