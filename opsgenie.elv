@@ -55,9 +55,13 @@ fn url-for [what &params=[&]]{
 fn list [what &keys=[name] &params=[&]]{
   each [r]{
     res = [&]
-    each [k]{
-      res[$k] = $r[$k]
-    } $keys
+    if (eq $keys []) {
+      res = $r
+    } else {
+      each [k]{
+        res[$k] = $r[$k]
+      } $keys
+    }
     put $res
   } (request-data (url-for $what &params=$params))
 }
