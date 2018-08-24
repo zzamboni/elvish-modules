@@ -74,10 +74,14 @@ fn get-data [what &params=[&]]{
   request-data (url-for $what &params=$params)
 }
 
-fn create-user [username fullname role otherfields]{
+fn create-user [username fullname role otherfields &team=""]{
   payload = $otherfields
   payload[username] = $username
   payload[fullName] = $fullname
   payload[role] = [&name= $role]
   post-request (url-for users) $payload
+  if (not-eq $team "") {
+    data = [ &user= [ &username= (echo $username | tr '[A-Z]' '[a-z]') ] ]
+    post-request (url-for "teams/"$team"/members" &params=[ &teamIdentifierType= name ]) $data
+  }
 }
