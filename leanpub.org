@@ -36,13 +36,32 @@ api-key = ''
 #+end_src
 
 #+begin_src elvish
-  fn preview [slug]{
+  fn get-slug [@args]{
+    if (eq $args []) {
+      put [(splits / $pwd)][-1]
+    } else {
+      put $args[0]
+    }
+  }
+#+end_src
+
+#+begin_src elvish
+  fn preview [@args]{
+    slug = (get-slug $@args)
     pprint (curl -s -d "api_key="$api-key https://leanpub.com/$slug/preview.json | from-json)
   }
 #+end_src
 
 #+begin_src elvish
-  fn status [slug]{
+  fn subset [@args]{
+    slug = (get-slug $@args)
+    pprint (curl -s -d "api_key="$api-key https://leanpub.com/$slug/preview/subset.json | from-json)
+  }
+#+end_src
+
+#+begin_src elvish
+  fn status [@args]{
+    slug = (get-slug $@args)
     status = (curl -s "https://leanpub.com/"$slug"/job_status?api_key="$api-key | from-json)
     if (has-key $status backtrace) {
       file = (mktemp)
@@ -58,12 +77,29 @@ api-key = ''
 #+end_src
 
 #+begin_src elvish
-  fn watch [slug]{
+  fn watch [@args]{
+    slug = (get-slug $@args)
     s = (status $slug)
     while (not-eq $s [&]) {
       pprint $s
       sleep 5
       s = (status $slug)
     }
+  }
+#+end_src
+
+#+begin_src elvish
+  fn preview-and-watch [@args]{
+    slug = (get-slug $@args)
+    preview $slug
+    watch $slug
+  }
+#+end_src
+
+#+begin_src elvish
+  fn subset-and-watch [@args]{
+    slug = (get-slug $@args)
+    subset $slug
+    watch $slug
   }
 #+end_src

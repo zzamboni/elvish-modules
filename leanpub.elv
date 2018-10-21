@@ -1,10 +1,25 @@
 api-key = ''
 
-fn preview [slug]{
+fn get-slug [@args]{
+  if (eq $args []) {
+    put [(splits / $pwd)][-1]
+  } else {
+    put $args[0]
+  }
+}
+
+fn preview [@args]{
+  slug = (get-slug $@args)
   pprint (curl -s -d "api_key="$api-key https://leanpub.com/$slug/preview.json | from-json)
 }
 
-fn status [slug]{
+fn subset [@args]{
+  slug = (get-slug $@args)
+  pprint (curl -s -d "api_key="$api-key https://leanpub.com/$slug/preview/subset.json | from-json)
+}
+
+fn status [@args]{
+  slug = (get-slug $@args)
   status = (curl -s "https://leanpub.com/"$slug"/job_status?api_key="$api-key | from-json)
   if (has-key $status backtrace) {
     file = (mktemp)
@@ -18,11 +33,24 @@ fn status [slug]{
   }
 }
 
-fn watch [slug]{
+fn watch [@args]{
+  slug = (get-slug $@args)
   s = (status $slug)
   while (not-eq $s [&]) {
     pprint $s
     sleep 5
     s = (status $slug)
   }
+}
+
+fn preview-and-watch [@args]{
+  slug = (get-slug $@args)
+  preview $slug
+  watch $slug
+}
+
+fn subset-and-watch [@args]{
+  slug = (get-slug $@args)
+  subset $slug
+  watch $slug
 }
