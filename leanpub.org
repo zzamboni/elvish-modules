@@ -103,3 +103,12 @@ api-key = ''
     watch $slug
   }
 #+end_src
+
+#+begin_src elvish
+  fn do-subset [@args]{
+    msg = (echo $@args)
+    git ci -a -m $msg
+    git push
+    subset-and-watch
+  }
+#+end_src

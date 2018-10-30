@@ -54,3 +54,10 @@ fn subset-and-watch [@args]{
   subset $slug
   watch $slug
 }
+
+fn do-subset [@args]{
+  msg = (echo $@args)
+  git ci -a -m $msg
+  git push
+  subset-and-watch
+}
