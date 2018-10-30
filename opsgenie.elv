@@ -80,8 +80,10 @@ fn create-user [username fullname role otherfields &team=""]{
   payload[fullName] = $fullname
   payload[role] = [&name= $role]
   post-request (url-for users) $payload
+  echo ""
   if (not-eq $team "") {
     data = [ &user= [ &username= (echo $username | tr '[A-Z]' '[a-z]') ] ]
     post-request (url-for "teams/"$team"/members" &params=[ &teamIdentifierType= name ]) $data
+    echo ""
   }
 }
