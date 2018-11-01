@@ -87,3 +87,11 @@ fn create-user [username fullname role otherfields &team=""]{
     echo ""
   }
 }
+
+fn add-users-to-team [team @users]{
+  each [username]{
+    data = [ &user= [ &username= (echo $username | tr '[A-Z]' '[a-z]') ] ]
+    post-request (url-for "teams/"$team"/members" &params=[ &teamIdentifierType= name ]) $data
+    echo ""
+  } $users
+}
