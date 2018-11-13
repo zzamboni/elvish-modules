@@ -68,9 +68,10 @@ We initialize the API URL.
 The =opsgenie:request= function is the lowest-level function - it simply queries an API URL, parses and returns the result.
 
 #+begin_src elvish
-  fn request [url]{
+  fn request [url &params=[&]]{
     auth-hdr = 'Authorization: GenieKey '$api-key
-    curl -s -X GET -H $auth-hdr $url | from-json
+    params = [(keys $params | each [k]{ put "--data-urlencode" $k"="$params[$k] })]
+    curl -G -s $@params -H $auth-hdr $url | from-json
   }
 #+end_src
 
@@ -173,5 +174,19 @@ The =opsgenie:request-data= returns the =data= field in the response.
       post-request (url-for "teams/"$team"/members" &params=[ &teamIdentifierType= name ]) $data
       echo ""
     } $users
+  }
+#+end_src
+
+#+begin_src elvish
+  fn post-api [path data &params=[&] ]{
+    url = (url-for $path &params=$params)
+    post-request $url $data
+  }
+#+end_src
+
+#+begin_src elvish
+  fn api [path &params=[&] ]{
+    url = (url-for $path)
+    request $url &params=$params
   }
 #+end_src

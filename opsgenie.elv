@@ -4,9 +4,10 @@ write-api-key = ''
 
 api-url = 'https://api.eu.opsgenie.com/v2'
 
-fn request [url]{
+fn request [url &params=[&]]{
   auth-hdr = 'Authorization: GenieKey '$api-key
-  curl -s -X GET -H $auth-hdr $url | from-json
+  params = [(keys $params | each [k]{ put "--data-urlencode" $k"="$params[$k] })]
+  curl -G -s $@params -H $auth-hdr $url | from-json
 }
 
 fn post-request [url data]{
@@ -94,4 +95,14 @@ fn add-users-to-team [team @users]{
     post-request (url-for "teams/"$team"/members" &params=[ &teamIdentifierType= name ]) $data
     echo ""
   } $users
+}
+
+fn post-api [path data &params=[&] ]{
+  url = (url-for $path &params=$params)
+  post-request $url $data
+}
+
+fn api [path &params=[&] ]{
+  url = (url-for $path)
+  request $url &params=$params
 }
