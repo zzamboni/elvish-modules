@@ -35,9 +35,9 @@ In your =rc.elv=, load the =dir= module. This automatically sets up the chdir ho
 You can set up keybindings to navigate the directory history and to trigger the history chooser. The module includes two convenience functions =left-word-or-prev-dir= and =right-word-or-next-dir= which "do the right thing" depending on the contents of the current command. For example:
 
 #+begin_src elvish
-  edit:insert:binding[Alt-b] = $dir:&left-word-or-prev-dir
-  edit:insert:binding[Alt-f] = $dir:&right-word-or-next-dir
-  edit:insert:binding[Alt-i] = $dir:&dir-chooser
+  edit:insert:binding[Alt-b] = $dir:left-word-or-prev-dir~
+  edit:insert:binding[Alt-f] = $dir:right-word-or-next-dir~
+  edit:insert:binding[Alt-i] = $dir:history-chooser~
 #+end_src
 
 If you want the =cd= command to recognize a hyphen as "the previous directory", you need to set up an alias from =cd= to call =dir:cd= instead. You can use the =[[https://github.com/zzamboni/elvish-modules/blob/master/alias.org][alias]]= module for this:
@@ -66,7 +66,7 @@ The =dir:cdb= function changes to the base directory of its given argument. For 
 
 ** Configuration
 
-=before-chooser= and =after-chooser= can contain lambdas that will be run before and after starting the =dir-chooser=.
+=before-chooser= and =after-chooser= can contain lambdas that will be run before and after starting the =history-chooser=.
 
 #+begin_src elvish
   before-chooser = []
