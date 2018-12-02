@@ -40,7 +40,7 @@ You can set up keybindings to navigate the directory history and to trigger the 
   edit:insert:binding[Alt-i] = $dir:history-chooser~
 #+end_src
 
-If you want the =cd= command to recognize a hyphen as "the previous directory", you need to set up an alias from =cd= to call =dir:cd= instead. You can use the =[[https://github.com/zzamboni/elvish-modules/blob/master/alias.org][alias]]= module for this:
+If you want the =cd= command to recognize a hyphen as "the previous directory", you need to set up an alias from =cd= to call =dir:cd= instead. You can use the [[https://github.com/zzamboni/elvish-modules/blob/master/alias.org][alias]] module for this:
 
 #+begin_src elvish
   use github.com/zzamboni/elvish-modules/alias
@@ -52,6 +52,14 @@ The =dir:cdb= function changes to the base directory of its given argument. For 
 #+begin_src elvish
   alias:new cdb "use github.com/zzamboni/elvish-modules/dir; dir:cdb"
 #+end_src
+
+Please note that for the aliases to take effect, you need to add the following line at the end of your =rc.elv= file:
+
+#+begin_src elvish
+  -exports- = (alias:export)
+#+end_src
+
+See [[https://github.com/zzamboni/elvish-modules/blob/master/alias.org][alias.org]] for full usage instructions for the =alias= module.
 
 * Implementation
 :PROPERTIES:
