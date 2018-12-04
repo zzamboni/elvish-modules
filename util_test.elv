@@ -16,6 +16,8 @@ use github.com/zzamboni/elvish-modules/util
     (test:set max-min [
         (test:is { util:max 1 2 3 -1 5 0 }  5 Maximum)
         (test:is { util:min 1 2 3 -1 5 0 } -1 Minimum)
+        (test:is { util:max a bc def ghijkl &with=$count~ } ghijkl Maximum with function)
+        (test:is { util:min a bc def ghijkl &with=$count~ } a Minimum with function)
     ])
     (test:set cond [
         (test:is { util:cond [ $false no $true yes ] }                  yes   Conditional with constant test)

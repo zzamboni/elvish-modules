@@ -128,16 +128,20 @@ Typical use is in place of the filename you want to drag into the Terminal:
 
 ** Maximum/minimum
 
-Return the maximum/minimum in a list of numbers.
+Return the maximum/minimum in a list of numbers. If the =&with= option is provided, it must be a function which receives on argument and returns a number, which is used for the comparison instead of the actual values. In this case, the list elements can be anything, as long as the =&with= function returns a numeric value.
 
 #+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
   util:max 3 4 5 2 -1 4 0
   util:min 3 4 5 2 -1 4 0
+  util:max a bc def ghijkl &with=$count~
+  util:min a bc def ghijkl &with=$count~
 #+end_src
 
 #+results:
 : ▶ 5
 : ▶ -1
+: ▶ ghijkl
+: ▶ a
 
 ** Conditionals
 
@@ -276,15 +280,29 @@ Thanks to @hanche in the Elvish channel, a short utility to convert a filename a
 Choose the maximum and minimum numbers from the given list.
 
 #+begin_src elvish
-  fn max [a @rest]{
+  fn max [a @rest &with=[v]{put $v}]{
     res = $a
-    each [n]{ if (> $n $res) { res = $n } } $rest
+    val = ($with $a)
+    each [n]{
+      nval = ($with $n)
+      if (> $nval $val) {
+        res = $n
+        val = $nval
+      }
+    } $rest
     put $res
   }
 
-  fn min [a @rest]{
+  fn min [a @rest &with=[v]{put $v}]{
     res = $a
-    each [n]{ if (< $n $res) { res = $n } } $rest
+    val = ($with $a)
+    each [n]{
+      nval = ($with $n)
+      if (< $nval $val) {
+        res = $n
+        val = $nval
+      }
+    } $rest
     put $res
   }
 #+end_src
@@ -295,6 +313,8 @@ Choose the maximum and minimum numbers from the given list.
   (test:set max-min [
       (test:is { util:max 1 2 3 -1 5 0 }  5 Maximum)
       (test:is { util:min 1 2 3 -1 5 0 } -1 Minimum)
+      (test:is { util:max a bc def ghijkl &with=$count~ } ghijkl Maximum with function)
+      (test:is { util:min a bc def ghijkl &with=$count~ } a Minimum with function)
   ])
 #+end_src
 
