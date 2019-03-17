@@ -112,3 +112,10 @@ api-key = ''
     subset-and-watch
   }
 #+end_src
+
+#+begin_src elvish
+  fn info [@args]{
+    slug = (get-slug $@args)
+    pprint (curl -s "https://leanpub.com/"$slug".json?api_key="$api-key | from-json)
+  }
+#+end_src

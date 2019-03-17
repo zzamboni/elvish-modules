@@ -61,3 +61,8 @@ fn do-subset [@args]{
   git push
   subset-and-watch
 }
+
+fn info [@args]{
+  slug = (get-slug $@args)
+  pprint (curl -s "https://leanpub.com/"$slug".json?api_key="$api-key | from-json)
+}
