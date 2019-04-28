@@ -59,7 +59,7 @@ fn lastcmd {
     bindings[$k] = $insert-full-cmd~
   }
   range (util:min (count $parts) 10) | each [i]{
-    bindings[$i] = { insert-part $i }
+    bindings[(to-string $i)] = { insert-part $i }
   }
   edit:-narrow-read {
     put $@candidates

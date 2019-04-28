@@ -219,7 +219,7 @@ Now we create a list with the keybindings for the different elements of the menu
     bindings[$k] = $insert-full-cmd~
   }
   range (util:min (count $parts) 10) | each [i]{
-    bindings[$i] = { insert-part $i }
+    bindings[(to-string $i)] = { insert-part $i }
   }
 #+end_src
 
