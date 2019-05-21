@@ -10,6 +10,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
 * Table of Contents                                            :TOC:noexport:
 - [[#usage][Usage]]
 - [[#implementation][Implementation]]
+  - [[#libraries][Libraries]]
   - [[#configuration][Configuration]]
   - [[#inserting-a-plain-exclamation-mark][Inserting a plain exclamation mark]]
   - [[#bang-bang-mode-function][bang-bang mode function]]
@@ -91,6 +92,15 @@ By default, =Alt-!= (=Alt-Shift-1=) can be used to insert an exclamation mark wh
 :header-args: :mkdirp yes :comments no
 :END:
 
+** Libraries
+
+We load some necessary libraries.
+
+#+begin_src elvish
+  use ./util
+  use re
+#+end_src
+
 ** Configuration
 
 If you want hooks to be run either before or after entering bang-bang mode, you can add them as lambdas to these variables.
@@ -140,14 +150,17 @@ We get the last command and split it in words for later use.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
   last = (edit:command-history -1)
+  ### This is a workaround for a break in the edit:command-history values,
+  ### used while https://github.com/elves/elvish/issues/821 gets fixed
+  extracted-cmd = (re:find 'unknown \{(.*) \d+\}' (to-string $last[cmd]))[groups][1][text]
+  last[cmd] = $extracted-cmd
+  ### END workaround
   parts = [(edit:wordify $last[cmd])]
 #+end_src
 
 We also get how wide the first column of the display should be, so that we can draw the selector keys right-aligned.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-  use ./util
-
   nitems = (count $parts)
   indicator-width = (util:max (count $nitems) (count $-plain-bang-insert))
   filler = (repeat $indicator-width ' ' | joins '')

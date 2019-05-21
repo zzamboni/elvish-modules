@@ -1,3 +1,6 @@
+use ./util
+use re
+
 before-lastcmd = []
 after-lastcmd = []
 
@@ -10,9 +13,12 @@ fn insert-plain-bang { edit:insert:start; edit:insert-at-dot "!" }
 fn lastcmd {
   for hook $before-lastcmd { $hook }
   last = (edit:command-history -1)
+  ### This is a workaround for a break in the edit:command-history values,
+  ### used while https://github.com/elves/elvish/issues/821 gets fixed
+  extracted-cmd = (re:find 'unknown \{(.*) \d+\}' (to-string $last[cmd]))[groups][1][text]
+  last[cmd] = $extracted-cmd
+  ### END workaround
   parts = [(edit:wordify $last[cmd])]
-  use ./util
-  
   nitems = (count $parts)
   indicator-width = (util:max (count $nitems) (count $-plain-bang-insert))
   filler = (repeat $indicator-width ' ' | joins '')
