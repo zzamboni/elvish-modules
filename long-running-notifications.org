@@ -43,6 +43,13 @@ The default notification threshold is 10 seconds, so when the command finishes, 
   long-running-notifications:threshold = 20
 #+end_src
 
+You can specify a list commands for which you do not want notifications in the =$long-running-notifications:never-notify= variable, and a list of commands that should always be notified (regardless of how long they took) in =always-notify=. Their default values are:
+
+#+begin_src  elvish
+  never-notify = [ vi vim emacs nano less more bat ]
+  always-notify = [ ]
+#+end_src
+
 ** Notification mechanisms
 
 By default, the module tries to determine the best notification method to use based on available commands. The method can be specified manually by assigning one of the following values directly to =$long-running-notifications:notifier=:
@@ -97,6 +104,13 @@ The =$notifications-to-try= variable contains the order in which notification me
 
 #+begin_src elvish
   notifications-to-try = [ macos libnotify text ]
+#+end_src
+
+Commands for which notifications should never or always be produced, regardless of how long they take
+
+#+begin_src  elvish
+  never-notify = [ vi vim emacs nano less more bat ]
+  always-notify = [ ]
 #+end_src
 
 ** Notification mechanisms
@@ -172,13 +186,29 @@ Return the current time in Unix epoch value.
   }
 #+end_src
 
+Check if  the last command is in the given list, so that we can check the =never-notify= and =always-notify= lists.
+
+#+begin_src elvish
+  fn -last-cmd-in-list [list]{
+    cmd = (take 1 [(edit:wordify $last-cmd) ""])
+    or (each [e]{ eq $e $cmd } $list)
+  }
+#+end_src
+
+Wrapper functions to check the =never-notify= and =always-notify= lists.
+
+#+begin_src elvish
+  fn -always-notify { -last-cmd-in-list $always-notify }
+  fn -never-notify { -last-cmd-in-list $never-notify }
+#+end_src
+
 Check the duration of the last command and produce a notification if it exceeds the threshold.
 
 #+begin_src elvish
   fn before-readline-hook {
     -end-time = (now)
     last-cmd-duration = (- $-end-time $last-cmd-start-time)
-    if (> $last-cmd-duration $threshold) {
+    if (or (-always-notify) (and (not (-never-notify)) (> $last-cmd-duration $threshold))) {
       -produce-notification
     }
   }

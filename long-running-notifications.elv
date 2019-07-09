@@ -8,6 +8,9 @@ notifier = auto
 
 notifications-to-try = [ macos libnotify text ]
 
+never-notify = [ vi vim emacs nano less more bat ]
+always-notify = [ ]
+
 notification-fns = [
   &text= [
     &check= { put $true }
@@ -57,10 +60,18 @@ fn now {
   put (date +%s)
 }
 
+fn -last-cmd-in-list [list]{
+  cmd = (take 1 [(edit:wordify $last-cmd) ""])
+  or (each [e]{ eq $e $cmd } $list)
+}
+
+fn -always-notify { -last-cmd-in-list $always-notify }
+fn -never-notify { -last-cmd-in-list $never-notify }
+
 fn before-readline-hook {
   -end-time = (now)
   last-cmd-duration = (- $-end-time $last-cmd-start-time)
-  if (> $last-cmd-duration $threshold) {
+  if (or (-always-notify) (and (not (-never-notify)) (> $last-cmd-duration $threshold))) {
     -produce-notification
   }
 }
