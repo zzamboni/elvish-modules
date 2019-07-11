@@ -191,7 +191,7 @@ Check if  the last command is in the given list, so that we can check the =never
 #+begin_src elvish
   fn -last-cmd-in-list [list]{
     cmd = (take 1 [(edit:wordify $last-cmd) ""])
-    or (each [e]{ eq $e $cmd } $list)
+    has-value $list $cmd
   }
 #+end_src
 

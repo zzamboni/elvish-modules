@@ -62,7 +62,7 @@ fn now {
 
 fn -last-cmd-in-list [list]{
   cmd = (take 1 [(edit:wordify $last-cmd) ""])
-  or (each [e]{ eq $e $cmd } $list)
+  has-value $list $cmd
 }
 
 fn -always-notify { -last-cmd-in-list $always-notify }
