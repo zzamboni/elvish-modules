@@ -35,18 +35,17 @@ When you press =!=, you will see a menu showing you the different keys your can 
 
 #+begin_example
 [~]─> ls /var/spool/mqueue/
-ls: cannot open directory '/var/spool/mqueue/': Permission denied
-Exception: ls exited with 2
+"/var/spool/mqueue/": Permission denied (os error 13)
 #+end_example
 
 You can type =sudo= and then press =!=, which will show you the menu:
 
 #+begin_example
-[~]─> sudo <!>
-bang-lastcmd [A C]
-!     ls /var/spool/mqueue/
-0     ls
-1/$   /var/spool/mqueue/
+[~]─> sudo !
+bang-bang
+    ! ls /var/spool/mqueue/
+    0 ls
+  1/$ /var/spool/mqueue/
 Alt-! !
 #+end_example
 
@@ -59,12 +58,12 @@ If you press =!= a second time, the full command will be inserted at the point:
 If you wanted to see the permissions on that directory next, you could use the =!$= shortcut instead:
 
 #+begin_example
-[~]─> ls -ld <!>
-bang-lastcmd [A C]
-!     sudo ls /var/spool/mqueue/
-0     sudo
-1     ls
-2/$   /var/spool/mqueue/
+[~]─> ls -ld !
+bang-bang
+    ! sudo ls /var/spool/mqueue/
+    0 sudo
+    1 ls
+  2/$ /var/spool/mqueue/
 Alt-! !
 #+end_example
 
@@ -127,7 +126,7 @@ If you want hooks to be run either before or after entering bang-bang mode, you 
 This function gets bound to the keys specified in =-plain-bang-insert=.
 
 #+begin_src elvish
-  fn insert-plain-bang { edit:insert:start; edit:insert-at-dot "!" }
+  fn insert-plain-bang { edit:listing:close; edit:insert-at-dot "!" }
 #+end_src
 
 ** bang-bang mode function
@@ -149,12 +148,7 @@ First, we run the "before" hooks, if any.
 We get the last command and split it in words for later use.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-  last = (edit:command-history -1)
-  ### This is a workaround for a break in the edit:command-history values,
-  ### used while https://github.com/elves/elvish/issues/821 gets fixed
-  extracted-cmd = (re:find 'unknown \{(.*) \d+\}' (to-string $last[cmd]))[groups][1][text]
-  last[cmd] = $extracted-cmd
-  ### END workaround
+  last = [(edit:command-history)][-1]
   parts = [(edit:wordify $last[cmd])]
 #+end_src
 
@@ -162,7 +156,7 @@ We also get how wide the first column of the display should be, so that we can d
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
   nitems = (count $parts)
-  indicator-width = (util:max (count $nitems) (count $-plain-bang-insert))
+  indicator-width = (util:max (+ 2 (count $nitems)) (count $-plain-bang-insert))
   filler = (repeat $indicator-width ' ' | joins '')
 #+end_src
 
@@ -175,18 +169,18 @@ The =-display-text= function returns the string to display in the menu, with the
   }
 #+end_src
 
-We create the two "fixed" items of the bang-bang menu: the full command and the plain exclamation mark. Each menu item is a map with three keys: =content= is the text to insert when the option is selected, =display= is the text to show in the menu, and =filter-text= is the text which can be used by the user to filter options - usually it's the same as =content=.
+We create the two "fixed" items of the bang-bang menu: the full command and the plain exclamation mark. Each menu item is a map with three keys: =to-accept= is the text to insert when the option is selected, =to-show= is the text to show in the menu, and =to-filter= is the text which can be used by the user to filter/select options.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
   cmd = [
-    &content=     $last[cmd]
-    &display=     (-display-text "!" $last[cmd])
-    &filter-text= $last[cmd]
+    &to-accept= $last[cmd]
+    &to-show=   (-display-text "!" $last[cmd])
+    &to-filter= "! "$last[cmd]
   ]
   bang = [
-    &content=     "!"
-    &display=     (-display-text $-plain-bang-insert "!")
-    &filter-text= "!"
+    &to-accept= "!"
+    &to-show=   (-display-text $-plain-bang-insert "!")
+    &to-filter= $-plain-bang-insert" !"
   ]
 #+end_src
 
@@ -197,19 +191,22 @@ We now populate the menu items for each word of the command. For the last one, w
     (range $nitems |
       each [i]{
         text = $parts[$i]
+        ind = (to-string $i)
+        if (> $i 9) {
+          ind = ""
+        }
         if (eq $i (- $nitems 1)) {
-          i = "$"
-        } elif (> $i 9) {
-          i = ""
+          ind = $ind" $"
         }
         put [
-          &content=     $text
-          &display=     (-display-text $i $text)
-          &filter-text= $text
+          &to-accept= $text
+          &to-show=   (-display-text $ind $text)
+          &to-filter= $ind" "$text
         ]
       }
     )
   ]
+
 #+end_src
 
 Finally, we put the whole list together.
@@ -221,8 +218,8 @@ Finally, we put the whole list together.
 Now we create a list with the keybindings for the different elements of the menu. One-key bindings are only assigned for the first 9 elements and for the last one.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-  fn insert-full-cmd { edit:insert:start; edit:insert-at-dot $last[cmd] }
-  fn insert-part [n]{ edit:insert:start; edit:insert-at-dot $parts[$n] }
+  fn insert-full-cmd { edit:listing:close; edit:insert-at-dot $last[cmd] }
+  fn insert-part [n]{ edit:listing:close; edit:insert-at-dot $parts[$n] }
   bindings = [
     &!=                   $insert-full-cmd~
     &"$"=                 { insert-part -1 }
@@ -234,17 +231,16 @@ Now we create a list with the keybindings for the different elements of the menu
   range (util:min (count $parts) 10) | each [i]{
     bindings[(to-string $i)] = { insert-part $i }
   }
+  bindings = (edit:binding-table $bindings)
 #+end_src
 
-Finally, we invoke narrow mode with all the information we have put together, to display the menu and act on the corresponding choice.
+Finally, we invoke custom-listing mode with all the information we have put together, to display the menu and act on the corresponding choice.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-  edit:-narrow-read {
-    put $@candidates
-  } [arg]{
-    edit:insert-at-dot $arg[content]
+  edit:listing:start-custom $candidates &caption="bang-bang " &binding=$bindings &accept=[arg]{
+    edit:insert-at-dot $arg
     for hook $after-lastcmd { $hook }
-  } &modeline="bang-bang " &auto-commit=$true &ignore-case=$true &bindings=$bindings
+  }
 #+end_src
 
 ** Initialization
@@ -266,7 +262,7 @@ The =init= function gets called to set up the keybindings. This function can rec
   }
 #+end_src
 
-We call =init= automatically on module load, although you can all it manually if you want to change the defaults for =plain-bang= or =extra-triggers=.
+We call =init= automatically on module load, although you can call it manually if you want to change the defaults for =plain-bang= or =extra-triggers=.
 
 #+begin_src elvish
   init

@@ -8,54 +8,52 @@ after-lastcmd = []
 
 -extra-trigger-keys = []
 
-fn insert-plain-bang { edit:insert:start; edit:insert-at-dot "!" }
+fn insert-plain-bang { edit:listing:close; edit:insert-at-dot "!" }
 
 fn lastcmd {
   for hook $before-lastcmd { $hook }
-  last = (edit:command-history -1)
-  ### This is a workaround for a break in the edit:command-history values,
-  ### used while https://github.com/elves/elvish/issues/821 gets fixed
-  extracted-cmd = (re:find 'unknown \{(.*) \d+\}' (to-string $last[cmd]))[groups][1][text]
-  last[cmd] = $extracted-cmd
-  ### END workaround
+  last = [(edit:command-history)][-1]
   parts = [(edit:wordify $last[cmd])]
   nitems = (count $parts)
-  indicator-width = (util:max (count $nitems) (count $-plain-bang-insert))
+  indicator-width = (util:max (+ 2 (count $nitems)) (count $-plain-bang-insert))
   filler = (repeat $indicator-width ' ' | joins '')
   fn -display-text [ind text]{
     indcol = $filler$ind
     put $indcol[(- $indicator-width):]" "$text
   }
   cmd = [
-    &content=     $last[cmd]
-    &display=     (-display-text "!" $last[cmd])
-    &filter-text= $last[cmd]
+    &to-accept= $last[cmd]
+    &to-show=   (-display-text "!" $last[cmd])
+    &to-filter= "! "$last[cmd]
   ]
   bang = [
-    &content=     "!"
-    &display=     (-display-text $-plain-bang-insert "!")
-    &filter-text= "!"
+    &to-accept= "!"
+    &to-show=   (-display-text $-plain-bang-insert "!")
+    &to-filter= $-plain-bang-insert" !"
   ]
   items = [
     (range $nitems |
       each [i]{
         text = $parts[$i]
+        ind = (to-string $i)
+        if (> $i 9) {
+          ind = ""
+        }
         if (eq $i (- $nitems 1)) {
-          i = "$"
-        } elif (> $i 9) {
-          i = ""
+          ind = $ind" $"
         }
         put [
-          &content=     $text
-          &display=     (-display-text $i $text)
-          &filter-text= $text
+          &to-accept= $text
+          &to-show=   (-display-text $ind $text)
+          &to-filter= $ind" "$text
         ]
       }
     )
   ]
+  
   candidates = [$cmd $@items $bang]
-  fn insert-full-cmd { edit:insert:start; edit:insert-at-dot $last[cmd] }
-  fn insert-part [n]{ edit:insert:start; edit:insert-at-dot $parts[$n] }
+  fn insert-full-cmd { edit:listing:close; edit:insert-at-dot $last[cmd] }
+  fn insert-part [n]{ edit:listing:close; edit:insert-at-dot $parts[$n] }
   bindings = [
     &!=                   $insert-full-cmd~
     &"$"=                 { insert-part -1 }
@@ -67,12 +65,11 @@ fn lastcmd {
   range (util:min (count $parts) 10) | each [i]{
     bindings[(to-string $i)] = { insert-part $i }
   }
-  edit:-narrow-read {
-    put $@candidates
-  } [arg]{
-    edit:insert-at-dot $arg[content]
+  bindings = (edit:binding-table $bindings)
+  edit:listing:start-custom $candidates &caption="bang-bang " &binding=$bindings &accept=[arg]{
+    edit:insert-at-dot $arg
     for hook $after-lastcmd { $hook }
-  } &modeline="bang-bang " &auto-commit=$true &ignore-case=$true &bindings=$bindings
+  }
 }
 
 fn init [&plain-bang="Alt-!" &extra-triggers=["Alt-1"]]{

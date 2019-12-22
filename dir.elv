@@ -1,5 +1,4 @@
 use builtin
-use narrow
 
 before-chooser = []
 after-chooser = []
@@ -119,18 +118,16 @@ fn history-chooser {
   index = 0
   candidates = [(each [arg]{
         put [
-          &content=$arg
-          &display=$index" "$arg
-          &filter-text=$index" "$arg
+          &to-accept=$arg
+          &to-show=$index" "$arg
+          &to-filter=$index" "$arg
         ]
-        index = (+ $index 1)
+        index = (to-string (+ $index 1))
   } $-dirstack)]
-  edit:-narrow-read {
-    put $@candidates
-  } [arg]{
-    builtin:cd $arg[content]
+  edit:listing:start-custom $candidates &caption="Dir history " &accept=[arg]{
+    builtin:cd $arg
     for hook $after-chooser { $hook }
-  } &modeline="Dir history " &ignore-case=$true &keep-bottom=$true
+  }
 }
 
 fn init {
