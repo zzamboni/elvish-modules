@@ -45,7 +45,7 @@ You can type =sudo= and then press =!=, which will show you the menu:
 bang-bang
     ! ls /var/spool/mqueue/
     0 ls
-  1/$ /var/spool/mqueue/
+  1 $ /var/spool/mqueue/
 Alt-! !
 #+end_example
 
@@ -63,7 +63,7 @@ bang-bang
     ! sudo ls /var/spool/mqueue/
     0 sudo
     1 ls
-  2/$ /var/spool/mqueue/
+  2 $ /var/spool/mqueue/
 Alt-! !
 #+end_example
 
