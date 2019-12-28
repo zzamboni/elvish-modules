@@ -73,7 +73,7 @@ The =set-title= function takes a string and sets it as the current terminal titl
 
 #+begin_src elvish
   fn set-title [title]{
-    print $start$title$end > /dev/tty
+    print $start$title$end
   }
 #+end_src
 

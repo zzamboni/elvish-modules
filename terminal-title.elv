@@ -10,7 +10,7 @@ start = "\e]0;"
 end = "\007"
 
 fn set-title [title]{
-  print $start$title$end > /dev/tty
+  print $start$title$end
 }
 
 title-during-prompt = {
