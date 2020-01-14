@@ -1,9 +1,13 @@
 #+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
 #+EXPORT_FILE_NAME: README.org
 
-* zzamboni's Elvish libraries
+#+title: zzamboni's Elvish libraries
+#+author: Diego Zamboni
+#+email: diego@zzamboni.org
 
 This Elvish package contains various modules I have written for the [[https://elv.sh/][Elvish shell]]. [[https://github.com/zzamboni/elvish-themes/][Themes]] and [[https://github.com/zzamboni/elvish-completions][completions]] are kept in separate packages.
+
+* Installation
 
 To install, use [[https://elvish.io/ref/epm.html][epm]]:
 
@@ -20,11 +24,15 @@ For each module you want to use, you need to add the following to your =rc.elv= 
 
 See each module's page for detailed usage instructions.
 
+* Modules
+
 The following modules are included:
 
 {{{module-summary(alias)}}}
+{{{module-summary(atlas)}}}
 {{{module-summary(bang-bang)}}}
 {{{module-summary(dir)}}}
+{{{module-summary(leanpub)}}}
 {{{module-summary(long-running-notifications)}}}
 {{{module-summary(nix)}}}
 {{{module-summary(opsgenie)}}}
@@ -33,4 +41,5 @@ The following modules are included:
 {{{module-summary(semver)}}}
 {{{module-summary(terminal-title)}}}
 {{{module-summary(test)}}}
+{{{module-summary(tinytex)}}}
 {{{module-summary(util)}}}

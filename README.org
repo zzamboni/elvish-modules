@@ -1,12 +1,12 @@
-# Created 2018-06-29 Fri 12:12
-#+TITLE:
-#+AUTHOR: Zamboni Diego
+# Created 2020-01-14 Tue 15:27
+#+TITLE: zzamboni's Elvish libraries
+#+AUTHOR: Diego Zamboni
 #+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
 #+export_file_name: README.org
 
-* zzamboni's Elvish libraries
-
 This Elvish package contains various modules I have written for the [[https://elv.sh/][Elvish shell]]. [[https://github.com/zzamboni/elvish-themes/][Themes]] and [[https://github.com/zzamboni/elvish-completions][completions]] are kept in separate packages.
+
+* Installation
 
 To install, use [[https://elvish.io/ref/epm.html][epm]]:
 
@@ -23,11 +23,17 @@ For each module you want to use, you need to add the following to your =rc.elv= 
 
 See each module's page for detailed usage instructions.
 
+* Modules
+
 The following modules are included:
 
 - [[file:alias.org][alias]] ::
      #+name: module-summary
      Implementation of aliases for [[http://elvish.io][Elvish]].
+
+- [[file:atlas.org][atlas]] ::
+     #+name: module-summary
+     Elvish functions for interacting with O'Reilly's [[https://atlas.oreilly.com/][Atlas]] publishing system.
 
 - [[file:bang-bang.org][bang-bang]] ::
      #+name: module-summary
@@ -36,6 +42,10 @@ The following modules are included:
 - [[file:dir.org][dir]] ::
      #+name: module-summary
      Keep and move through the directory history, including a graphical chooser, similar to Elvish's Location mode, but showing a chronological directory history instead of a weighted one.
+
+- [[file:leanpub.org][leanpub]] ::
+     #+name: module-summary
+     This module provides some interfaces to the [[https://leanpub.com/help/api][LeanPub API]].
 
 - [[file:long-running-notifications.org][long-running-notifications]] ::
      #+name: module-summary
@@ -68,6 +78,10 @@ The following modules are included:
 - [[file:test.org][test]] ::
      #+name: module-summary
      A very simplistic test framework for Elvish.
+
+- [[file:tinytex.org][tinytex]] ::
+     #+name: module-summary
+     Convenience functions for TinyTeX.
 
 - [[file:util.org][util]] ::
      #+name: module-summary

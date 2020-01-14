@@ -2,6 +2,7 @@
 #+AUTHOR: Diego Zamboni
 #+EMAIL:  diego@zzamboni.org
 
+#+name: module-summary
 This module provides some interfaces to the [[https://leanpub.com/help/api][LeanPub API]].
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:leanpub.elv][leanpub.elv]] for the generated file.

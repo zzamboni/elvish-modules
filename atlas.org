@@ -5,6 +5,9 @@
 #+author: Diego Zamboni
 #+email: diego@zzamboni.org
 
+#+name: module-summary
+Elvish functions for interacting with O'Reilly's [[https://atlas.oreilly.com/][Atlas]] publishing system.
+
 #+begin_src elvish
   use re
 
