@@ -3,7 +3,7 @@
 #+email: diego@zzamboni.org
 
 #+name: module-summary
-Convenience functions for TinyTeX.
+Convenience functions for [[https://yihui.org/tinytex/][TinyTeX]].
 
 I have started using [[https://yihui.org/tinytex/][TinyTeX]] to avoid having a gigantic TeX/LaTeX distribution on my system. This module has some convenience functions I have written to automate some things.
 

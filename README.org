@@ -1,4 +1,4 @@
-# Created 2020-01-14 Tue 15:27
+# Created 2020-01-14 Tue 21:37
 #+TITLE: zzamboni's Elvish libraries
 #+AUTHOR: Diego Zamboni
 #+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
@@ -81,7 +81,7 @@ The following modules are included:
 
 - [[file:tinytex.org][tinytex]] ::
      #+name: module-summary
-     Convenience functions for TinyTeX.
+     Convenience functions for [[https://yihui.org/tinytex/][TinyTeX]].
 
 - [[file:util.org][util]] ::
      #+name: module-summary
