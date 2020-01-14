@@ -27,7 +27,7 @@ In your =rc.elv=, load this module:
   use github.com/zzamboni/elvish-modules/tinytex
 #+end_src
 
-For now, the only function is =tinytex:install-by-file=, which takes a filename, searches for the package which contains that file, and installs it. If only one package matches the file, everything happens automatically. If more than one package matches the file, it shows you the search results, and you can choose which of the matching packages you want to install.
+For now, the only function is =tinytex:install-by-file=, which takes a filename, searches for the package which contains that file, and installs it. If only one package matches the file, everything happens automatically:
 
 #+begin_src console
 [~]─> tinytex:install-by-file ifmtarg.sty
@@ -37,7 +37,11 @@ tlmgr: package repository http://mirror.kumi.systems/ctan/systems/texlive/tlnet 
 running mktexlsr ...
 done running mktexlsr.
 tlmgr: package log updated: /Users/taazadi1/Library/TinyTeX/texmf-var/web2c/tlmgr.log
+#+end_src
 
+If more than one package matches the file, it shows you the search results, and you can choose which of the matching packages you want to install:
+
+#+begin_src console
 [~]─> tinytex:install-by-file biber
 There are multiple packages which contain a matching file:
 tlmgr: package repository http://mirror.kumi.systems/ctan/systems/texlive/tlnet (verified)
