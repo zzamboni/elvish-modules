@@ -12,6 +12,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
   - [[#dotifying-strings][Dotifying strings]]
   - [[#parallel-redirection-of-stdoutstderr-to-different-commands][Parallel redirection of stdout/stderr to different commands]]
   - [[#evaluating-code][Evaluating code]]
+  - [[#reading-a-line-of-input][Reading a line of input]]
   - [[#yes-or-no-prompts][Yes-or-no prompts]]
   - [[#get-a-filename-from-the-macos-finder][Get a filename from the macOS Finder]]
   - [[#maximumminimum][Maximum/minimum]]
@@ -23,16 +24,18 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
     - [[#tests-1][Tests]]
   - [[#evaluating-code-1][Evaluating code]]
     - [[#tests-2][Tests]]
+  - [[#reading-a-line-of-input-1][Reading a line of input]]
+    - [[#tests-3][Tests]]
   - [[#yes-or-no-prompts-1][Yes-or-no prompts]]
   - [[#get-a-filename-from-the-macos-finder-1][Get a filename from the macOS Finder]]
   - [[#maximumminimum-1][Maximum/minimum]]
-    - [[#tests-3][Tests]]
-  - [[#conditionals-1][Conditionals]]
     - [[#tests-4][Tests]]
-  - [[#pipeline-or-argument-input][Pipeline-or-argument input]]
+  - [[#conditionals-1][Conditionals]]
     - [[#tests-5][Tests]]
-  - [[#functional-programming-utilities][Functional programming utilities]]
+  - [[#pipeline-or-argument-input][Pipeline-or-argument input]]
     - [[#tests-6][Tests]]
+  - [[#functional-programming-utilities][Functional programming utilities]]
+    - [[#tests-7][Tests]]
 - [[#test-suite][Test suite]]
 
 * Usage
@@ -85,6 +88,17 @@ The following functions are included:
 
 #+results:
 : ▶ foo
+
+** Reading a line of input
+
+=util:readline= reads a line from the current input pipe, until the first end of line. Depending on the version of Elvish you have, it either uses an external command, or an internal function, but the result is the same.
+
+#+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
+  echo "hi there\nhow are you" | util:readline
+#+end_src
+
+#+RESULTS:
+: ▶ 'hi there'
 
 ** Yes-or-no prompts
 
@@ -249,6 +263,32 @@ Elvish does not include an =eval= function, but we emulate one using the =-sourc
   ])
 #+end_src
 
+** Reading a line of input
+
+We define a default version of the function which uses the external =head= command to read a line.
+
+#+begin_src elvish
+  readline~ = { put (head -n1) }
+#+end_src
+
+In recent versions of Elvish, the =read-upto= function can be used to read a line of text without invoking an external command.
+
+#+begin_src elvish
+  use builtin
+  if (has-key $builtin: read-upto~) {
+    readline~ = { put (read-upto "\n")[:-1] }
+  }
+#+end_src
+
+*** Tests
+
+#+begin_src elvish :tangle no :noweb-ref tests
+  (test:set eval [
+      (test:is { echo "line1\nline2" | util:readline } line1 Readline)
+      (test:is { echo | util:readline }                ''    Readline empty line)
+  ])
+#+end_src
+
 ** Yes-or-no prompts
 
 #+begin_src elvish
@@ -258,7 +298,7 @@ Elvish does not include an =eval= function, but we emulate one using the =-sourc
       prompt = (styled $prompt $style)
     }
     print $prompt > /dev/tty
-    resp = (head -n1 < /dev/tty)
+    resp = (util:readline)
     eq $resp y
   }
 #+end_src
@@ -271,7 +311,7 @@ Thanks to @hanche in the Elvish channel, a short utility to convert a filename a
   fn getfile {
     use re
     print 'Drop a file here: ' >/dev/tty
-    re:replace '\\(.)' '$1' (head -n 1 </dev/tty)[:-1]
+    re:replace '\\(.)' '$1' (util:readline)[:-1]
   }
 #+end_src
 
@@ -371,7 +411,7 @@ We simply step through the /expression value/ pairs, and =put= the first value w
   (test:set optional-input [
       (test:is { util:optional-input [foo bar] }         [foo bar]     Input from list)
       (test:is { put foo bar baz | util:optional-input } [foo bar baz] Input from pipeline)
-      (test:is { util:optional-input }                   []            Empty input)
+      (test:is { put | util:optional-input }             []            Empty input)
   ])
 #+end_src
 
@@ -412,9 +452,9 @@ We simply step through the /expression value/ pairs, and =put= the first value w
 
 #+begin_src elvish :tangle no :noweb-ref tests
   (test:set partial [
-      (test:is { (util:partial $+~ 3) 5 }                       8     Partial addition)
-      (test:is { (util:partial $eq~ 3) 3 }                      $true Partial eq)
-      (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } 120   Partial custom function with rest arg)
+      (test:is { (util:partial $+~ 3) 5 }                       (float64 8)   Partial addition)
+      (test:is { (util:partial $eq~ 3) 3 }                      $true         Partial eq)
+      (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } (float64 120) Partial custom function with rest arg)
   ])
 #+end_src
 

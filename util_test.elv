@@ -13,6 +13,10 @@ use github.com/zzamboni/elvish-modules/util
     (test:set eval [
         (test:is { util:eval "echo yes" } yes Evaluated code)
     ])
+    (test:set eval [
+        (test:is { echo "line1\nline2" | util:readline } line1 Readline)
+        (test:is { echo | util:readline }                ''    Readline empty line)
+    ])
     (test:set max-min [
         (test:is { util:max 1 2 3 -1 5 0 }  5 Maximum)
         (test:is { util:min 1 2 3 -1 5 0 } -1 Minimum)
@@ -30,15 +34,15 @@ use github.com/zzamboni/elvish-modules/util
     (test:set optional-input [
         (test:is { util:optional-input [foo bar] }         [foo bar]     Input from list)
         (test:is { put foo bar baz | util:optional-input } [foo bar baz] Input from pipeline)
-        (test:is { util:optional-input }                   []            Empty input)
+        (test:is { put | util:optional-input }             []            Empty input)
     ])
     (test:set select-and-remove [
         (test:is { put [(util:select [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [0]        Select zeros from a list)
         (test:is { put [(util:remove [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [3 2 2 -1] Remove zeros from a list)
     ])
     (test:set partial [
-        (test:is { (util:partial $+~ 3) 5 }                       8     Partial addition)
-        (test:is { (util:partial $eq~ 3) 3 }                      $true Partial eq)
-        (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } 120   Partial custom function with rest arg)
+        (test:is { (util:partial $+~ 3) 5 }                       (float64 8)   Partial addition)
+        (test:is { (util:partial $eq~ 3) 3 }                      $true         Partial eq)
+        (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } (float64 120) Partial custom function with rest arg)
     ])
 ])

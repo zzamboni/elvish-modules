@@ -29,20 +29,27 @@ fn eval [str]{
   rm -f $tmpf
 }
 
+readline~ = { put (head -n1) }
+
+use builtin
+if (has-key $builtin: read-upto~) {
+  readline~ = { put (read-upto "\n")[:-1] }
+}
+
 fn y-or-n [&style=default prompt]{
   prompt = $prompt" [y/n] "
   if (not-eq $style default) {
     prompt = (styled $prompt $style)
   }
   print $prompt > /dev/tty
-  resp = (head -n1 < /dev/tty)
+  resp = (util:readline)
   eq $resp y
 }
 
 fn getfile {
   use re
   print 'Drop a file here: ' >/dev/tty
-  re:replace '\\(.)' '$1' (head -n 1 </dev/tty)[:-1]
+  re:replace '\\(.)' '$1' (util:readline)[:-1]
 }
 
 fn max [a @rest &with=[v]{put $v}]{
