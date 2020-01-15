@@ -28,10 +28,11 @@ Functions to set up the Nix environment variables for Elvish.
 
 * Libraries
 
-We use the =re= module.
+We use the =re= and =util= modules.
 
 #+begin_src elvish
   use re
+  use github.com/zzamboni/elvish-modules/util
 #+end_src
 
 * Environment setup
@@ -202,7 +203,7 @@ This is not fully tested as I don't use this setup - use with care!
       while $loop {
         loop = $false
         print (styled $pkg": [R]emove/[Q]uery nix/[K]eep/Remove and [I]nstall with nix? " yellow)
-        resp = (head -n1 </dev/tty)
+        resp = (util:readline </dev/tty)
         if (eq $resp "r") {
           brew uninstall --force $pkg
         } elif (eq $resp "q") {

@@ -4,6 +4,7 @@
 # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 
 use re
+use github.com/zzamboni/elvish-modules/util
 
 fn multi-user-setup {
   # Set up secure multi-user builds: non-root users build through the
@@ -138,7 +139,7 @@ fn brew-to-nix {
     while $loop {
       loop = $false
       print (styled $pkg": [R]emove/[Q]uery nix/[K]eep/Remove and [I]nstall with nix? " yellow)
-      resp = (head -n1 </dev/tty)
+      resp = (util:readline </dev/tty)
       if (eq $resp "r") {
         brew uninstall --force $pkg
       } elif (eq $resp "q") {
