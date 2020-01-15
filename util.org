@@ -298,7 +298,7 @@ In recent versions of Elvish, the =read-upto= function can be used to read a lin
       prompt = (styled $prompt $style)
     }
     print $prompt > /dev/tty
-    resp = (util:readline)
+    resp = (readline)
     eq $resp y
   }
 #+end_src
@@ -311,7 +311,7 @@ Thanks to @hanche in the Elvish channel, a short utility to convert a filename a
   fn getfile {
     use re
     print 'Drop a file here: ' >/dev/tty
-    re:replace '\\(.)' '$1' (util:readline)[:-1]
+    re:replace '\\(.)' '$1' (readline)[:-1]
   }
 #+end_src
 
