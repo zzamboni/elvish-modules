@@ -14,8 +14,11 @@ use github.com/zzamboni/elvish-modules/util
         (test:is { util:eval "echo yes" } yes Evaluated code)
     ])
     (test:set eval [
-        (test:is { echo "line1\nline2" | util:readline } line1 Readline)
-        (test:is { echo | util:readline }                ''    Readline empty line)
+        (test:is { echo "line1\nline2" | util:readline }                line1     Readline)
+        (test:is { echo "line1\nline2" | util:readline &nostrip }       "line1\n" Readline with nostrip)
+        (test:is { echo | util:readline }                               ''        Readline empty line)
+        (test:is { echo "line1.line2" | util:readline &eol=. }          line1     Readline with different EOL)
+        (test:is { echo "line1.line2" | util:readline &eol=. &nostrip } line1.    Readline with different EOL)
     ])
     (test:set max-min [
         (test:is { util:max 1 2 3 -1 5 0 }  5 Maximum)

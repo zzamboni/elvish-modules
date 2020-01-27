@@ -29,11 +29,27 @@ fn eval [str]{
   rm -f $tmpf
 }
 
-readline~ = { put (head -n1) }
+-read-upto-eol~ = [eol]{ put (head -n1) }
 
 use builtin
 if (has-key $builtin: read-upto~) {
-  readline~ = { put (read-upto "\n")[:-1] }
+  -read-upto-eol~ = [eol]{ read-upto $eol }
+}
+
+fn readline [&eol="\n" &nostrip=$false &prompt=$nil]{
+  if $prompt {
+    print $prompt > /dev/tty
+  }
+  local:line = (if $prompt {
+      -read-upto-eol $eol < /dev/tty
+    } else {
+      -read-upto-eol $eol
+  })
+  if (and (not $nostrip) (!=s $line '') (==s $line[-1:] $eol)) {
+    put $line[:-1]
+  } else {
+    put $line
+  }
 }
 
 fn y-or-n [&style=default prompt]{

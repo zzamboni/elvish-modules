@@ -100,6 +100,23 @@ The following functions are included:
 #+RESULTS:
 : ▶ 'hi there'
 
+=util:readline= can take some optional arguments:
+
+- =&eol=: the end-of-line character to use (defaults to newline). This argument is only fully functional in newer versions of Elvish (after 0.13), which have the =read-upto= function.
+- =&nostrip=: whether to strip the EOL character from the end of the string. Defaults to =$false=, which means the EOL character is stripped.
+- =&prompt=: optional prompt to print before reading the input. If a prompt is specified, then input/output is forced from the terminal (=/dev/tty=) instead of the input pipe, since the existence of a prompt presumes interactive use.
+
+#+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
+echo "hi there\nhow are you" | util:readline &nostrip
+echo "hi there.how are you" | util:readline &eol=.
+echo "hi there.how are you" | util:readline &eol=. &nostrip
+#+end_src
+
+#+RESULTS:
+: ▶ "hi there\n"
+: ▶ 'hi there'
+: ▶ 'hi there.'
+
 ** Yes-or-no prompts
 
 =y-or-n= receives a prompt string, shows the prompt to the user and accepts =y= or =n= as an answer. Returns =$true= if the user responds with =y=. The =&style= option can be used to specify the style for the prompt, as accepted by [[https://elvish.io/ref/edit.html#editstyled][styled]].
@@ -265,27 +282,49 @@ Elvish does not include an =eval= function, but we emulate one using the =-sourc
 
 ** Reading a line of input
 
-We define a default version of the function which uses the external =head= command to read a line.
+The base of reading a line of input is a low-level function which reads the actual text. We define a default version of the =-read-upto-eol= function which uses the external =head= command to read a line. Note that this version does not respect the value of =$eol=, since the end of line is always marked by a newline.
 
 #+begin_src elvish
-  readline~ = { put (head -n1) }
+  -read-upto-eol~ = [eol]{ put (head -n1) }
 #+end_src
 
-In recent versions of Elvish, the =read-upto= function can be used to read a line of text without invoking an external command.
+However, in recent versions of Elvish, the =read-upto= function can be used to read a line of text without invoking an external command, and can make proper use of different =$eol= values (default is still newline).
 
 #+begin_src elvish
   use builtin
   if (has-key $builtin: read-upto~) {
-    readline~ = { put (read-upto "\n")[:-1] }
+    -read-upto-eol~ = [eol]{ read-upto $eol }
   }
 #+end_src
 
+Finally, we build the =util:readline= function on top of =-read-upto-eol=. This function was written by and is included here with the kind permission of [[https://folk.ntnu.no/hanche/en/][Harald Hanche-Olsen]]. Note that if =&prompt= is specified, all input/output is forced to =/dev/tty=, as the existence of a prompt implies interactive use. Otherwise input is read from stdin.
+
+#+begin_src elvish
+  fn readline [&eol="\n" &nostrip=$false &prompt=$nil]{
+    if $prompt {
+      print $prompt > /dev/tty
+    }
+    local:line = (if $prompt {
+        -read-upto-eol $eol < /dev/tty
+      } else {
+        -read-upto-eol $eol
+    })
+    if (and (not $nostrip) (!=s $line '') (==s $line[-1:] $eol)) {
+      put $line[:-1]
+    } else {
+      put $line
+    }
+  }
+#+end_src
 *** Tests
 
 #+begin_src elvish :tangle no :noweb-ref tests
   (test:set eval [
-      (test:is { echo "line1\nline2" | util:readline } line1 Readline)
-      (test:is { echo | util:readline }                ''    Readline empty line)
+      (test:is { echo "line1\nline2" | util:readline }                line1     Readline)
+      (test:is { echo "line1\nline2" | util:readline &nostrip }       "line1\n" Readline with nostrip)
+      (test:is { echo | util:readline }                               ''        Readline empty line)
+      (test:is { echo "line1.line2" | util:readline &eol=. }          line1     Readline with different EOL)
+      (test:is { echo "line1.line2" | util:readline &eol=. &nostrip } line1.    Readline with different EOL)
   ])
 #+end_src
 
