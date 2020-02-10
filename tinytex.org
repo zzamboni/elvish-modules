@@ -10,6 +10,7 @@ I have started using [[https://yihui.org/tinytex/][TinyTeX]] to avoid having a g
 * Table of Contents                                          :TOC_3:noexport:
 - [[#usage][Usage]]
 - [[#implementation][Implementation]]
+  - [[#install-tinytex][Install TinyTex]]
   - [[#install-missing-packages-by-file][Install missing packages by file]]
 
 * Usage
@@ -86,11 +87,32 @@ Load libraries
   use re
 #+end_src
 
+** Install TinyTex
+
+Detect which utility to use, and run the appropriate command.
+
+#+begin_src elvish
+  fn install {
+    opt=""
+    url="https://yihui.org/gh/tinytex/tools/install-unx.sh"
+    if ?(cmd=(which curl)) {
+      opt="-sL"
+    } elif ?(cmd=(which wget)) {
+      opt="-qO-"
+    } else {
+      echo "I couldn't find curl nor wget in your path."
+      exit 1
+    }
+    echo (styled "Installing TinyTeX with `"$cmd" "$opt" "$url" | sh`" green)
+    (external $cmd) $opt $url | sh
+  }
+#+end_src
+
 ** Install missing packages by file
 
 If a LaTeX compile tells me a certain file is missing, I can just type =tinytex:install-by-file <file>=, which automates searching for the package which contains the file, and then installing it.
 
-#+begin_src elvish :noweb no-export
+#+begin_src elvish
   fn install-by-file [f]{
     search-res = [(tlmgr search --global --file "/"$f )]
     pkgs = [(each [l]{ if (eq $l[-1] ":") { put $l[0:-1] } } $search-res)]

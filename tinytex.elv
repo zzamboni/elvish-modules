@@ -1,5 +1,20 @@
 use re
 
+fn install {
+  opt=""
+  url="https://yihui.org/gh/tinytex/tools/install-unx.sh"
+  if ?(cmd=(which curl)) {
+    opt="-sL"
+  } elif ?(cmd=(which wget)) {
+    opt="-qO-"
+  } else {
+    echo "I couldn't find curl nor wget in your path."
+    exit 1
+  }
+  echo (styled "Installing TinyTeX with `"$cmd" "$opt" "$url" | sh`" green)
+  (external $cmd) $opt $url | sh
+}
+
 fn install-by-file [f]{
   search-res = [(tlmgr search --global --file "/"$f )]
   pkgs = [(each [l]{ if (eq $l[-1] ":") { put $l[0:-1] } } $search-res)]
