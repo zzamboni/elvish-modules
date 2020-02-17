@@ -34,6 +34,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
     - [[#tests-5][Tests]]
   - [[#pipeline-or-argument-input][Pipeline-or-argument input]]
     - [[#tests-6][Tests]]
+  - [[#electric-editing-in-command-line][Electric editing in command line]]
   - [[#functional-programming-utilities][Functional programming utilities]]
     - [[#tests-7][Tests]]
 - [[#test-suite][Test suite]]
@@ -452,6 +453,49 @@ We simply step through the /expression value/ pairs, and =put= the first value w
       (test:is { put foo bar baz | util:optional-input } [foo bar baz] Input from pipeline)
       (test:is { put | util:optional-input }             []            Empty input)
   ])
+#+end_src
+
+** Electric editing in command line
+
+The =util:electric-delimiters= function sets up the necessary bindings to automatically insert and delete matching pairs of delimiters. The idea and initial implementation of this function was written by and is included here with the kind permission of [[https://folk.ntnu.no/hanche/en/][Harald Hanche-Olsen]].
+
+#+begin_src elvish
+  electric-pairs = ['()' '{}' '[]' '""' "''"]
+
+  fn -electric-insert [pair]{
+    put {
+      edit:insert-at-dot $pair
+      edit:move-dot-left
+    }
+  }
+
+  fn -electric-backspace {
+    if (> $edit:-dot 0) {
+      char1 = $edit:current-command[(- $edit:-dot 1)]
+      char2 = ''
+      if (< $edit:-dot (count $edit:current-command)) {
+        char2 = $edit:current-command[$edit:-dot]
+      }
+      pending-delete = $true
+      for pair $electric-pairs {
+        if (and (==s $char1 $pair[0]) (==s $char2 $pair[1])) {
+          edit:kill-rune-left
+          edit:kill-rune-right
+          pending-delete = $false
+        }
+      }
+      if $pending-delete {
+        edit:kill-rune-left
+      }
+    }
+  }
+
+  fn electric-delimiters {
+    for pair $electric-pairs {
+      edit:insert:binding[$pair[0]] = (-electric-insert $pair)
+    }
+    edit:insert:binding[Backspace] = $-electric-backspace~
+  }
 #+end_src
 
 ** Functional programming utilities

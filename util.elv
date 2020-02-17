@@ -116,6 +116,43 @@ fn optional-input [@input]{
   put $input
 }
 
+electric-pairs = ['()' '{}' '[]' '""' "''"]
+
+fn -electric-insert [pair]{
+  put {
+    edit:insert-at-dot $pair
+    edit:move-dot-left
+  }
+}
+
+fn -electric-backspace {
+  if (> $edit:-dot 0) {
+    char1 = $edit:current-command[(- $edit:-dot 1)]
+    char2 = ''
+    if (< $edit:-dot (count $edit:current-command)) {
+      char2 = $edit:current-command[$edit:-dot]
+    }
+    pending-delete = $true
+    for pair $electric-pairs {
+      if (and (==s $char1 $pair[0]) (==s $char2 $pair[1])) {
+        edit:kill-rune-left
+        edit:kill-rune-right
+        pending-delete = $false
+      }
+    }
+    if $pending-delete {
+      edit:kill-rune-left
+    }
+  }
+}
+
+fn electric-delimiters {
+  for pair $electric-pairs {
+    edit:insert:binding[$pair[0]] = (-electric-insert $pair)
+  }
+  edit:insert:binding[Backspace] = $-electric-backspace~
+}
+
 fn select [p @input]{
   each [i]{ if ($p $i) { put $i} } (optional-input $@input)
 }
