@@ -37,11 +37,10 @@ The basic block is the =test:check= function. It takes a lambda and an optional 
 Note that =test:check= returns a function, so to actually run the test, you need to execute its result by enclosing the call in parenthesis (this is so that test functions can be aggregated using =test:set=, see below).
 
 #+begin_src elvish
-  ~> (test:check { eq ( + 2 2 ) 4 } True arithmetic)
-   PASS True arithmetic { eq ( + 2 2 ) 4 }
-  ▶ $true
-  ~> (test:check { eq ( + 2 2 ) 5 } Funky arithmetic)
-   FAIL Funky arithmetic { eq ( + 2 2 ) 5 }
+  ~> (test:check { eq ( + 2 2 ) (float64 4) } True arithmetic)
+  PASS True arithmetic { eq ( + 2 2 ) (float64 4) }
+  ~> (test:check { eq ( + 2 2 ) (float64 5) } Funky arithmetic)
+  FAIL Funky arithmetic { eq ( + 2 2 ) (float64 5) }
   ▶ $false
 #+end_src
 
@@ -50,12 +49,12 @@ Note that =test:check= returns a function, so to actually run the test, you need
 =test:is= and =test:is-not= are frontends to =test:check= which explicitly take a lambda and a value. The test passes depending on whether the result from the lambda is equal/not equal to the given value. The main difference to =test:check= is that when the test fails, the value returned from the lambda is reported as well.
 
 #+begin_src elvish
-  ~> (test:is { + 2 2 } 4 True arithmetic)
-   PASS True arithmetic (eq ( + 2 2 ) 4)
+  ~> (test:is { + 2 2 } (float64 4) True arithmetic)
+  PASS True arithmetic (eq ( + 2 2 ) 4)
   ▶ $true
-  ~> (test:is { + 2 2 } 5 Funky arithmetic)
-   FAIL Funky arithmetic (eq ( + 2 2 ) 5)
-     actual: (not (eq 4 5))
+  ~> (test:is { + 2 2 } (float64 5) Funky arithmetic)
+  FAIL Funky arithmetic (eq ( + 2 2 ) 5)
+    actual: (not (eq 4 5))
   ▶ $false
 #+end_src
 
