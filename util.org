@@ -17,6 +17,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
   - [[#get-a-filename-from-the-macos-finder][Get a filename from the macOS Finder]]
   - [[#maximumminimum][Maximum/minimum]]
   - [[#conditionals][Conditionals]]
+  - [[#electric-editing-in-command-line][Electric editing in command line]]
 - [[#implementation][Implementation]]
   - [[#dotifying-strings-1][Dotifying strings]]
     - [[#tests][Tests]]
@@ -34,7 +35,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
     - [[#tests-5][Tests]]
   - [[#pipeline-or-argument-input][Pipeline-or-argument input]]
     - [[#tests-6][Tests]]
-  - [[#electric-editing-in-command-line][Electric editing in command line]]
+  - [[#electric-editing-in-command-line-1][Electric editing in command line]]
   - [[#functional-programming-utilities][Functional programming utilities]]
     - [[#tests-7][Tests]]
 - [[#test-suite][Test suite]]
@@ -200,6 +201,19 @@ In the example below, the values are scalars. Note that =:else= has no special s
 : ▶ negative
 : ▶ zero
 
+** Electric editing in command line
+
+The =util:electric-delimiters= function sets up the necessary bindings to automatically insert and delete matching pairs of delimiters. By default the following pairs are recognized, but the list can be augmented by adding the corresponding delimiters to the =util:electric-pairs= variable:
+
+#+begin_src elvish
+  util:electric-pairs = ['()' '{}' '[]' '""' "''"]
+#+end_src
+
+By default, electric pairs are inserted only when the cursor is at the end of the line, or at a space character (i.e. do not insert the full pair when the cursor is on another character). The variable =$util:electric-pair-always= can be set to =$true= to always insert the electric pair.
+
+#+begin_src elvish
+  util:electric-pair-always = $false
+#+end_src
 * Implementation
 :PROPERTIES:
 :header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
@@ -459,16 +473,42 @@ We simply step through the /expression value/ pairs, and =put= the first value w
 
 The =util:electric-delimiters= function sets up the necessary bindings to automatically insert and delete matching pairs of delimiters. The idea and initial implementation of this function was written by and is included here with the kind permission of [[https://folk.ntnu.no/hanche/en/][Harald Hanche-Olsen]].
 
+We first define the characters (and their corresponding pairs) that should trigger electric insertion.
+
 #+begin_src elvish
   electric-pairs = ['()' '{}' '[]' '""' "''"]
+  #+end_src
 
-  fn -electric-insert [pair]{
+By default, electric pairs are inserted only when the cursor is at the end of the line, or at a space character (i.e. do not insert the full pair when the cursor is on another character). The variable =$util:electric-pair-always= can be set to =$true= to always insert the electric pair. The =-should-insert-pair= function returns whether, depending on the cursor position and on the configuration variable, the full pair should be inserted at the moment.
+
+  #+begin_src elvish
+  electric-pair-always = $false
+
+  fn -should-insert-pair {
+    at-end = (== $edit:-dot (count $edit:current-command))
+    at-space = (and (not $at-end) (eq $edit:current-command[$edit:-dot] ' '))
+    or $electric-pair-always $at-end $at-space
+  }
+#+end_src
+
+The =-electric-insert-fn= function returns a lambda which inserts either the full electric pair, or only the first character, depending on the configuration and cursor position as checked by =-should-insert-pair=. The lambda returned by =-electric-insert-fn= is the one that should be bound to the first character of all electric pairs of characters.
+
+#+begin_src elvish
+  fn -electric-insert-fn [pair]{
     put {
-      edit:insert-at-dot $pair
-      edit:move-dot-left
+      if (-should-insert-pair) {
+        edit:insert-at-dot $pair
+        edit:move-dot-left
+      } else {
+        edit:insert-at-dot $pair[0]
+      }
     }
   }
+#+end_src
 
+The =-electric-backspace= function is bound to the Backspace key, and performs an electric delete of both characters in the pair only if the character to be deleted is the first of an electric pair, and if the corresponding pair is right next to it. Otherwise, the normal behavior (delete character to the left of the cursor) takes place.
+
+#+begin_src elvish
   fn -electric-backspace {
     if (> $edit:-dot 0) {
       char1 = $edit:current-command[(- $edit:-dot 1)]
@@ -489,10 +529,14 @@ The =util:electric-delimiters= function sets up the necessary bindings to automa
       }
     }
   }
+#+end_src
 
+The =electric-delimiters= function is the only user-facing function, and is the one that sets up the corresponding keybindings to call the "electric" functions above.
+
+#+begin_src elvish
   fn electric-delimiters {
     for pair $electric-pairs {
-      edit:insert:binding[$pair[0]] = (-electric-insert $pair)
+      edit:insert:binding[$pair[0]] = (-electric-insert-fn $pair)
     }
     edit:insert:binding[Backspace] = $-electric-backspace~
   }

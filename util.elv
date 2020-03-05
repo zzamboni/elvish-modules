@@ -118,10 +118,22 @@ fn optional-input [@input]{
 
 electric-pairs = ['()' '{}' '[]' '""' "''"]
 
-fn -electric-insert [pair]{
+electric-pair-always = $false
+
+fn -should-insert-pair {
+  at-end = (== $edit:-dot (count $edit:current-command))
+  at-space = (and (not $at-end) (eq $edit:current-command[$edit:-dot] ' '))
+  or $electric-pair-always $at-end $at-space
+}
+
+fn -electric-insert-fn [pair]{
   put {
-    edit:insert-at-dot $pair
-    edit:move-dot-left
+    if (-should-insert-pair) {
+      edit:insert-at-dot $pair
+      edit:move-dot-left
+    } else {
+      edit:insert-at-dot $pair[0]
+    }
   }
 }
 
@@ -148,7 +160,7 @@ fn -electric-backspace {
 
 fn electric-delimiters {
   for pair $electric-pairs {
-    edit:insert:binding[$pair[0]] = (-electric-insert $pair)
+    edit:insert:binding[$pair[0]] = (-electric-insert-fn $pair)
   }
   edit:insert:binding[Backspace] = $-electric-backspace~
 }
