@@ -139,8 +139,12 @@ fn -electric-insert-fn [pair]{
 
 fn -electric-backspace {
   if (> $edit:-dot 0) {
-    char1 = $edit:current-command[(- $edit:-dot 1)]
+    char1 = ''
     char2 = ''
+    # To get the previous character, loop through the indices in case
+    # the previous character is multi-byte
+    i = (- $edit:-dot 1)
+    while (not ?(char1=$edit:current-command[$i])) { i = (- $i 1) }
     if (< $edit:-dot (count $edit:current-command)) {
       char2 = $edit:current-command[$edit:-dot]
     }
