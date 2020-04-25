@@ -26,7 +26,7 @@ In your =rc.elv=, load this module:
   use github.com/zzamboni/elvish-modules/terminal-title
 #+end_src
 
-By default the terminal title will show the name of the command being executed or the word ="elvish"=, followed by the current path. You can customize the titles by setting the =$terminal-title:title-during-prompt= and =$terminal-title:title-during-command= variables to lambdas that determine the title to set while the prompt is displayed (i.e. while you are typing a command) and while a command is being executed, respectively. These are their default values:
+By default the terminal title will show the name of the command being executed or the word =elvish=, followed by the current path. You can customize the titles by setting the =$terminal-title:title-during-prompt= and =$terminal-title:title-during-command= variables to lambdas that determine the title to set while the prompt is displayed (i.e. while you are typing a command) and while a command is being executed, respectively. These are their default values:
 
 #+name: title-during-prompt-default
 #+begin_src elvish
@@ -38,7 +38,7 @@ By default the terminal title will show the name of the command being executed o
 #+name: title-during-command-default
 #+begin_src elvish
   title-during-command = [cmd]{
-    put (re:split '\s' $cmd | take 1)" "(tilde-abbr $pwd)
+    put (edit:wordify $cmd | take 1)" "(tilde-abbr $pwd)
   }
 #+end_src
 

@@ -18,7 +18,7 @@ title-during-prompt = {
 }
 
 title-during-command = [cmd]{
-  put (re:split '\s' $cmd | take 1)" "(tilde-abbr $pwd)
+  put (edit:wordify $cmd | take 1)" "(tilde-abbr $pwd)
 }
 
 fn init {
