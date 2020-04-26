@@ -1,8 +1,10 @@
+use str
+
 api-key = ''
 
 fn get-slug [@args]{
   if (eq $args []) {
-    put [(splits / $pwd)][-1]
+    put [(str:split / $pwd)][-1]
   } else {
     put $args[0]
   }

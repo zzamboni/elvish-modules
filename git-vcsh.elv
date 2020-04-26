@@ -1,6 +1,7 @@
 # Git and vcsh related functions
 
 use re
+use str
 
 # Check if the current directory is a git repo
 fn is-git-repo {
@@ -23,7 +24,7 @@ fn git-vcsh [@arg]{
     # Else, try to determine if we are in a vcsh-managed directory
     dirname = (path-base $pwd)
     vcsh-repo = ""
-    pwd=~ { _ = ?(vcsh-repo = (splits ':' (vcsh which $dirname 2>/dev/null | take 1) | take 1)) }
+    pwd=~ { _ = ?(vcsh-repo = (str:split ':' (vcsh which $dirname 2>/dev/null | take 1) | take 1)) }
     if (not-eq $vcsh-repo "") {
       # If the last git argument is "status", add a "." to restrict the status to the current directory
       # and avoid spurious output from vcsh

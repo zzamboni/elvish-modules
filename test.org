@@ -85,6 +85,12 @@ You can change the colors for successful and failed tests by assigning the corre
 :header-args: :mkdirp yes :comments no
 :END:
 
+Load libraries.
+
+#+begin_src elvish
+  use str
+#+end_src
+
 ** Configuration variables
 
 Style to use for success/failure messages, and for other informational strings.
@@ -136,7 +142,7 @@ Some utility functions to produce the test output.
 
 #+begin_src elvish
   fn check [f @d &check-txt='']{
-    msg = (styled (joins " " [$@d]) $info-style)
+    msg = (styled (str:join " " [$@d]) $info-style)
     if (eq $check-txt '') {
       check-txt = $f[def]
     }

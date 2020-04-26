@@ -47,6 +47,12 @@ You need to specify your API key so that it can be used in the requests:
 :header-args: :mkdirp yes :comments no
 :END:
 
+Load libraries.
+
+#+begin_src elvish
+  use str
+#+end_src
+
 First, we declare the variable that will contain the API key.
 
 #+begin_src elvish
@@ -106,10 +112,10 @@ The =opsgenie:request-data= returns the =data= field in the response.
   fn admins {
     admins = [&]
     url = $api-url'/teams'
-    put (explode (request-data $url))[name] | each [id]{
+    put (all (request-data $url))[name] | each [id]{
       #put $id
       try {
-        put (explode (request-data $url'/'$id'?identifierType=name')[members]) | each [user]{
+        put (all (request-data $url'/'$id'?identifierType=name')[members]) | each [user]{
           #put $user
           if (eq $user[role] admin) {
             admins[$user[user][username]] = $id
@@ -123,7 +129,7 @@ The =opsgenie:request-data= returns the =data= field in the response.
   }
 
   fn url-for [what &params=[&]]{
-    params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
+    params-str = (keys $params | each [k]{ put $k"="$params[$k] } | str:join "&")
     put $api-url'/'$what'?'$params-str
   }
 

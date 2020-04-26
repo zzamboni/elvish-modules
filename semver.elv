@@ -1,4 +1,5 @@
 use re
+use str
 use builtin
 use ./util
 
@@ -19,8 +20,8 @@ fn -num-str-cmp [e1 e2]{
 }
 
 fn -part-compare [v1 v2]{
-  v1s = [(splits '.' $v1)]
-  v2s = [(splits '.' $v2)]
+  v1s = [(str:split '.' $v1)]
+  v2s = [(str:split '.' $v2)]
   num = (util:max (count $v1s) (count $v2s))
   fill = [(repeat $num 0)]
   range $num | each [i]{
@@ -34,8 +35,8 @@ fn -part-compare [v1 v2]{
 }
 
 fn cmp [v1 v2]{
-  rel1 prerel1 @_ = (splits '-' $v1) $false
-  rel2 prerel2 @_ = (splits '-' $v2) $false
+  rel1 prerel1 @_ = (str:split '-' $v1) $false
+  rel2 prerel2 @_ = (str:split '-' $v2) $false
   comp = (-part-compare $rel1 $rel2)
   if (!= $comp 0) {
     put $comp
