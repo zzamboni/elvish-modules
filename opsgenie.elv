@@ -1,5 +1,3 @@
-use str
-
 api-key = ''
 
 write-api-key = ''
@@ -34,10 +32,10 @@ fn request-data [url &paged=$true]{
 fn admins {
   admins = [&]
   url = $api-url'/teams'
-  put (all (request-data $url))[name] | each [id]{
+  put (explode (request-data $url))[name] | each [id]{
     #put $id
     try {
-      put (all (request-data $url'/'$id'?identifierType=name')[members]) | each [user]{
+      put (explode (request-data $url'/'$id'?identifierType=name')[members]) | each [user]{
         #put $user
         if (eq $user[role] admin) {
           admins[$user[user][username]] = $id
@@ -51,7 +49,7 @@ fn admins {
 }
 
 fn url-for [what &params=[&]]{
-  params-str = (keys $params | each [k]{ put $k"="$params[$k] } | str:join "&")
+  params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
   put $api-url'/'$what'?'$params-str
 }
 

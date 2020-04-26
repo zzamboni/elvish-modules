@@ -4,7 +4,6 @@
 # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 
 use re
-use str
 
 dir = ~/.elvish/aliases
 
@@ -47,7 +46,7 @@ fn new [&verbose=false &use=[] @arg]{ def &verbose=$verbose &use=$use $@arg }
 
 fn bash-alias [@args]{
   line = $@args
-  name cmd = (str:split &max=2 '=' $line)
+  name cmd = (splits &max=2 '=' $line)
   def $name $cmd
 }
 

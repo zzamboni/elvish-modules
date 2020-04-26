@@ -109,7 +109,7 @@ fn optional-input [@input]{
   if (eq $input []) {
     input = [(all)]
   } elif (eq (count $input) 1) {
-    input = [ (all $input[0]) ]
+    input = [ (explode $input[0]) ]
   } else {
     fail "util:optional-input: want 0 or 1 arguments, got "(count $input)
   }
@@ -181,17 +181,4 @@ fn partial [f @p-args]{
   put [@args]{
     $f $@p-args $@args
   }
-}
-
-use str
-
-fn fix-deprecated [f]{
-  deprecated = [
-    &all= all
-    &str:join= str:join
-    &str:split= str:split
-    &str:replace= str:replace
-  ]
-  sed-cmd = (str:join "; " [(keys $deprecated | each [d]{ put "s/"$d"/"$deprecated[$d]"/" })])
-  sed -i '' -e $sed-cmd $f
 }

@@ -4,7 +4,6 @@
 # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 
 use re
-use str
 use github.com/zzamboni/elvish-modules/util
 
 fn multi-user-setup {
@@ -19,7 +18,7 @@ fn multi-user-setup {
     "/nix/var/nix/profiles/default"
     $E:HOME"/.nix-profile"
   ]
-  E:NIX_PROFILES = (str:join " " $nix-profiles)
+  E:NIX_PROFILES = (joins " " $nix-profiles)
 
   # Set up the per-user profile.
   mkdir -m 0755 -p $E:NIX_USER_PROFILE_DIR

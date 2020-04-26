@@ -1,10 +1,9 @@
 use re
-use str
 
 fn push [@arg]{
   msg = "Markup fixes"
   if (< 0 (count $arg)) {
-    msg = (str:join " " $arg)
+    msg = (joins " " $arg)
   }
   BRANCH=(git symbolic-ref HEAD | sed -e 's|^refs/heads/||')
   REPO=(git remote -v | head -1 | sed 's/^.*oreilly\.com\///; s/\.git.*$//')

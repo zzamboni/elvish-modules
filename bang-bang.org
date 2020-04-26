@@ -98,7 +98,6 @@ We load some necessary libraries.
 #+begin_src elvish
   use ./util
   use re
-  use str
 #+end_src
 
 ** Configuration
@@ -158,7 +157,7 @@ We also get how wide the first column of the display should be, so that we can d
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
   nitems = (count $parts)
   indicator-width = (util:max (+ 2 (count $nitems)) (count $-plain-bang-insert))
-  filler = (repeat $indicator-width ' ' | str:join '')
+  filler = (repeat $indicator-width ' ' | joins '')
 #+end_src
 
 The =-display-text= function returns the string to display in the menu, with the indicator right-aligned to =$indicator-width= spaces.

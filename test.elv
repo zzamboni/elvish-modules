@@ -1,5 +1,3 @@
-use str
-
 pass-style = green
 fail-style = red
 info-style = blue
@@ -26,7 +24,7 @@ fn -output [@msg &level=0]{
 }
 
 fn check [f @d &check-txt='']{
-  msg = (styled (str:join " " [$@d]) $info-style)
+  msg = (styled (joins " " [$@d]) $info-style)
   if (eq $check-txt '') {
     check-txt = $f[def]
   }

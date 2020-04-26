@@ -1,6 +1,5 @@
 use ./util
 use re
-use str
 
 before-lastcmd = []
 after-lastcmd = []
@@ -17,7 +16,7 @@ fn lastcmd {
   parts = [(edit:wordify $last[cmd])]
   nitems = (count $parts)
   indicator-width = (util:max (+ 2 (count $nitems)) (count $-plain-bang-insert))
-  filler = (repeat $indicator-width ' ' | str:join '')
+  filler = (repeat $indicator-width ' ' | joins '')
   fn -display-text [ind text]{
     indcol = $filler$ind
     put $indcol[(- $indicator-width):]" "$text
