@@ -38,6 +38,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
   - [[#electric-editing-in-command-line-1][Electric editing in command line]]
   - [[#functional-programming-utilities][Functional programming utilities]]
     - [[#tests-7][Tests]]
+  - [[#fix-deprecated-functions][Fix deprecated functions]]
 - [[#test-suite][Test suite]]
 
 * Usage
@@ -587,6 +588,27 @@ The =electric-delimiters= function is the only user-facing function, and is the 
       (test:is { (util:partial $eq~ 3) 3 }                      $true         Partial eq)
       (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } (float64 120) Partial custom function with rest arg)
   ])
+#+end_src
+
+** Fix deprecated functions
+
+Takes a single file, and replaces all occurrences of deprecated functions by their replacements.
+
+*Note*: this does dumb string replacement. Please check the result to make sure there are no unintended replacements. Also, you still need to manually add =use str= at the top of the files where any of the =str:= functions are introduced.
+
+#+begin_src elvish
+  use str
+
+  fn fix-deprecated [f]{
+    deprecated = [
+      &all= all
+      &str:join= str:join
+      &str:split= str:split
+      &str:replace= str:replace
+    ]
+    sed-cmd = (str:join "; " [(keys $deprecated | each [d]{ put "s/"$d"/"$deprecated[$d]"/" })])
+    sed -i '' -e $sed-cmd $f
+  }
 #+end_src
 
 * Test suite

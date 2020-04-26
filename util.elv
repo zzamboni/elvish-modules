@@ -182,3 +182,16 @@ fn partial [f @p-args]{
     $f $@p-args $@args
   }
 }
+
+use str
+
+fn fix-deprecated [f]{
+  deprecated = [
+    &all= all
+    &str:join= str:join
+    &str:split= str:split
+    &str:replace= str:replace
+  ]
+  sed-cmd = (str:join "; " [(keys $deprecated | each [d]{ put "s/"$d"/"$deprecated[$d]"/" })])
+  sed -i '' -e $sed-cmd $f
+}
