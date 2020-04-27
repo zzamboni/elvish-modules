@@ -61,6 +61,11 @@ Please note that for the aliases to take effect, you need to add the following l
 
 See [[https://github.com/zzamboni/elvish-modules/blob/master/alias.org][alias.org]] for full usage instructions for the =alias= module.
 
+Some functions produce messages if you are at the beginning/end of the directory history, for example. By default these messages are simply printed to the terminal. If you want to customize how the message is produced (e.g. colorize it, or produce it in a way that does not disrupt your prompt when the commands are bound to keys), you can customize it by assigning a new lambda to the =$dir:print-message= variable, like this:
+
+#+begin_src elvish
+  dir:print-message = [msg]{ echo (styled $msg red) > /dev/tty > /dev/tty }
+#+end_src
 * Implementation
 :PROPERTIES:
 :header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
@@ -103,6 +108,13 @@ Remove everything after =$cursor= from the stack.
   }
 #+end_src
 
+Output a message. Uses =echo= to the TTY by default but can be customized by the user.
+
+#+begin_src elvish
+  print-message = [msg]{
+    echo $msg > /dev/tty
+  }
+#+end_src
 ** Stack query functions
 
 Return the current contents of the directory stack.
@@ -167,7 +179,7 @@ Move back and forward through the stack. These functions do not alter the stack,
       -cursor = (- $-cursor 1)
       builtin:cd $-dirstack[$-cursor]
     } else {
-      echo "Beginning of directory history!" > /dev/tty
+      $print-message "Beginning of directory history!"
     }
   }
 
@@ -176,7 +188,7 @@ Move back and forward through the stack. These functions do not alter the stack,
       -cursor = (+ $-cursor 1)
       builtin:cd $-dirstack[$-cursor]
     } else {
-      echo "End of directory history!" > /dev/tty
+      $print-message "End of directory history!"
     }
   }
 #+end_src
@@ -189,7 +201,7 @@ Pop the previous directory on the stack, removes the current one. Successive pop
       back
       -trimstack
     } else {
-      echo "No previous directory to pop!" > /dev/tty
+      $print-message "No previous directory to pop!"
     }
   }
 #+end_src

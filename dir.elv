@@ -12,6 +12,10 @@ fn -trimstack {
   -dirstack = $-dirstack[0:(+ $-cursor 1)]
 }
 
+print-message = [msg]{
+  echo $msg > /dev/tty
+}
+
 fn stack { put $@-dirstack }
 
 fn stacksize { count $-dirstack }
@@ -49,7 +53,7 @@ fn back {
     -cursor = (- $-cursor 1)
     builtin:cd $-dirstack[$-cursor]
   } else {
-    echo "Beginning of directory history!" > /dev/tty
+    $print-message "Beginning of directory history!"
   }
 }
 
@@ -58,7 +62,7 @@ fn forward {
     -cursor = (+ $-cursor 1)
     builtin:cd $-dirstack[$-cursor]
   } else {
-    echo "End of directory history!" > /dev/tty
+    $print-message "End of directory history!"
   }
 }
 
@@ -67,7 +71,7 @@ fn pop {
     back
     -trimstack
   } else {
-    echo "No previous directory to pop!" > /dev/tty
+    $print-message "No previous directory to pop!"
   }
 }
 
