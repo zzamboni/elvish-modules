@@ -72,10 +72,6 @@ Some functions produce messages if you are at the beginning/end of the directory
 :header-args: :mkdirp yes :comments no
 :END:
 
-#+begin_src elvish
-  use builtin
-#+end_src
-
 ** Configuration
 
 =before-chooser= and =after-chooser= can contain lambdas that will be run before and after starting the =history-chooser=.
