@@ -122,8 +122,13 @@ electric-pair-always = $false
 
 fn -should-insert-pair {
   at-end = (== $edit:-dot (count $edit:current-command))
-  at-space = (and (not $at-end) (eq $edit:current-command[$edit:-dot] ' '))
-  or $electric-pair-always $at-end $at-space
+  at-space = $false
+  at-closing = $false
+  if (not $at-end) {
+    at-space = (eq $edit:current-command[$edit:-dot] ' ')
+    at-closing = (or (each [p]{ eq $edit:current-command[$edit:-dot] $p[1] } $electric-pairs))
+  }
+  or $electric-pair-always $at-end $at-space $at-closing
 }
 
 fn -electric-insert-fn [pair]{
