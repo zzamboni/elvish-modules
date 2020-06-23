@@ -61,6 +61,13 @@ api-key = ''
 #+end_src
 
 #+begin_src elvish
+  fn publish [@args]{
+    slug = (get-slug $@args)
+    pprint (curl -s -d "api_key="$api-key https://leanpub.com/$slug/publish.json | from-json)
+  }
+#+end_src
+
+#+begin_src elvish
   fn status [@args]{
     slug = (get-slug $@args)
     status = (curl -s "https://leanpub.com/"$slug"/job_status?api_key="$api-key | from-json)
@@ -101,6 +108,14 @@ api-key = ''
   fn subset-and-watch [@args]{
     slug = (get-slug $@args)
     subset $slug
+    watch $slug
+  }
+#+end_src
+
+#+begin_src elvish
+  fn publish-and-watch [@args]{
+    slug = (get-slug $@args)
+    publish $slug
     watch $slug
   }
 #+end_src

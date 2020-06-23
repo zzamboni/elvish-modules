@@ -18,6 +18,11 @@ fn subset [@args]{
   pprint (curl -s -d "api_key="$api-key https://leanpub.com/$slug/preview/subset.json | from-json)
 }
 
+fn publish [@args]{
+  slug = (get-slug $@args)
+  pprint (curl -s -d "api_key="$api-key https://leanpub.com/$slug/publish.json | from-json)
+}
+
 fn status [@args]{
   slug = (get-slug $@args)
   status = (curl -s "https://leanpub.com/"$slug"/job_status?api_key="$api-key | from-json)
@@ -52,6 +57,12 @@ fn preview-and-watch [@args]{
 fn subset-and-watch [@args]{
   slug = (get-slug $@args)
   subset $slug
+  watch $slug
+}
+
+fn publish-and-watch [@args]{
+  slug = (get-slug $@args)
+  publish $slug
   watch $slug
 }
 
