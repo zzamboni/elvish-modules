@@ -1,0 +1,117 @@
+#+title: iTerm2 shell integration for Elvish
+#+author: Diego Zamboni
+#+email: diego@zzamboni.org
+
+#+name: module-summary
+This library implements iTerm2's [[https://iterm2.com/documentation-shell-integration.html][Shell Integration]] for Elvish.
+
+This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:util.elv][util.elv]] for the generated file.
+
+* Table of Contents                                          :TOC_3:noexport:
+- [[#usage][Usage]]
+- [[#implementation][Implementation]]
+  - [[#base-escape-sequences][Base escape sequences]]
+  - [[#iterm2-commands][iTerm2 commands]]
+
+* Usage
+
+Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
+
+#+begin_src elvish
+  use epm
+  epm:install github.com/zzamboni/elvish-modules
+#+end_src
+
+In your =rc.elv=, load this module:
+
+#+begin_src elvish
+  use github.com/zzamboni/elvish-modules/iterm2
+#+end_src
+
+After you load it, the following [[https://iterm2.com/documentation-shell-integration.html][Shell Integration]] features will be available:
+
+- Marks :: a mark is automatically added at each command prompt. Marks are indicated by a small blue triangle in the left margin, like this (example shows my [[https://github.com/zzamboni/elvish-themes/blob/master/chain.org][Chain]] theme):
+
+  [[file:images/iterm2-marks.jpg]]
+
+  You can also manually produce a mark by calling =iterm2:mark=:
+
+  [[file:images/iterm2-marks2.jpg]]
+
+-  ::
+
+
+
+* Implementation
+:PROPERTIES:
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
+:header-args: :mkdirp yes :comments no
+:END:
+
+The escape sequences used by iTerm2 for shell integration are described in detail in the [[https://www.iterm2.com/documentation-escape-codes.html][Proprietary Escape Codes]] documentation.
+
+** Base escape sequences
+
+All escape sequences have the same basic sequence: start with an ESC character (=\e=) followed by =]=, semi-colon separated components, and ending with a BEL character (=\a=). The =iterm2:mk-escape-str= builds such a string, using its arguments for the components.
+
+#+begin_src elvish
+  fn mk-escape-str [xs]{ put "\e]"(joins ';' $xs)"\a" }
+  #+end_src
+
+Two types of escape sequences are used: custom iTerm2 commands start with =1337=, and the "FinalTerm" commands used for the basic shell integration start with =133=. These two sequences are produced by =iterm2:mk-iterm2-cmd= and =iterm2:mk-ftcs-cmd=, respectively.
+
+  #+begin_src elvish
+  fn mk-iterm2-cmd [@x]{ mk-escape-str [1337 $@x] }
+  fn mk-ftcs-cmd [@x]{ mk-escape-str [133 $@x] }
+  #+end_src
+
+iTerm2 commands come in two types: plain commands and "set" commands, which assign a value. We have two functions to emit these as needed.
+
+  #+begin_src elvish
+  fn cmd [@x]{ print (mk-iterm2-cmd $@x) }
+  fn set [@x]{ print (mk-iterm2-cmd (joins '=' $x)) }
+  #+end_src
+
+** iTerm2 commands
+
+Make the terminal report the foreground and background colors
+
+#+begin_src elvish
+  fn background-color {
+    print (mk-escape-str [4 -2 '?'])
+  }
+
+  fn foreground-color {
+    print (mk-escape-str [4 -1 '?'])
+  }
+#+end_src
+
+Produce a hyperlink in the terminal. =params= if given, should be a map containing key/value pairs (the only supported param at the moment is =id=). This function does not print the string, you need to do that with =print= or =echo=, e.g.:
+
+#+begin_src elvish :tangle no
+  echo "This is" (iterm2:hyperlink http://zzamboni.org "my website")
+#+end_src
+
+#+begin_src elvish
+  fn hyperlink [url text &params=[&]]{
+    params-str = ""
+    if (not-eq $params [&]) {
+      params-str = (joins ":" (each [k]{ print $k"="$params[$k] } [(keys $params)]))
+    }
+    put (mk-escape-str [ '8' $params-str $url ])$text(mk-escape-str [ '8' '' ''])
+  }
+#+end_src
+
+  #+begin_src elvish
+  fn annotate [&hidden=$false ann]{
+  if $hidden { cmd AddHiddenAnnotation=$ann } else { cmd AddAnnotation=$ann } }
+  fn setuservar [var val]{ set SetUserVar $var (print $val | base64) }
+  fn setbadge [@badge]{ set SetBadgeFormat (print $@badge | base64) }
+  fn setcolor [key r g b]{ set SetColors $key (printf %02x%02x%02x $r $g $b) }
+  fn focus { cmd StealFocus }
+  fn mark { cmd SetMark }
+  fn profile [p]{ set SetProfile $p }
+  edit:before-readline = [{ mark } $@edit:before-readline]
+  fn windowtitle [t]{ print "\e]0;"$t"\a" }
+  paths = [ $@paths ~/.iterm2 ]
+#+end_src
