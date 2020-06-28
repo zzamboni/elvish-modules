@@ -58,6 +58,14 @@ All escape sequences have the same basic sequence: start with an ESC character (
   fn mk-escape-str [xs]{ put "\e]"(joins ';' $xs)"\a" }
   #+end_src
 
+The =iterm2:escape-cmd= calls =iterm2:mk-escape-str= and prints the result.
+
+#+begin_src elvish
+  fn escape-cmd [xs]{
+    print (mk-escape-str $xs)
+  }
+#+end_src
+
 Two types of escape sequences are used: custom iTerm2 commands start with =1337=, and the "FinalTerm" commands used for the basic shell integration start with =133=. These two sequences are produced by =iterm2:mk-iterm2-cmd= and =iterm2:mk-ftcs-cmd=, respectively.
 
   #+begin_src elvish
@@ -102,15 +110,141 @@ Produce a hyperlink in the terminal. =params= if given, should be a map containi
   }
 #+end_src
 
-  #+begin_src elvish
-  fn annotate [&hidden=$false ann]{
-  if $hidden { cmd AddHiddenAnnotation=$ann } else { cmd AddAnnotation=$ann } }
-  fn setuservar [var val]{ set SetUserVar $var (print $val | base64) }
-  fn setbadge [@badge]{ set SetBadgeFormat (print $@badge | base64) }
-  fn setcolor [key r g b]{ set SetColors $key (printf %02x%02x%02x $r $g $b) }
-  fn focus { cmd StealFocus }
+Setting a mark at the current position.
+
+#+begin_src elvish
   fn mark { cmd SetMark }
+#+end_src
+
+Bring iTerm2 to the foreground.
+
+#+begin_src elvish
+  fn focus { cmd StealFocus }
+#+end_src
+
+Inform iTerm2 of the current directory. This is a wrapper around =iterm2:set CurrentDir=, but we have a dedicated function because it's commonly used.
+
+#+begin_src elvish
+  fn setdir [d]{
+    set CurrentDir $d
+  }
+#+end_src
+
+Post a notification through iTerm2.
+
+#+begin_src elvish
+  fn notify [msg]{
+    print (mk-escape-str [9 $msg])
+  }
+#+end_src
+
+Copy to clipboard. Everything displayed in the terminal between calling =iterm2:startcopy= and =iterm2:endcopy= is copied to the clipboard. The general clipboard is used by default, but an option =&name= can be passed to =iterm2:startcopy= with values =rule=, =find= or =font= (not sure what each does, but they are mentioned in the iTerm2 documentation).
+
+#+begin_src elvish
+  fn startcopy [&name=""]{
+    set CopyToClipboard $name
+  }
+
+  fn endcopy {
+    cmd EndCopy
+  }
+#+end_src
+
+If you want to put a stored string in the clipboard, you can use =iterm2:copystr=.
+
+#+begin_src elvish
+  fn copystr [s]{
+    encoded-str = (print $s | /usr/bin/base64)
+    set Copy :$encoded-str
+  }
+#+end_src
+
+Set window title and tab background color. Arguments are the red, green and blue values. =iterm2:reset-title-color= resets to the default.
+
+#+begin_src elvish
+  fn set-title-color [r g b]{
+    escape-cmd [6 1 bg red brightness $r]
+    escape-cmd [6 1 bg green brightness $g]
+    escape-cmd [6 1 bg blue brightness $b]
+  }
+
+  fn reset-title-color {
+    escape-cmd [6 1 bg '*' default]
+  }
+#+end_src
+
+Set an annotation at the current position. By default, the annotation covers the whole line where the cursor is, and its label is shown immediately. The following options are supported:
+
+- ~&hidden~ :: the label is not shown immediately;
+- ~&length=n~ :: length of the annotation;
+- ~&xy=[x y]~ :: position of the annotation. If =&xy= is specified, =&length= must ber specified as well.
+
+#+begin_src elvish
+  fn annotate [ann &hidden=$false &length=$nil &xy=$nil]{
+    parts = [ $ann ]
+    if (and $length $xy) {
+      parts = [ $ann $length $@xy ]
+    } elif (and $length (not $xy)) {
+      parts = [ $length $ann ]
+    }
+    cmd = AddAnnotation
+    if $hidden { cmd = AddHiddenAnnotation }
+    cmd $cmd=(joins "|" $parts)
+  }
+#+end_src
+
+Change color palette. See [[https://www.iterm2.com/documentation-escape-codes.html][the documentation]] for the possible =key= values.
+
+#+begin_src elvish
+  fn setcolor [key r g b]{
+    set SetColors $key (printf %02x%02x%02x $r $g $b)
+  }
+#+end_src
+
+Change profile.
+
+#+begin_src elvish
   fn profile [p]{ set SetProfile $p }
+#+end_src
+
+Set background image. Without an argument, the background image is removed.
+
+#+begin_src elvish
+  fn setbackground [@file]{
+    encoded-file = ""
+    if (not-eq $file []) {
+      encoded-file = (print $file[0] | /usr/bin/base64)
+    }
+    set SetBackgroundImageFile $encoded-file
+  }
+#+end_src
+
+Set iTerm2 user variables.
+
+#+begin_src elvish
+  fn setuservar [var val]{
+    set SetUserVar $var (print $val | /usr/bin/base64)
+  }
+#+end_src
+
+Set the badge on the terminal.
+
+  #+begin_src elvish
+    fn setbadge [@badge]{
+      set SetBadgeFormat (print $@badge | /usr/bin/base64)
+    }
+  #+end_src
+
+Some of the less-common commands can be invoked through the =iterm2:cmd= or =iterm2:set= commands:
+
+- Set cursor shape :: =iterm2:set CursorShape $shape=, where =$shape= can indicate a block (0), vertical bar (1) or underline (2).
+- Clear scrollback history :: =iterm2:cmd ClearScrollback=.
+- Enable/disable cursor guide :: =iterm2:set HighlightCursorLine yes/no=.
+- Request attention :: =iterm2:set RequestAttention value=. Possible values are =yes=, =once=, =no= and =fireworks=.
+- Report cell size :: =iterm2:cmd ReportCellSize=.
+- Set function key labels :: =iterm2:set SetKeyLabel $key $label=.
+
+#+begin_src elvish
   edit:before-readline = [{ mark } $@edit:before-readline]
   fn windowtitle [t]{ print "\e]0;"$t"\a" }
   paths = [ $@paths ~/.iterm2 ]
