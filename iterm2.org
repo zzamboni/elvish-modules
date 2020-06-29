@@ -5,7 +5,7 @@
 #+name: module-summary
 This library implements iTerm2's [[https://iterm2.com/documentation-shell-integration.html][Shell Integration]] for Elvish.
 
-This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:util.elv][util.elv]] for the generated file.
+This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:iterm2.elv][iterm2.elv]] for the generated file.
 
 * Table of Contents                                          :TOC_3:noexport:
 - [[#usage][Usage]]
@@ -37,25 +37,16 @@ Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm
   epm:install github.com/zzamboni/elvish-modules
 #+end_src
 
-In your =rc.elv=, load this module:
+In your =rc.elv=, load this module and call =iterm2:init= to enable the integration:
 
 #+begin_src elvish
   use github.com/zzamboni/elvish-modules/iterm2
+  iterm2:init
 #+end_src
 
-After you load it, the following [[https://iterm2.com/documentation-shell-integration.html][Shell Integration]] features will be available:
+After this most [[https://iterm2.com/documentation-shell-integration.html][Shell Integration]] features will be available.
 
-- Marks :: a mark is automatically added at each command prompt. Marks are indicated by a small blue triangle in the left margin, like this (example shows my [[https://github.com/zzamboni/elvish-themes/blob/master/chain.org][Chain]] theme):
-
-  [[file:images/iterm2-marks.jpg]]
-
-  You can also manually produce a mark by calling =iterm2:mark=:
-
-  [[file:images/iterm2-marks2.jpg]]
-
--  ::
-
-
+*Note:* at the moment the context menu you get by right-clicking the mark at a prompt is a bit wrong because it captures the prompt as part of the command, but at the moment there is no way in Elvish to insert the marker in the correct place. The "Select command output" menu option works well.
 
 * Implementation
 :PROPERTIES:
