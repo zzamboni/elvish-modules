@@ -12,6 +12,21 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
 - [[#implementation][Implementation]]
   - [[#base-escape-sequences][Base escape sequences]]
   - [[#iterm2-commands][iTerm2 commands]]
+    - [[#colors-and-background][Colors and background]]
+    - [[#hyperlinks][Hyperlinks]]
+    - [[#marks][Marks]]
+    - [[#bring-iterm2-to-the-foreground][Bring iTerm2 to the foreground.]]
+    - [[#set-current-directory][Set current directory]]
+    - [[#notifications][Notifications]]
+    - [[#copy-to-clipboard][Copy to clipboard]]
+    - [[#annotations][Annotations]]
+    - [[#change-profile][Change profile]]
+    - [[#set-iterm2-user-variables][Set iTerm2 user variables]]
+    - [[#set-the-badge-on-the-terminal][Set the badge on the terminal]]
+    - [[#other-commands][Other commands]]
+  - [[#finalterm-commands][FinalTerm commands]]
+    - [[#promptcommand-markers][Prompt/command markers]]
+    - [[#shell-integration][Shell integration]]
 
 * Usage
 
@@ -73,26 +88,65 @@ Two types of escape sequences are used: custom iTerm2 commands start with =1337=
   fn mk-ftcs-cmd [@x]{ mk-escape-str [133 $@x] }
   #+end_src
 
-iTerm2 commands come in two types: plain commands and "set" commands, which assign a value. We have two functions to emit these as needed.
+iTerm2 commands come in two types: plain commands and "set" commands, which assign a value. We have two functions to emit these as needed, and a function to emit FTCS command sequences.
 
-  #+begin_src elvish
+#+begin_src elvish
   fn cmd [@x]{ print (mk-iterm2-cmd $@x) }
   fn set [@x]{ print (mk-iterm2-cmd (joins '=' $x)) }
-  #+end_src
+  fn ftcs-cmd [@x]{ print (mk-ftcs-cmd $@x) }
+#+end_src
 
 ** iTerm2 commands
 
-Make the terminal report the foreground and background colors
+*** Colors and background
+
+Set window title and tab background color. Arguments are the red, green and blue values. =iterm2:reset-title-color= resets to the default.
 
 #+begin_src elvish
-  fn background-color {
+  fn set-title-color [r g b]{
+    escape-cmd [6 1 bg red brightness $r]
+    escape-cmd [6 1 bg green brightness $g]
+    escape-cmd [6 1 bg blue brightness $b]
+  }
+
+  fn reset-title-color {
+    escape-cmd [6 1 bg '*' default]
+  }
+#+end_src
+
+Change color palette. See [[https://www.iterm2.com/documentation-escape-codes.html][the documentation]] for the possible =key= values.
+
+#+begin_src elvish
+  fn setcolor [key r g b]{
+    set SetColors $key (printf %02x%02x%02x $r $g $b)
+  }
+#+end_src
+
+Report foreground and background colors.
+
+#+begin_src elvish
+  fn report-background-color {
     print (mk-escape-str [4 -2 '?'])
   }
 
-  fn foreground-color {
+  fn report-foreground-color {
     print (mk-escape-str [4 -1 '?'])
   }
 #+end_src
+
+Set background image. Without an argument, the background image is removed.
+
+#+begin_src elvish
+  fn setbackground [@file]{
+    encoded-file = ""
+    if (not-eq $file []) {
+      encoded-file = (print $file[0] | /usr/bin/base64)
+    }
+    set SetBackgroundImageFile $encoded-file
+  }
+#+end_src
+
+*** Hyperlinks
 
 Produce a hyperlink in the terminal. =params= if given, should be a map containing key/value pairs (the only supported param at the moment is =id=). This function does not print the string, you need to do that with =print= or =echo=, e.g.:
 
@@ -110,17 +164,21 @@ Produce a hyperlink in the terminal. =params= if given, should be a map containi
   }
 #+end_src
 
+*** Marks
+
 Setting a mark at the current position.
 
 #+begin_src elvish
   fn mark { cmd SetMark }
 #+end_src
 
-Bring iTerm2 to the foreground.
+*** Bring iTerm2 to the foreground.
 
 #+begin_src elvish
   fn focus { cmd StealFocus }
 #+end_src
+
+*** Set current directory
 
 Inform iTerm2 of the current directory. This is a wrapper around =iterm2:set CurrentDir=, but we have a dedicated function because it's commonly used.
 
@@ -130,6 +188,8 @@ Inform iTerm2 of the current directory. This is a wrapper around =iterm2:set Cur
   }
 #+end_src
 
+*** Notifications
+
 Post a notification through iTerm2.
 
 #+begin_src elvish
@@ -138,7 +198,9 @@ Post a notification through iTerm2.
   }
 #+end_src
 
-Copy to clipboard. Everything displayed in the terminal between calling =iterm2:startcopy= and =iterm2:endcopy= is copied to the clipboard. The general clipboard is used by default, but an option =&name= can be passed to =iterm2:startcopy= with values =rule=, =find= or =font= (not sure what each does, but they are mentioned in the iTerm2 documentation).
+*** Copy to clipboard
+
+Everything displayed in the terminal between calling =iterm2:startcopy= and =iterm2:endcopy= is copied to the clipboard. The general clipboard is used by default, but an option =&name= can be passed to =iterm2:startcopy= with values =rule=, =find= or =font= (not sure what each does, but they are mentioned in the iTerm2 documentation).
 
 #+begin_src elvish
   fn startcopy [&name=""]{
@@ -159,19 +221,7 @@ If you want to put a stored string in the clipboard, you can use =iterm2:copystr
   }
 #+end_src
 
-Set window title and tab background color. Arguments are the red, green and blue values. =iterm2:reset-title-color= resets to the default.
-
-#+begin_src elvish
-  fn set-title-color [r g b]{
-    escape-cmd [6 1 bg red brightness $r]
-    escape-cmd [6 1 bg green brightness $g]
-    escape-cmd [6 1 bg blue brightness $b]
-  }
-
-  fn reset-title-color {
-    escape-cmd [6 1 bg '*' default]
-  }
-#+end_src
+*** Annotations
 
 Set an annotation at the current position. By default, the annotation covers the whole line where the cursor is, and its label is shown immediately. The following options are supported:
 
@@ -193,33 +243,13 @@ Set an annotation at the current position. By default, the annotation covers the
   }
 #+end_src
 
-Change color palette. See [[https://www.iterm2.com/documentation-escape-codes.html][the documentation]] for the possible =key= values.
-
-#+begin_src elvish
-  fn setcolor [key r g b]{
-    set SetColors $key (printf %02x%02x%02x $r $g $b)
-  }
-#+end_src
-
-Change profile.
+*** Change profile
 
 #+begin_src elvish
   fn profile [p]{ set SetProfile $p }
 #+end_src
 
-Set background image. Without an argument, the background image is removed.
-
-#+begin_src elvish
-  fn setbackground [@file]{
-    encoded-file = ""
-    if (not-eq $file []) {
-      encoded-file = (print $file[0] | /usr/bin/base64)
-    }
-    set SetBackgroundImageFile $encoded-file
-  }
-#+end_src
-
-Set iTerm2 user variables.
+*** Set iTerm2 user variables
 
 #+begin_src elvish
   fn setuservar [var val]{
@@ -227,13 +257,15 @@ Set iTerm2 user variables.
   }
 #+end_src
 
-Set the badge on the terminal.
+*** Set the badge on the terminal
 
   #+begin_src elvish
     fn setbadge [@badge]{
       set SetBadgeFormat (print $@badge | /usr/bin/base64)
     }
   #+end_src
+
+*** Other commands
 
 Some of the less-common commands can be invoked through the =iterm2:cmd= or =iterm2:set= commands:
 
@@ -245,7 +277,48 @@ Some of the less-common commands can be invoked through the =iterm2:cmd= or =ite
 - Set function key labels :: =iterm2:set SetKeyLabel $key $label=.
 
 #+begin_src elvish
-  edit:before-readline = [{ mark } $@edit:before-readline]
   fn windowtitle [t]{ print "\e]0;"$t"\a" }
   paths = [ $@paths ~/.iterm2 ]
+#+end_src
+
+** FinalTerm commands
+
+The FTCS commands are used for the base shell integration, with some iTerm2 extensions.
+
+*** Prompt/command markers
+
+The following commands are used to mark the different parts of the prompt, command line and command output, as per the following definition, which matches the [[https://www.iterm2.com/documentation-escape-codes.html][documentation]] (see section "Shell Integration/FinalTerm"):
+
+#+begin_example
+  [ftcs-prompt]prompt% [ftcs-command-start] ls -l
+  [ftcs-command-executed]
+  -rw-r--r-- 1 user group 127 May 1 2016 filename
+  [ftcs-command-finished]
+#+end_example
+
+#+begin_src elvish
+  fn ftcs-prompt { ftcs-cmd A }
+  fn ftcs-command-start { ftcs-cmd B }
+  fn ftcs-command-executed [cmd]{ ftcs-cmd C }
+  fn ftcs-command-finished [&status=0]{ ftcs-cmd D $status }
+#+end_src
+
+*** Shell integration
+
+The =init= function inserts the corresponding FTCS commands in the appropriate places for the prompt and the command line.
+
+Note that this is at the moment not ideal because it captures the prompt as part of the command, but at the moment there is no way in Elvish to insert the marker in the correct place.
+
+#+begin_src elvish
+  fn init {
+    edit:before-readline = [
+      {
+        ftcs-command-finished
+        ftcs-prompt
+        ftcs-command-start
+      }
+      $@edit:before-readline
+    ]
+    edit:after-readline = [ $ftcs-command-executed~ $@edit:after-readline ]
+  }
 #+end_src
