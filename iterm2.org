@@ -25,6 +25,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
     - [[#change-profile][Change profile]]
     - [[#set-and-report-iterm2-user-variables][Set and report iTerm2 user variables]]
     - [[#set-the-badge-on-the-terminal][Set the badge on the terminal]]
+    - [[#set-current-hostname-user-directory][Set current hostname, user, directory]]
     - [[#other-commands][Other commands]]
   - [[#finalterm-commands][FinalTerm commands]]
     - [[#promptcommand-markers][Prompt/command markers]]
@@ -278,6 +279,20 @@ Set an annotation at the current position. By default, the annotation covers the
     }
   #+end_src
 
+*** Set current hostname, user, directory
+
+These functions can be used to set these values, which are used for allowing file downloads.
+
+#+begin_src elvish
+  fn set-remotehost [user host]{
+    set RemoteHost $user"@"$host
+  }
+
+  fn set-currentdir [dir]{
+    set CurrentDir $dir
+  }
+#+end_src
+
 *** Other commands
 
 Some of the less-common commands can be invoked through the =iterm2:cmd= or =iterm2:set= commands:
@@ -325,6 +340,8 @@ At the moment, proper capture of the command means modifying the prompt function
 *Note:* at the moment Elvish does not have a mechanism for capturing the exit code of the last command executed, therefore the FTCS "command finished" marker is always emitted with an exit code of zero, so the marker is always colored as if the command was successful.
 
 #+begin_src elvish
+  use platform
+
   original-prompt-fn = $nil
 
   fn init {
@@ -337,10 +354,12 @@ At the moment, proper capture of the command means modifying the prompt function
       ftcs-command-start >/dev/tty
     }
     # Emit end-of-command and start-of-prompt markers before displaying
-    # each new prompt line.
+    # each new prompt line, and set current host/user/dir.
     edit:before-readline = [
       {
         ftcs-command-finished
+        set-remotehost $E:USER (platform:hostname)
+        set-currentdir $pwd
         ftcs-prompt
       }
       $@edit:before-readline

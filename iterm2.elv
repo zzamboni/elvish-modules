@@ -99,6 +99,14 @@ fn setbadge [@badge]{
   set SetBadgeFormat (print $@badge | /usr/bin/base64)
 }
 
+fn set-remotehost [user host]{
+  set RemoteHost $user"@"$host
+}
+
+fn set-currentdir [dir]{
+  set CurrentDir $dir
+}
+
 fn windowtitle [t]{ print "\e]0;"$t"\a" }
 paths = [ $@paths ~/.iterm2 ]
 
@@ -106,6 +114,8 @@ fn ftcs-prompt { ftcs-cmd A }
 fn ftcs-command-start { ftcs-cmd B }
 fn ftcs-command-executed [cmd]{ ftcs-cmd C }
 fn ftcs-command-finished [&status=0]{ ftcs-cmd D $status }
+
+use platform
 
 original-prompt-fn = $nil
 
@@ -119,10 +129,12 @@ fn init {
     ftcs-command-start >/dev/tty
   }
   # Emit end-of-command and start-of-prompt markers before displaying
-  # each new prompt line.
+  # each new prompt line, and set current host/user/dir.
   edit:before-readline = [
     {
       ftcs-command-finished
+      set-remotehost $E:USER (platform:hostname)
+      set-currentdir $pwd
       ftcs-prompt
     }
     $@edit:before-readline
