@@ -62,7 +62,7 @@ After this most [[https://iterm2.com/documentation-shell-integration.html][Shell
 
 ** iTerm2 Escape sequence commands
 
-Most of the iTerm2 [[https://www.iterm2.com/documentation-escape-codes.html][custom escape codes]] are implemented by this module, either through custom functions or by constructing them directly using the =iterm2:escape-cmd=, =iterm2:cmd= or =iterm2:set= functions. See the [[*Implementation][Implementation]] section below for the full list of available functions.
+Most of the iTerm2 [[https://www.iterm2.com/documentation-escape-codes.html][custom escape codes]] are implemented by this module, either through custom functions or by constructing them directly using the =iterm2:escape-cmd=, =iterm2:cmd= or =iterm2:set= functions. See the [[#implementation][Implementation]] section below for the full list of available functions.
 
 The FTCS codes used for shell integration cal also be emitted manually if needed, using the =iterm2:ftcs-prompt=, =iterm2:ftcs-command-start=, =iterm2:ftcs-command-executed= and =iterm2:ftcs-command-finished= functions. You should for the most part not need to use these functions directly, as they are inserted in the correct places by the =iterm2:init= function.
 
@@ -70,6 +70,7 @@ The FTCS codes used for shell integration cal also be emitted manually if needed
 :PROPERTIES:
 :header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
 :header-args: :mkdirp yes :comments no
+:CUSTOM_ID: implementation
 :END:
 
 The escape sequences used by iTerm2 for shell integration are described in detail in the [[https://www.iterm2.com/documentation-escape-codes.html][Proprietary Escape Codes]] documentation.
