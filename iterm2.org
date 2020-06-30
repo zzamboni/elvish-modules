@@ -10,7 +10,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
 * Table of Contents                                          :TOC_3:noexport:
 - [[#usage][Usage]]
   - [[#iterm2-shell-integration][iTerm2 shell integration]]
-  - [[#iterm2-escape-sequence-commands][iTerm2 Escape sequence commands]]
+  - [[#iterm2-escape-sequence-commands][iTerm2 escape sequence commands]]
 - [[#implementation][Implementation]]
   - [[#base-escape-sequences][Base escape sequences]]
   - [[#iterm2-commands][iTerm2 commands]]
@@ -54,14 +54,14 @@ After loading the module and *after configuring your prompt*, call the following
   iterm2:init
 #+end_src
 
-After this most [[https://iterm2.com/documentation-shell-integration.html][Shell Integration]] features will be available.
+After this all [[https://iterm2.com/documentation-shell-integration.html][Shell Integration]] features will be available.
 
 *Notes:*
 - At the moment Elvish does not have a mechanism for capturing the exit code of the last command executed, therefore the prompt marker is always colored as if the command was successful.
 - The Elvish prompt updates dynamically. If the length of the prompt changes as you are typing (e.g. if something in the background changes the git status of a repo and the git indicators in the prompt change), the context menu you get by right-clicking the prompt mark might show the wrong captured command.
 - The =iterm2:init= function needs to hook into the prompt function to emit the necessary Escape codes. For this reason it is important that you call it only *after* you have configured your prompt function.
 
-** iTerm2 Escape sequence commands
+** iTerm2 escape sequence commands
 
 Most of the iTerm2 [[https://www.iterm2.com/documentation-escape-codes.html][custom escape codes]] are implemented by this module, either through custom functions or by constructing them directly using the =iterm2:escape-cmd=, =iterm2:cmd= or =iterm2:set= functions. See the [[#implementation][Implementation]] section below for the full list of available functions.
 
