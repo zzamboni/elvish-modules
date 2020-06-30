@@ -9,6 +9,8 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
 
 * Table of Contents                                          :TOC_3:noexport:
 - [[#usage][Usage]]
+  - [[#iterm2-shell-integration][iTerm2 shell integration]]
+  - [[#iterm2-escape-sequence-commands][iTerm2 Escape sequence commands]]
 - [[#implementation][Implementation]]
   - [[#base-escape-sequences][Base escape sequences]]
   - [[#iterm2-commands][iTerm2 commands]]
@@ -41,12 +43,28 @@ In your =rc.elv=, load this module and call =iterm2:init= to enable the integrat
 
 #+begin_src elvish
   use github.com/zzamboni/elvish-modules/iterm2
+#+end_src
+
+** iTerm2 shell integration
+
+After loading the module and *after configuring your prompt*, call the following command:
+
+#+begin_src elvish
   iterm2:init
 #+end_src
 
 After this most [[https://iterm2.com/documentation-shell-integration.html][Shell Integration]] features will be available.
 
-*Note:* at the moment the context menu you get by right-clicking the mark at a prompt is a bit wrong because it captures the prompt as part of the command, but at the moment there is no way in Elvish to insert the marker in the correct place. The "Select command output" menu option works well.
+*Notes:*
+- At the moment Elvish does not have a mechanism for capturing the exit code of the last command executed, therefore the prompt marker is always colored as if the command was successful.
+- The Elvish prompt updates dynamically. If the length of the prompt changes as you are typing (e.g. if something in the background changes the git status of a repo and the git indicators in the prompt change), the context menu you get by right-clicking the prompt mark might show the wrong captured command.
+- The =iterm2:init= function needs to hook into the prompt function to emit the necessary Escape codes. For this reason it is important that you call it only *after* you have configured your prompt function.
+
+** iTerm2 Escape sequence commands
+
+Most of the iTerm2 [[https://www.iterm2.com/documentation-escape-codes.html][custom escape codes]] are implemented by this module, either through custom functions or by constructing them directly using the =iterm2:escape-cmd=, =iterm2:cmd= or =iterm2:set= functions. See the [[*Implementation][Implementation]] section below for the full list of available functions.
+
+The FTCS codes used for shell integration cal also be emitted manually if needed, using the =iterm2:ftcs-prompt=, =iterm2:ftcs-command-start=, =iterm2:ftcs-command-executed= and =iterm2:ftcs-command-finished= functions. You should for the most part not need to use these functions directly, as they are inserted in the correct places by the =iterm2:init= function.
 
 * Implementation
 :PROPERTIES:
