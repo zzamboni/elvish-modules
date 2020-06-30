@@ -107,14 +107,30 @@ fn ftcs-command-start { ftcs-cmd B }
 fn ftcs-command-executed [cmd]{ ftcs-cmd C }
 fn ftcs-command-finished [&status=0]{ ftcs-cmd D $status }
 
+original-prompt-fn = $nil
+
 fn init {
+  # Save the original prompt
+  original-prompt-fn = $edit:prompt
+  # Define a new prompt function which calls the original one and
+  # additionally emits the necessary escape codes at the end.
+  edit:prompt = {
+    $original-prompt-fn
+    ftcs-command-start >/dev/tty
+  }
+  # Emit end-of-command and start-of-prompt markers before displaying
+  # each new prompt line.
   edit:before-readline = [
     {
       ftcs-command-finished
       ftcs-prompt
-      ftcs-command-start
     }
     $@edit:before-readline
   ]
-  edit:after-readline = [ $ftcs-command-executed~ $@edit:after-readline ]
+  # Emit start-of-command-output marker after the user presses Enter
+  # on the command line.
+  edit:after-readline = [
+    $ftcs-command-executed~
+    $@edit:after-readline
+  ]
 }

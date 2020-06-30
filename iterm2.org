@@ -299,20 +299,38 @@ The following commands are used to mark the different parts of the prompt, comma
 
 *** Shell integration
 
-The =init= function inserts the corresponding FTCS commands in the appropriate places for the prompt and the command line.
+The =iterm2:init= function inserts the corresponding FTCS commands in the appropriate places for the prompt and the command line.
 
-Note that this is at the moment not ideal because it captures the prompt as part of the command, but at the moment there is no way in Elvish to insert the marker in the correct place.
+At the moment, proper capture of the command means modifying the prompt function, which means =iterm2:init= needs to be called *after* setting up your prompt. The original prompt function is saved in =$iterm2:original-prompt-fn=, and used within the modified prompt function to display it. We also modify the =$edit:before-readline= and =$edit:after-readline= hooks to emit the corresponding escape sequences in the correct places.
+
+*Note:* at the moment Elvish does not have a mechanism for capturing the exit code of the last command executed, therefore the FTCS "command finished" marker is always emitted with an exit code of zero, so the marker is always colored as if the command was successful.
 
 #+begin_src elvish
+  original-prompt-fn = $nil
+
   fn init {
+    # Save the original prompt
+    original-prompt-fn = $edit:prompt
+    # Define a new prompt function which calls the original one and
+    # additionally emits the necessary escape codes at the end.
+    edit:prompt = {
+      $original-prompt-fn
+      ftcs-command-start >/dev/tty
+    }
+    # Emit end-of-command and start-of-prompt markers before displaying
+    # each new prompt line.
     edit:before-readline = [
       {
         ftcs-command-finished
         ftcs-prompt
-        ftcs-command-start
       }
       $@edit:before-readline
     ]
-    edit:after-readline = [ $ftcs-command-executed~ $@edit:after-readline ]
+    # Emit start-of-command-output marker after the user presses Enter
+    # on the command line.
+    edit:after-readline = [
+      $ftcs-command-executed~
+      $@edit:after-readline
+    ]
   }
 #+end_src
