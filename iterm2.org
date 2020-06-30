@@ -21,7 +21,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
     - [[#copy-to-clipboard][Copy to clipboard]]
     - [[#annotations][Annotations]]
     - [[#change-profile][Change profile]]
-    - [[#set-iterm2-user-variables][Set iTerm2 user variables]]
+    - [[#set-and-report-iterm2-user-variables][Set and report iTerm2 user variables]]
     - [[#set-the-badge-on-the-terminal][Set the badge on the terminal]]
     - [[#other-commands][Other commands]]
   - [[#finalterm-commands][FinalTerm commands]]
@@ -240,11 +240,14 @@ Set an annotation at the current position. By default, the annotation covers the
   fn profile [p]{ set SetProfile $p }
 #+end_src
 
-*** Set iTerm2 user variables
+*** Set and report iTerm2 user variables
 
 #+begin_src elvish
   fn setuservar [var val]{
     set SetUserVar $var (print $val | /usr/bin/base64)
+  }
+  fn reportvar [var]{
+    set ReportVariable (print $var | /usr/bin/base64)
   }
 #+end_src
 

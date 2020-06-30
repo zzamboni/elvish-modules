@@ -91,6 +91,9 @@ fn profile [p]{ set SetProfile $p }
 fn setuservar [var val]{
   set SetUserVar $var (print $val | /usr/bin/base64)
 }
+fn reportvar [var]{
+  set ReportVariable (print $var | /usr/bin/base64)
+}
 
 fn setbadge [@badge]{
   set SetBadgeFormat (print $@badge | /usr/bin/base64)
