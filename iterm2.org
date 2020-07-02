@@ -60,6 +60,11 @@ After this all [[https://iterm2.com/documentation-shell-integration.html][Shell 
 - At the moment Elvish does not have a mechanism for capturing the exit code of the last command executed, therefore the prompt marker is always colored as if the command was successful.
 - The Elvish prompt updates dynamically. If the length of the prompt changes as you are typing (e.g. if something in the background changes the git status of a repo and the git indicators in the prompt change), the context menu you get by right-clicking the prompt mark might show the wrong captured command.
 - The =iterm2:init= function needs to hook into the prompt function to emit the necessary Escape codes. For this reason it is important that you call it only *after* you have configured your prompt function.
+- If you use the Elvish =readline-bindings= module, you should re-bind the =Ctrl-L= key to the =iterm2:clear-screen= function, which clears the screen but emits the necessary prompt marker before redrawing it. For example
+
+  #+begin_src elvish
+    edit:insert:binding[Ctrl-L] = $iterm2:clear-screen~
+  #+end_src
 
 ** iTerm2 escape sequence commands
 
@@ -370,5 +375,15 @@ At the moment, proper capture of the command means modifying the prompt function
       $ftcs-command-executed~
       $@edit:after-readline
     ]
+  }
+#+end_src
+
+The =iterm2:clear-screen= function clears the screen and issues the corresponding markers before redrawing the prompt. If you are using the readline bindings through =use readline-bindings=, you should bind this function to the =Ctrl-L= key to keep the correct markers when clearing the screen.
+
+#+begin_src elvish
+  fn clear-screen {
+    clear > /dev/tty
+    ftcs-prompt > /dev/tty
+    edit:redraw &full=$true
   }
 #+end_src

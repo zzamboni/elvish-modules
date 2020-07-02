@@ -146,3 +146,9 @@ fn init {
     $@edit:after-readline
   ]
 }
+
+fn clear-screen {
+  clear > /dev/tty
+  ftcs-prompt > /dev/tty
+  edit:redraw &full=$true
+}
