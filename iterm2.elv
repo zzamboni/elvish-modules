@@ -108,7 +108,6 @@ fn set-currentdir [dir]{
 }
 
 fn windowtitle [t]{ print "\e]0;"$t"\a" }
-paths = [ $@paths ~/.iterm2 ]
 
 fn ftcs-prompt { ftcs-cmd A }
 fn ftcs-command-start { ftcs-cmd B }
@@ -151,4 +150,8 @@ fn clear-screen {
   clear > /dev/tty
   ftcs-prompt > /dev/tty
   edit:redraw &full=$true
+}
+
+if (-is-dir ~/.iterm2) {
+  paths = [ $@paths ~/.iterm2 ]
 }

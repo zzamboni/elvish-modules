@@ -26,10 +26,12 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
     - [[#set-and-report-iterm2-user-variables][Set and report iTerm2 user variables]]
     - [[#set-the-badge-on-the-terminal][Set the badge on the terminal]]
     - [[#set-current-hostname-user-directory][Set current hostname, user, directory]]
+    - [[#set-window-title][Set window title]]
     - [[#other-commands][Other commands]]
   - [[#finalterm-commands][FinalTerm commands]]
     - [[#promptcommand-markers][Prompt/command markers]]
     - [[#shell-integration][Shell integration]]
+  - [[#iterm2-utilities][iTerm2 utilities]]
 
 * Usage
 
@@ -45,6 +47,8 @@ In your =rc.elv=, load this module and call =iterm2:init= to enable the integrat
 #+begin_src elvish
   use github.com/zzamboni/elvish-modules/iterm2
 #+end_src
+
+If the [[https://iterm2.com/documentation-utilities.html][iTerm2 utilities]] are installed in their default location of =~/.iterm2=, that directory will be added automatically to the path. Note that some of the functionality provided by the utilities is also provided by functions in this module.
 
 ** iTerm2 shell integration
 
@@ -298,6 +302,14 @@ These functions can be used to set these values, which are used for allowing fil
   }
 #+end_src
 
+*** Set window title
+
+This is not really an iTerm2-specific escape sequence, but it's here to maintain compatibility with the original code from which this module came :)
+
+#+begin_src elvish
+  fn windowtitle [t]{ print "\e]0;"$t"\a" }
+#+end_src
+
 *** Other commands
 
 Some of the less-common commands can be invoked through the =iterm2:cmd= or =iterm2:set= commands:
@@ -308,11 +320,6 @@ Some of the less-common commands can be invoked through the =iterm2:cmd= or =ite
 - Request attention :: =iterm2:set RequestAttention value=. Possible values are =yes=, =once=, =no= and =fireworks=.
 - Report cell size :: =iterm2:cmd ReportCellSize=.
 - Set function key labels :: =iterm2:set SetKeyLabel $key $label=.
-
-#+begin_src elvish
-  fn windowtitle [t]{ print "\e]0;"$t"\a" }
-  paths = [ $@paths ~/.iterm2 ]
-#+end_src
 
 ** FinalTerm commands
 
@@ -385,5 +392,15 @@ The =iterm2:clear-screen= function clears the screen and issues the correspondin
     clear > /dev/tty
     ftcs-prompt > /dev/tty
     edit:redraw &full=$true
+  }
+#+end_src
+
+** iTerm2 utilities
+
+If the [[https://iterm2.com/documentation-utilities.html][iTerm2 utilities]] are installed in their default location of =~/.iterm2=, we detect them and add them automatically to the path. Note that some of the functionality provided by the utilities is also provided by functions in this module.
+
+#+begin_src elvish
+  if (-is-dir ~/.iterm2) {
+    paths = [ $@paths ~/.iterm2 ]
   }
 #+end_src
