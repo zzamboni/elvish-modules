@@ -107,6 +107,7 @@ The alias is not removed from the current session, it will take effect in new se
 
 #+begin_src elvish
   use re
+  use str
 #+end_src
 
 ** Configuration
@@ -183,7 +184,7 @@ The =alias:bash-alias= command simply splits the arguments on the first equals s
 #+begin_src elvish
   fn bash-alias [@args]{
     line = $@args
-    name cmd = (splits &max=2 '=' $line)
+    name cmd = (str:split &max=2 '=' $line)
     def $name $cmd
   }
 #+end_src

@@ -33,13 +33,15 @@ In your =rc.elv=, load this module:
 :END:
 
 #+begin_src elvish
-api-key = ''
+  use str
+
+  api-key = ''
 #+end_src
 
 #+begin_src elvish
   fn get-slug [@args]{
     if (eq $args []) {
-      put [(splits / $pwd)][-1]
+      put [(str:split / $pwd)][-1]
     } else {
       put $args[0]
     }

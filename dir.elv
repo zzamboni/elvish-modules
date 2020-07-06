@@ -38,7 +38,7 @@ fn curdir {
 
 fn push {
   if (or (== (stacksize) 0) (!=s $pwd (curdir))) {
-    -dirstack = [ (explode $-dirstack[0:(+ $-cursor 1)]) $pwd ]
+    -dirstack = [ (all $-dirstack[0:(+ $-cursor 1)]) $pwd ]
     if (> (stacksize) $max-stack-size) {
       -dirstack = $-dirstack[(- $max-stack-size):]
     }

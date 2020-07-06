@@ -32,10 +32,10 @@ fn request-data [url &paged=$true]{
 fn admins {
   admins = [&]
   url = $api-url'/teams'
-  put (explode (request-data $url))[name] | each [id]{
+  put (all (request-data $url))[name] | each [id]{
     #put $id
     try {
-      put (explode (request-data $url'/'$id'?identifierType=name')[members]) | each [user]{
+      put (all (request-data $url'/'$id'?identifierType=name')[members]) | each [user]{
         #put $user
         if (eq $user[role] admin) {
           admins[$user[user][username]] = $id

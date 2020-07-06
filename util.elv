@@ -109,7 +109,7 @@ fn optional-input [@input]{
   if (eq $input []) {
     input = [(all)]
   } elif (eq (count $input) 1) {
-    input = [ (explode $input[0]) ]
+    input = [ (all $input[0]) ]
   } else {
     fail "util:optional-input: want 0 or 1 arguments, got "(count $input)
   }
