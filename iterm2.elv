@@ -125,6 +125,7 @@ fn init {
   # additionally emits the necessary escape codes at the end.
   edit:prompt = {
     $original-prompt-fn
+    set-currentdir $pwd >/dev/tty
     ftcs-command-start >/dev/tty
   }
   # Emit end-of-command and start-of-prompt markers before displaying
@@ -133,7 +134,6 @@ fn init {
     {
       ftcs-command-finished
       set-remotehost $E:USER (platform:hostname)
-      set-currentdir $pwd
       ftcs-prompt
     }
     $@edit:before-readline
