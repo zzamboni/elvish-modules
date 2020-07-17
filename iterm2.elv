@@ -116,35 +116,37 @@ fn ftcs-command-finished [&status=0]{ ftcs-cmd D $status }
 
 use platform
 
-original-prompt-fn = $nil
+#  original-prompt-fn = $nil
 
-fn init {
-  # Save the original prompt
-  original-prompt-fn = $edit:prompt
-  # Define a new prompt function which calls the original one and
-  # additionally emits the necessary escape codes at the end.
-  edit:prompt = {
-    $original-prompt-fn
-    set-currentdir $pwd >/dev/tty
-    ftcs-command-start >/dev/tty
+  fn init {
+    # Save the original prompt
+  #  original-prompt-fn = $edit:prompt
+    # Define a new prompt function which calls the original one and
+    # additionally emits the necessary escape codes at the end.
+  #  edit:prompt = {
+  #    $original-prompt-fn
+  #  }
+    edit:after-prompt = [
+      { set-currentdir $pwd >/dev/tty }
+      { ftcs-command-start >/dev/tty }
+    ]
+    # Emit end-of-command and start-of-prompt markers before displaying
+    # each new prompt line, and set current host/user/dir.
+    edit:before-readline = [
+      {
+        ftcs-command-finished
+        set-remotehost $E:USER (platform:hostname)
+        ftcs-prompt
+      }
+      $@edit:before-readline
+    ]
+    # Emit start-of-command-output marker after the user presses Enter
+    # on the command line.
+    edit:after-readline = [
+      $ftcs-command-executed~
+      $@edit:after-readline
+    ]
   }
-  # Emit end-of-command and start-of-prompt markers before displaying
-  # each new prompt line, and set current host/user/dir.
-  edit:before-readline = [
-    {
-      ftcs-command-finished
-      set-remotehost $E:USER (platform:hostname)
-      ftcs-prompt
-    }
-    $@edit:before-readline
-  ]
-  # Emit start-of-command-output marker after the user presses Enter
-  # on the command line.
-  edit:after-readline = [
-    $ftcs-command-executed~
-    $@edit:after-readline
-  ]
-}
 
 fn clear-screen {
   clear > /dev/tty

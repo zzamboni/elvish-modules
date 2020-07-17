@@ -354,18 +354,20 @@ At the moment, proper capture of the command means modifying the prompt function
 #+begin_src elvish
   use platform
 
-  original-prompt-fn = $nil
+#  original-prompt-fn = $nil
 
   fn init {
     # Save the original prompt
-    original-prompt-fn = $edit:prompt
+  #  original-prompt-fn = $edit:prompt
     # Define a new prompt function which calls the original one and
     # additionally emits the necessary escape codes at the end.
-    edit:prompt = {
-      $original-prompt-fn
-      set-currentdir $pwd >/dev/tty
-      ftcs-command-start >/dev/tty
-    }
+  #  edit:prompt = {
+  #    $original-prompt-fn
+  #  }
+    edit:after-prompt = [
+      { set-currentdir $pwd >/dev/tty }
+      { ftcs-command-start >/dev/tty }
+    ]
     # Emit end-of-command and start-of-prompt markers before displaying
     # each new prompt line, and set current host/user/dir.
     edit:before-readline = [
