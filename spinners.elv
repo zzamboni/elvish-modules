@@ -82,3 +82,9 @@ fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &prefix="" &style=[]
     }
   }
 }
+
+fn demo [&time=2 &style=blue]{
+  list | each [s]{
+    run &spinner=$s &title=$s &style=$style { sleep $time }
+  }
+}

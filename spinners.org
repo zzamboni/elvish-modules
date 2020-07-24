@@ -17,6 +17,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
   - [[#utility-functions][Utility functions]]
   - [[#building-and-manually-advancing-spinners][Building and manually advancing spinners]]
   - [[#running-a-function-with-a-spinner][Running a function with a spinner]]
+  - [[#demo-mode][Demo mode]]
   - [[#spinner-definitions][Spinner definitions]]
 
 * Usage
@@ -48,6 +49,10 @@ spinners:list | take 5
 : ▶ arrow2
 : ▶ arrow3
 : ▶ balloon
+
+You can view a demo of all the spinners with =spinners:demo=:
+
+[[file:images/spinners-demo.gif]]
 
 ** Automatic spinners
 
@@ -228,6 +233,17 @@ Simplest point of entry for displaying a spinner while a function is running. Ta
   }
 #+end_src
 
+** Demo mode
+
+Produce all the spinners in sequence.
+
+#+begin_src elvish
+  fn demo [&time=2 &style=blue]{
+    list | each [s]{
+      run &spinner=$s &title=$s &style=$style { sleep $time }
+    }
+  }
+#+end_src
 ** Spinner definitions
 
 The spinner definitions are taken from the [[https://github.com/sindresorhus/cli-spinners/][sindresorhus/cli-spinners]] project, released under the following license:
