@@ -326,9 +326,9 @@ Simplest point of entry for displaying a spinner while a function is running. Ta
 Produce all the spinners in sequence.
 
 #+begin_src elvish
-  fn demo [&time=2 &style=blue]{
+  fn demo [&time=2 &style=blue &persist=$false]{
     list | each [s]{
-      run &spinner=$s &title=$s &style=$style { sleep $time }
+      run &spinner=$s &title=$s &style=$style &persist=$persist { sleep $time }
     }
   }
 #+end_src

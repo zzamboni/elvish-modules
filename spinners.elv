@@ -134,8 +134,8 @@ fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix=""
   }
 }
 
-fn demo [&time=2 &style=blue]{
+fn demo [&time=2 &style=blue &persist=$false]{
   list | each [s]{
-    run &spinner=$s &title=$s &style=$style { sleep $time }
+    run &spinner=$s &title=$s &style=$style &persist=$persist { sleep $time }
   }
 }
