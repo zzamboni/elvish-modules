@@ -1,4 +1,4 @@
-# Created 2020-01-14 Tue 21:37
+# Created 2020-07-24 Fri 11:28
 #+TITLE: zzamboni's Elvish libraries
 #+AUTHOR: Diego Zamboni
 #+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
@@ -70,6 +70,10 @@ The following modules are included:
 - [[file:semver.org][semver]] ::
      #+name: module-summary
      Comparison of semantic version numbers, as described in [[https://semver.org/#spec-item-11][the Semantic Versioning specification]].
+
+- [[file:spinners.org][spinners]] ::
+     #+name: module-summary
+     Functions to print different styles of progress spinners for use in Elvish scripts.
 
 - [[file:terminal-title.org][terminal-title]] ::
      #+name: module-summary

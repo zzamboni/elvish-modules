@@ -39,6 +39,7 @@ The following modules are included:
 {{{module-summary(prompt-hooks)}}}
 {{{module-summary(proxy)}}}
 {{{module-summary(semver)}}}
+{{{module-summary(spinners)}}}
 {{{module-summary(terminal-title)}}}
 {{{module-summary(test)}}}
 {{{module-summary(tinytex)}}}
