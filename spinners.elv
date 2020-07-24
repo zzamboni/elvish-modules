@@ -4,12 +4,26 @@ spinners = (from-json < (path-dir (src)[path])/spinners.json)
 
 default-spinner = 'dots'
 
+-registry = [&]
+
 fn output [@s]{
   print $@s >/dev/tty
 }
 
+fn attr [id attr @val]{
+  if (has-key $-registry $id) {
+    if (eq $val []) {
+      put $-registry[$id][$attr]
+    } else {
+      -registry[$id][$attr] = $val[0]
+    }
+  } else {
+    fail "Nonexisting spinner with ID "$id
+  }
+}
+
 fn spinner-sleep [s]{
-  sleep (to-string (/ $s[interval] 1000))
+  sleep (to-string (/ (attr $s interval) 1000))
 }
 
 fn hide-cursor {
@@ -27,37 +41,42 @@ fn list {
 }
 
 fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false &id=$nil]{
+  # Determine ID to use
+  id = (or $id (e=?(uuidgen)) (randint 0 9999999))
   # Use default spinner if none is specified
   if (not $spinner) { spinner = $default-spinner }
   # Automatically convert non-list styles, so you can do e.g. &style=red
   if (not-eq (kind-of $style) list) { style = [$style] }
-  put [
-    &id=       (or $id (e=?(uuidgen)) (randint 0 9999999))
-    &frames=   (or $frames $spinners[$spinner][frames])
-    &interval= (or $interval $spinners[$spinner][interval])
-    &title=    $title
-    &prefix=   $prefix
-    &indent=   $indent
-    &style=    $style
-    &cursor=   $cursor
-    &persist=  $persist
+  # Create and store the new spinner object
+  -registry[$id] = [
+    &id=             $id
+    &spinner=        $spinner
+    &frames=         (or $frames $spinners[$spinner][frames])
+    &interval=       (or $interval $spinners[$spinner][interval])
+    &title=          $title
+    &prefix=         $prefix
+    &indent=         $indent
+    &style=          $style
+    &cursor=         $cursor
+    &persist=        $persist
     &hide-exception= $hide-exception
-    &current=  0
+    &current=        0
   ]
+  # Return ID of the new spinner
+  put $id
 }
 
 fn step [spinner]{
-  steps = $spinner[frames]
-  indentation = (str:join '' [(repeat $spinner[indent] ' ')])
-  pre-string = (if (not-eq $spinner[prefix] '') { put $spinner[prefix]' ' } else { put '' })
-  post-string = (if (not-eq $spinner[title] '') { put ' '$spinner[title] } else { put '' })
-  output $indentation$pre-string(styled $steps[$spinner[current]] (all $spinner[style]))$post-string(clear-line)"\r"
+  steps = (attr $spinner frames)
+  indentation = (str:join '' [(repeat (attr $spinner indent) ' ')])
+  pre-string = (if (not-eq (attr $spinner prefix) '') { put (attr $spinner prefix)' ' } else { put '' })
+  post-string = (if (not-eq (attr $spinner title) '') { put ' '(attr $spinner title) } else { put '' })
+  output $indentation$pre-string(styled $steps[(attr $spinner current)] (all (attr $spinner style)))$post-string(clear-line)"\r"
   inc = 1
   if (eq (kind-of $steps string)) {
-    inc = (count $steps[$spinner[current]])
+    inc = (count $steps[(attr $spinner current)])
   }
-  spinner[current] = (% (+ $spinner[current] $inc) (count $steps))
-  put $spinner
+  attr $spinner current (% (+ (attr $spinner current) $inc) (count $steps))
 }
 
 status-symbols = [
@@ -68,10 +87,9 @@ status-symbols = [
 ]
 
 fn set-status [spinner status]{
-  spinner[frames] = [ $status-symbols[$status][symbol] ]
-  spinner[style] = [ $status-symbols[$status][color] ]
-  spinner[current] = 0
-  put $spinner
+  attr $spinner frames [ $status-symbols[$status][symbol] ]
+  attr $spinner style [ $status-symbols[$status][color] ]
+  attr $spinner current 0
 }
 
 fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false f]{
@@ -79,27 +97,27 @@ fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix=""
   stop = $false
   status = $nil
   run-parallel {
-    if (not $s[cursor]) { output (hide-cursor) }
+    if (not (attr $s cursor)) { output (hide-cursor) }
     while (not $stop) {
-      s = (step $s)
+      step $s
       spinner-sleep $s
     }
     if $persist {
       if (eq $persist status) {
         if $status {
-          s = (set-status $s success)
+          set-status $s success
         } else {
-          s = (set-status $s error)
+          set-status $s error
         }
       } elif (eq (kind-of $persist) string) {
-        s = (set-status $s $persist)
+        set-status $s $persist
       }
-      s = (step $s)
+      step $s
       output "\n"
     } else {
       output (clear-line)
     }
-    if (not $s[cursor]) { output (show-cursor) }
+    if (not (attr $s cursor)) { output (show-cursor) }
     if (and (not $status) (not $hide-exception)) {
       show $status
     }

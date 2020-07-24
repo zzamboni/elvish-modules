@@ -132,6 +132,12 @@ By default the =dots= spinner is used.
   default-spinner = 'dots'
 #+end_src
 
+We store spinners in the =$spinners:-registry= variable, indexed by ID.
+
+#+begin_src elvish
+  -registry = [&]
+#+end_src
+
 ** Utility functions
 
 All output is produced through this function.
@@ -142,11 +148,27 @@ All output is produced through this function.
   }
 #+end_src
 
+We use the =attr= function to get/set attributes of a spinner. If no value is given, returns the value of the attribute, otherwise just sets it (no return value).
+
+#+begin_src elvish
+  fn attr [id attr @val]{
+    if (has-key $-registry $id) {
+      if (eq $val []) {
+        put $-registry[$id][$attr]
+      } else {
+        -registry[$id][$attr] = $val[0]
+      }
+    } else {
+      fail "Nonexisting spinner with ID "$id
+    }
+  }
+#+end_src
+
 Wait an amount of time as defined by the spinner.
 
 #+begin_src elvish
   fn spinner-sleep [s]{
-    sleep (to-string (/ $s[interval] 1000))
+    sleep (to-string (/ (attr $s interval) 1000))
   }
 #+end_src
 
@@ -171,6 +193,7 @@ Return the list of available spinners
     keys $spinners | order
   }
 #+end_src
+
 ** Building and manually advancing spinners
 
 A /spinner object/ is a definition of a spinner, and is a map containing the following keys:
@@ -186,27 +209,33 @@ A /spinner object/ is a definition of a spinner, and is a map containing the fol
 - =current= - the current step of the spinner as it runs.
 - =id= - unique identifier for the spinner. By default generated as a random number, but can be specified using the =&id= option if desired.
 
-=spinners:new= creates a new spinner object containing the keys above. The =&spinner= option can be used to initialize =&frames= and =&interval= from the default spinner definitions. If not given, =$spinners:default-spinner= is used. If =&frames= and =&interval= are given, they are used to override the default values. =&title=, =&prefix= and =&style= default to empty.
+=spinners:new= creates a new spinner object containing the keys above, stores it in the registry, and returns its ID. The =&spinner= option can be used to initialize =&frames= and =&interval= from the default spinner definitions. If not given, =$spinners:default-spinner= is used. If =&frames= and =&interval= are given, they are used to override the default values. =&title=, =&prefix= and =&style= default to empty.
 
 #+begin_src elvish
   fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false &id=$nil]{
+    # Determine ID to use
+    id = (or $id (e=?(uuidgen)) (randint 0 9999999))
     # Use default spinner if none is specified
     if (not $spinner) { spinner = $default-spinner }
     # Automatically convert non-list styles, so you can do e.g. &style=red
     if (not-eq (kind-of $style) list) { style = [$style] }
-    put [
-      &id=       (or $id (e=?(uuidgen)) (randint 0 9999999))
-      &frames=   (or $frames $spinners[$spinner][frames])
-      &interval= (or $interval $spinners[$spinner][interval])
-      &title=    $title
-      &prefix=   $prefix
-      &indent=   $indent
-      &style=    $style
-      &cursor=   $cursor
-      &persist=  $persist
+    # Create and store the new spinner object
+    -registry[$id] = [
+      &id=             $id
+      &spinner=        $spinner
+      &frames=         (or $frames $spinners[$spinner][frames])
+      &interval=       (or $interval $spinners[$spinner][interval])
+      &title=          $title
+      &prefix=         $prefix
+      &indent=         $indent
+      &style=          $style
+      &cursor=         $cursor
+      &persist=        $persist
       &hide-exception= $hide-exception
-      &current=  0
+      &current=        0
     ]
+    # Return ID of the new spinner
+    put $id
   }
 #+end_src
 
@@ -214,17 +243,16 @@ Once a spinner object is created, =spinners:step= can be used to display and adv
 
 #+begin_src elvish
   fn step [spinner]{
-    steps = $spinner[frames]
-    indentation = (str:join '' [(repeat $spinner[indent] ' ')])
-    pre-string = (if (not-eq $spinner[prefix] '') { put $spinner[prefix]' ' } else { put '' })
-    post-string = (if (not-eq $spinner[title] '') { put ' '$spinner[title] } else { put '' })
-    output $indentation$pre-string(styled $steps[$spinner[current]] (all $spinner[style]))$post-string(clear-line)"\r"
+    steps = (attr $spinner frames)
+    indentation = (str:join '' [(repeat (attr $spinner indent) ' ')])
+    pre-string = (if (not-eq (attr $spinner prefix) '') { put (attr $spinner prefix)' ' } else { put '' })
+    post-string = (if (not-eq (attr $spinner title) '') { put ' '(attr $spinner title) } else { put '' })
+    output $indentation$pre-string(styled $steps[(attr $spinner current)] (all (attr $spinner style)))$post-string(clear-line)"\r"
     inc = 1
     if (eq (kind-of $steps string)) {
-      inc = (count $steps[$spinner[current]])
+      inc = (count $steps[(attr $spinner current)])
     }
-    spinner[current] = (% (+ $spinner[current] $inc) (count $steps))
-    put $spinner
+    attr $spinner current (% (+ (attr $spinner current) $inc) (count $steps))
   }
 #+end_src
 
@@ -239,10 +267,9 @@ Set the status of the spinner to different outcomes, will be displayed the next 
   ]
 
   fn set-status [spinner status]{
-    spinner[frames] = [ $status-symbols[$status][symbol] ]
-    spinner[style] = [ $status-symbols[$status][color] ]
-    spinner[current] = 0
-    put $spinner
+    attr $spinner frames [ $status-symbols[$status][symbol] ]
+    attr $spinner style [ $status-symbols[$status][color] ]
+    attr $spinner current 0
   }
 #+end_src
 
@@ -256,27 +283,27 @@ Simplest point of entry for displaying a spinner while a function is running. Ta
     stop = $false
     status = $nil
     run-parallel {
-      if (not $s[cursor]) { output (hide-cursor) }
+      if (not (attr $s cursor)) { output (hide-cursor) }
       while (not $stop) {
-        s = (step $s)
+        step $s
         spinner-sleep $s
       }
       if $persist {
         if (eq $persist status) {
           if $status {
-            s = (set-status $s success)
+            set-status $s success
           } else {
-            s = (set-status $s error)
+            set-status $s error
           }
         } elif (eq (kind-of $persist) string) {
-          s = (set-status $s $persist)
+          set-status $s $persist
         }
-        s = (step $s)
+        step $s
         output "\n"
       } else {
         output (clear-line)
       }
-      if (not $s[cursor]) { output (show-cursor) }
+      if (not (attr $s cursor)) { output (show-cursor) }
       if (and (not $status) (not $hide-exception)) {
         show $status
       }
