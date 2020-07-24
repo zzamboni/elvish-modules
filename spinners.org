@@ -11,6 +11,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
 - [[#usage][Usage]]
   - [[#available-spinners][Available spinners]]
   - [[#showing-spinner-while-a-function-runs][Showing spinner while a function runs]]
+  - [[#spinner-persistence-and-exception-handling][Spinner persistence and exception handling]]
 - [[#implementation][Implementation]]
   - [[#modules][Modules]]
   - [[#initialization][Initialization]]
@@ -83,11 +84,27 @@ The following options are available:
 - =&prefix= - an optional string or  [[https://elv.sh/ref/builtin.html#styled][styled object]] that will be shown before the spinner.
 - =&indent= - an optional integer indicating an indentation level. The indent will appear before =prefix= if both are given.
 - =&cursor= - an optional boolean specifying whether the cursor should be shown while the spinner is running. Default is to hide it.
-- =&persist= - an optional boolean specifying whether the spinner should be left in place and the cursor moved to the next line when the spinner finishes running. By default the spinner is cleared when it finishes running, and the cursor stays at the beginning of the line.
+- =&persist= - if and how the spinner should persist at the end. See /Spinner persistence/ below
 
 A spinner definition consists of frames and an interval. These can be specified to create a custom spinner:
 - =&frames= - a string or list containing the different steps for the spinner.
 - =&interval= - interval between the frames, in milliseconds.
+
+** Spinner persistence and exception handling
+
+By default, the spinner disappears when it stops. Any exceptions thrown by the lambda are displayed as usual.
+
+This behavior can be changed by the following options to =spinners:run=:
+
+- =&hide-exception=: if set, exceptions thrown by the lamda are caught and hidden. Most useful with =&persist=status= (see below).
+- =&persist=: if set, can have one of the following values:
+  - =success=, =error=, =warning=, =info= are the default status symbols, defined in =$spinners:status-symbols=:
+
+    [[file:images/spinners-persist-symbols.jpg]]
+
+  - =status=: if the lambda throws an exception sets =error=, otherwise =success=. Can be used with =&hide-exception=:
+
+    [[file:images/spinners-persist-status.jpg]]
 
 * Implementation
 :PROPERTIES:
@@ -210,29 +227,65 @@ Once a spinner object is created, =spinners:step= can be used to display and adv
   }
 #+end_src
 
+Set the status of the spinner to different outcomes, will be displayed the next time the =step= function is called. The definition of the symbols to display can be customized by adding elements to =$spinner:status-symbols=.
+
+#+begin_src elvish
+  status-symbols = [
+    &success= [ &symbol="✔" &color=green ]
+    &error=   [ &symbol="✖" &color=red ]
+    &warning= [ &symbol="⚠" &color=yellow ]
+    &info=    [ &symbol="ℹ" &color=blue ]
+  ]
+
+  fn set-status [spinner status]{
+    spinner[frames] = [ $status-symbols[$status][symbol] ]
+    spinner[style] = [ $status-symbols[$status][color] ]
+    spinner[current] = 0
+    put $spinner
+  }
+#+end_src
+
 ** Running a function with a spinner
 
 Simplest point of entry for displaying a spinner while a function is running. Takes a lambda as the only mandatory argument. A spinner will be automatically created and displayed until the lambda finishes. It takes the same options as =spinners:new=, which can be used to specify the details of the spinner to use.
 
 #+begin_src elvish
-  fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &prefix="" &style=[] &cursor=$false &persist=$false f]{
+  fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &prefix="" &style=[] &cursor=$false &persist=$false &hide-exception=$false f]{
     s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &prefix=$prefix &style=$style &cursor=$cursor &persist=$persist)
     stop = $false
+    status = $nil
     run-parallel {
       if (not $s[cursor]) { output (hide-cursor) }
       while (not $stop) {
         s = (step $s)
         spinner-sleep $s
       }
-      if (not $s[cursor]) { output (show-cursor) }
       if $persist {
+        if (eq $persist status) {
+          if $status {
+            s = (set-status $s success)
+          } else {
+            s = (set-status $s error)
+          }
+        } elif (eq (kind-of $persist) string) {
+          s = (set-status $s $persist)
+        }
+        s = (step $s)
         output "\n"
       } else {
         output (clear-line)
       }
+      if (not $s[cursor]) { output (show-cursor) }
+      if (and (not $status) (not $hide-exception)) {
+        show $status
+      }
     } {
       try {
         $f
+      } except e {
+        status = $e
+      } else {
+        status = $ok
       } finally {
         stop = $true
       }

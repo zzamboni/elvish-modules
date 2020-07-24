@@ -59,24 +59,56 @@ fn step [spinner]{
   put $spinner
 }
 
-fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &prefix="" &style=[] &cursor=$false &persist=$false f]{
+status-symbols = [
+  &success= [ &symbol="✔" &color=green ]
+  &error=   [ &symbol="✖" &color=red ]
+  &warning= [ &symbol="⚠" &color=yellow ]
+  &info=    [ &symbol="ℹ" &color=blue ]
+]
+
+fn set-status [spinner status]{
+  spinner[frames] = [ $status-symbols[$status][symbol] ]
+  spinner[style] = [ $status-symbols[$status][color] ]
+  spinner[current] = 0
+  put $spinner
+}
+
+fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &prefix="" &style=[] &cursor=$false &persist=$false &hide-exception=$false f]{
   s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &prefix=$prefix &style=$style &cursor=$cursor &persist=$persist)
   stop = $false
+  status = $nil
   run-parallel {
     if (not $s[cursor]) { output (hide-cursor) }
     while (not $stop) {
       s = (step $s)
       spinner-sleep $s
     }
-    if (not $s[cursor]) { output (show-cursor) }
     if $persist {
+      if (eq $persist status) {
+        if $status {
+          s = (set-status $s success)
+        } else {
+          s = (set-status $s error)
+        }
+      } elif (eq (kind-of $persist) string) {
+        s = (set-status $s $persist)
+      }
+      s = (step $s)
       output "\n"
     } else {
       output (clear-line)
     }
+    if (not $s[cursor]) { output (show-cursor) }
+    if (and (not $status) (not $hide-exception)) {
+      show $status
+    }
   } {
     try {
       $f
+    } except e {
+      status = $e
+    } else {
+      status = $ok
     } finally {
       stop = $true
     }
