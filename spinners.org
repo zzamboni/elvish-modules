@@ -189,7 +189,7 @@ A /spinner object/ is a definition of a spinner, and is a map containing the fol
 =spinners:new= creates a new spinner object containing the keys above. The =&spinner= option can be used to initialize =&frames= and =&interval= from the default spinner definitions. If not given, =$spinners:default-spinner= is used. If =&frames= and =&interval= are given, they are used to override the default values. =&title=, =&prefix= and =&style= default to empty.
 
 #+begin_src elvish
-  fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &id=$nil]{
+  fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false &id=$nil]{
     # Use default spinner if none is specified
     if (not $spinner) { spinner = $default-spinner }
     # Automatically convert non-list styles, so you can do e.g. &style=red
@@ -204,6 +204,7 @@ A /spinner object/ is a definition of a spinner, and is a map containing the fol
       &style=    $style
       &cursor=   $cursor
       &persist=  $persist
+      &hide-exception= $hide-exception
       &current=  0
     ]
   }
@@ -250,8 +251,8 @@ Set the status of the spinner to different outcomes, will be displayed the next 
 Simplest point of entry for displaying a spinner while a function is running. Takes a lambda as the only mandatory argument. A spinner will be automatically created and displayed until the lambda finishes. It takes the same options as =spinners:new=, which can be used to specify the details of the spinner to use.
 
 #+begin_src elvish
-  fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &prefix="" &style=[] &cursor=$false &persist=$false &hide-exception=$false f]{
-    s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &prefix=$prefix &style=$style &cursor=$cursor &persist=$persist)
+  fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false f]{
+    s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
     stop = $false
     status = $nil
     run-parallel {

@@ -26,7 +26,7 @@ fn list {
   keys $spinners | order
 }
 
-fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &id=$nil]{
+fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false &id=$nil]{
   # Use default spinner if none is specified
   if (not $spinner) { spinner = $default-spinner }
   # Automatically convert non-list styles, so you can do e.g. &style=red
@@ -41,6 +41,7 @@ fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix=""
     &style=    $style
     &cursor=   $cursor
     &persist=  $persist
+    &hide-exception= $hide-exception
     &current=  0
   ]
 }
@@ -73,8 +74,8 @@ fn set-status [spinner status]{
   put $spinner
 }
 
-fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &prefix="" &style=[] &cursor=$false &persist=$false &hide-exception=$false f]{
-  s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &prefix=$prefix &style=$style &cursor=$cursor &persist=$persist)
+fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false f]{
+  s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
   stop = $false
   status = $nil
   run-parallel {
