@@ -10,7 +10,7 @@ This file is written in [[http://www.howardism.org/Technical/Emacs/literate-prog
 * Table of Contents                                          :TOC_3:noexport:
 - [[#usage][Usage]]
   - [[#available-spinners][Available spinners]]
-  - [[#automatic-spinners][Automatic spinners]]
+  - [[#showing-spinner-while-a-function-runs][Showing spinner while a function runs]]
 - [[#implementation][Implementation]]
   - [[#modules][Modules]]
   - [[#initialization][Initialization]]
@@ -37,7 +37,11 @@ In your =rc.elv=, load this module:
 
 ** Available spinners
 
-The spinner definitions are taken from the [[https://github.com/sindresorhus/cli-spinners/][sindresorhus/cli-spinners]] project. You can get the list of available spinners using the =spinners:list= function.
+The spinner definitions are taken from the [[https://github.com/sindresorhus/cli-spinners/][sindresorhus/cli-spinners]] project. You can view a demo of all the spinners with =spinners:demo=:
+
+[[file:images/spinners-demo.gif]]
+
+You can get the list of available spinners using the =spinners:list= function.
 
 #+begin_src elvish :use github.com/zzamboni/elvish-modules/spinners :exports both
 spinners:list | take 5
@@ -50,22 +54,25 @@ spinners:list | take 5
 : ▶ arrow3
 : ▶ balloon
 
-You can view a demo of all the spinners with =spinners:demo=:
+** Showing spinner while a function runs
 
-[[file:images/spinners-demo.gif]]
-
-** Automatic spinners
-
-The easiers way to create a spinner is to use =spinners:run= to execute a lambda while displaying a spinner. The spinner will stop automatically when the lambda finishes:
+The easiest way to create a spinner is to use =spinners:run= to execute a lambda while displaying a spinner. The spinner will stop automatically when the lambda finishes:
 
 #+begin_src elvish
-spinners:run { sleep 10 }
+  spinners:run { sleep 10 }
 #+end_src
 
 By default, the spinner specified by =$spinners:default-spinner= will be used. You can change this by passing the =&spinner= option. You can also specify a title to show next to the spinner by passing the =&title= option:
 
 #+begin_src elvish
-spinners:run &spinner=arrow &title="Loading modules" { sleep 10 }
+  spinners:run &spinner=arrow &title="Loading modules" { sleep 10 }
+#+end_src
+
+The input and output of =spinners:run= are connected to the lambda, so you can use it as part of a pipeline. E.g.:
+
+#+begin_src elvish
+  spinners:run &title=(styled "Counting files" blue) &style=green { fd . ~ } | count
+  fd . ~ | spinners:run &title="Counting characters in filenames" { each [f]{ all $f } } | count
 #+end_src
 
 The following options are available:
