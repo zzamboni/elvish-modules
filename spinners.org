@@ -39,7 +39,7 @@ In your =rc.elv=, load this module:
 
 The spinner definitions are taken from the [[https://github.com/sindresorhus/cli-spinners/][sindresorhus/cli-spinners]] project. You can get the list of available spinners using the =spinners:list= function.
 
-#+begin_src elvish :use github.com/zzamboni/elvish-modules/spinners
+#+begin_src elvish :use github.com/zzamboni/elvish-modules/spinners :exports both
 spinners:list | take 5
 #+end_src
 
