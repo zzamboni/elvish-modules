@@ -4,26 +4,14 @@ spinners = (from-json < (path-dir (src)[path])/spinners.json)
 
 default-spinner = 'dots'
 
--registry = [&]
+-sr = [&]
 
 fn output [@s]{
   print $@s >/dev/tty
 }
 
-fn attr [id attr @val]{
-  if (has-key $-registry $id) {
-    if (eq $val []) {
-      put $-registry[$id][$attr]
-    } else {
-      -registry[$id][$attr] = $val[0]
-    }
-  } else {
-    fail "Nonexisting spinner with ID "$id
-  }
-}
-
 fn spinner-sleep [s]{
-  sleep (to-string (/ (attr $s interval) 1000))
+  sleep (to-string (/ $-sr[$s][interval] 1000))
 }
 
 fn hide-cursor {
@@ -48,7 +36,7 @@ fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix=""
   # Automatically convert non-list styles, so you can do e.g. &style=red
   if (not-eq (kind-of $style) list) { style = [$style] }
   # Create and store the new spinner object
-  -registry[$id] = [
+  -sr[$id] = [
     &id=             $id
     &spinner=        $spinner
     &frames=         (or $frames $spinners[$spinner][frames])
@@ -67,16 +55,16 @@ fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix=""
 }
 
 fn step [spinner]{
-  steps = (attr $spinner frames)
-  indentation = (str:join '' [(repeat (attr $spinner indent) ' ')])
-  pre-string = (if (not-eq (attr $spinner prefix) '') { put (attr $spinner prefix)' ' } else { put '' })
-  post-string = (if (not-eq (attr $spinner title) '') { put ' '(attr $spinner title) } else { put '' })
-  output $indentation$pre-string(styled $steps[(attr $spinner current)] (all (attr $spinner style)))$post-string(clear-line)"\r"
+  steps = $-sr[$spinner][frames]
+  indentation = (str:join '' [(repeat $-sr[$spinner][indent] ' ')])
+  pre-string = (if (not-eq $-sr[$spinner][prefix] '') { put $-sr[$spinner][prefix]' ' } else { put '' })
+  post-string = (if (not-eq $-sr[$spinner][title] '') { put ' '$-sr[$spinner][title] } else { put '' })
+  output $indentation$pre-string(styled $steps[$-sr[$spinner][current]] (all $-sr[$spinner][style]))$post-string(clear-line)"\r"
   inc = 1
   if (eq (kind-of $steps string)) {
-    inc = (count $steps[(attr $spinner current)])
+    inc = (count $steps[$-sr[$spinner][current]])
   }
-  attr $spinner current (% (+ (attr $spinner current) $inc) (count $steps))
+  -sr[$spinner][current] = (% (+ $-sr[$spinner][current] $inc) (count $steps))
 }
 
 status-symbols = [
@@ -87,9 +75,9 @@ status-symbols = [
 ]
 
 fn set-status [spinner status]{
-  attr $spinner frames [ $status-symbols[$status][symbol] ]
-  attr $spinner style [ $status-symbols[$status][color] ]
-  attr $spinner current 0
+  -sr[$spinner][frames] = [ $status-symbols[$status][symbol] ]
+  -sr[$spinner][style] = [ $status-symbols[$status][color] ]
+  -sr[$spinner][current] = 0
 }
 
 fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false f]{
@@ -97,7 +85,7 @@ fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix=""
   stop = $false
   status = $nil
   run-parallel {
-    if (not (attr $s cursor)) { output (hide-cursor) }
+    if (not $-sr[$s][cursor]) { output (hide-cursor) }
     while (not $stop) {
       step $s
       spinner-sleep $s
@@ -117,7 +105,7 @@ fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix=""
     } else {
       output (clear-line)
     }
-    if (not (attr $s cursor)) { output (show-cursor) }
+    if (not $-sr[$s][cursor]) { output (show-cursor) }
     if (and (not $status) (not $hide-exception)) {
       show $status
     }
