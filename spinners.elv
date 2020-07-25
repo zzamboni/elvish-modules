@@ -10,10 +10,6 @@ fn output [@s]{
   print $@s >/dev/tty
 }
 
-fn spinner-sleep [s]{
-  sleep (to-string (/ $-sr[$s][interval] 1000))
-}
-
 fn hide-cursor {
   put "\e[?25l"
 }
@@ -67,49 +63,90 @@ fn step [spinner]{
   -sr[$spinner][current] = (% (+ $-sr[$spinner][current] $inc) (count $steps))
 }
 
-status-symbols = [
+persist-symbols = [
   &success= [ &symbol="✔" &color=green ]
   &error=   [ &symbol="✖" &color=red ]
   &warning= [ &symbol="⚠" &color=yellow ]
   &info=    [ &symbol="ℹ" &color=blue ]
 ]
 
-fn set-status [spinner status]{
-  -sr[$spinner][frames] = [ $status-symbols[$status][symbol] ]
-  -sr[$spinner][style] = [ $status-symbols[$status][color] ]
+fn set-persist [spinner symbol]{
+  -sr[$spinner][frames] = [ $persist-symbols[$symbol][symbol] ]
+  -sr[$spinner][style] = [ $persist-symbols[$symbol][color] ]
   -sr[$spinner][current] = 0
+}
+
+fn spinner-sleep [s]{
+  sleep (to-string (/ $-sr[$s][interval] 1000))
+}
+
+fn attr [id attr @val]{
+  if (has-key $-sr $id) {
+    if (eq $val []) {
+      put $-sr[$id][$attr]
+    } else {
+      if (eq $attr spinner) {
+        name = $val[0]
+        -sr[$id][spinner]  = $name
+        -sr[$id][frames]   = $spinners[$name][frames]
+        -sr[$id][interval] = $spinners[$name][interval]
+        -sr[$id][current]  = 0
+      } else {
+        -sr[$id][$attr] = $val[0]
+      }
+    }
+  } else {
+    fail "Nonexisting spinner with ID "$id
+  }
+}
+
+fn do-spinner [spinner]{
+  -sr[$spinner][stop] = $false
+  -sr[$spinner][status] = $nil
+  if (not $-sr[$spinner][cursor]) {
+    output (hide-cursor)
+  }
+  while (not $-sr[$spinner][stop]) {
+    step $spinner
+    spinner-sleep $spinner
+  }
+  if $-sr[$spinner][persist] {
+    if (eq $-sr[$spinner][persist] status) {
+      if $-sr[$spinner][status] {
+        set-persist $spinner success
+      } else {
+        set-persist $spinner error
+      }
+    } elif (eq (kind-of $-sr[$spinner][persist]) string) {
+      set-persist $spinner $-sr[$spinner][persist]
+    }
+    step $spinner
+    output "\n"
+  } else {
+    output (clear-line)
+  }
+  if (not $-sr[$spinner][cursor]) { output (show-cursor) }
+  if (and (not $-sr[$spinner][status]) (not $-sr[$spinner][hide-exception])) {
+    show $-sr[$spinner][status]
+  }
+  del -sr[$spinner]
+}
+
+fn start [spinner]{
+  do-spinner $spinner &
+}
+
+fn stop [spinner &status=$ok]{
+  -sr[$spinner][status] = $status
+  -sr[$spinner][stop] = $true
 }
 
 fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false f]{
   s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
-  stop = $false
-  status = $nil
   run-parallel {
-    if (not $-sr[$s][cursor]) { output (hide-cursor) }
-    while (not $stop) {
-      step $s
-      spinner-sleep $s
-    }
-    if $persist {
-      if (eq $persist status) {
-        if $status {
-          set-status $s success
-        } else {
-          set-status $s error
-        }
-      } elif (eq (kind-of $persist) string) {
-        set-status $s $persist
-      }
-      step $s
-      output "\n"
-    } else {
-      output (clear-line)
-    }
-    if (not $-sr[$s][cursor]) { output (show-cursor) }
-    if (and (not $status) (not $hide-exception)) {
-      show $status
-    }
+    do-spinner $s
   } {
+    status = $ok
     try {
       $f
     } except e {
@@ -117,7 +154,7 @@ fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix=""
     } else {
       status = $ok
     } finally {
-      stop = $true
+      stop &status=$status $s
     }
   }
 }
