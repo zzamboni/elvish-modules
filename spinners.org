@@ -120,11 +120,20 @@ If you want more flexibility in producing spinners, you can create, start and st
    #+begin_src elvish
      spinner:start $s
    #+end_src
-3. Do whatever you want.
+3. Do whatever you want. While the spinner runs, you can use the =spinner:attr= function to set any of its attributes (the same as the option names in the =spinner:new= function) to modify the spinner on the fly. You can even change the spinner type by changing the =spinner= attribute. E.g.:
+   #+begin_src elvish
+     sleep 3
+     spinner:attr $s title "New title!"
+     sleep 2
+     spinner:attr $s spinner shark
+     sleep 3
+   #+end_src
 4. Stop the spinner with the =spinner:stop= function. You can use the =&status= option to pass an exception object or =$ok= which can be used to determine the final state of the spinner (e.g. if you created it with =&persist=status=):
    #+begin_src elvish
      spinner:stop $s
    #+end_src
+
+*Note:* if you call =spinner:start= and =spinner:stop= by hand, be aware that when the spinner stops Elvish will produce a notification about the background process. To prevent this you have to set =$notify-bg-job-success= to =$false= before calling =$spinner:stop=. This is not necessary if you use =spinner:run=.
 
 * Implementation
 :PROPERTIES:
