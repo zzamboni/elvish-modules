@@ -70,7 +70,7 @@ persist-symbols = [
   &info=    [ &symbol="ℹ" &color=blue ]
 ]
 
-fn set-persist [spinner symbol]{
+fn set-symbol [spinner symbol]{
   -sr[$spinner][frames] = [ $persist-symbols[$symbol][symbol] ]
   -sr[$spinner][style] = [ $persist-symbols[$symbol][color] ]
   -sr[$spinner][current] = 0
@@ -86,11 +86,17 @@ fn attr [id attr @val]{
       put $-sr[$id][$attr]
     } else {
       if (eq $attr spinner) {
+        # Automatically populate frames and interval based on spinner
         name = $val[0]
         -sr[$id][spinner]  = $name
         -sr[$id][frames]   = $spinners[$name][frames]
         -sr[$id][interval] = $spinners[$name][interval]
         -sr[$id][current]  = 0
+      } elif (eq $attr style) {
+        # Automatically convert non-list styles, so you can do e.g. &style=red
+        style = $val[0]
+        if (not-eq (kind-of $style) list) { style = [$style] }
+        -sr[$id][style] = $style
       } else {
         -sr[$id][$attr] = $val[0]
       }
@@ -102,7 +108,7 @@ fn attr [id attr @val]{
 
 fn do-spinner [spinner]{
   -sr[$spinner][stop] = $false
-  -sr[$spinner][status] = $nil
+  -sr[$spinner][status] = $ok
   if (not $-sr[$spinner][cursor]) {
     output (hide-cursor)
   }
@@ -113,12 +119,12 @@ fn do-spinner [spinner]{
   if $-sr[$spinner][persist] {
     if (eq $-sr[$spinner][persist] status) {
       if $-sr[$spinner][status] {
-        set-persist $spinner success
+        set-symbol $spinner success
       } else {
-        set-persist $spinner error
+        set-symbol $spinner error
       }
     } elif (eq (kind-of $-sr[$spinner][persist]) string) {
-      set-persist $spinner $-sr[$spinner][persist]
+      set-symbol $spinner $-sr[$spinner][persist]
     }
     step $spinner
     output "\n"
@@ -142,13 +148,18 @@ fn stop [spinner &status=$ok]{
 }
 
 fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false f]{
+  # Create spinner
   s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
+  # Determine whether to pass the spinner ID to the function
+  f-args = [$s]
+  if (eq $f[arg-names] []) { f-args = [] }
+  # Run spinner in parallel with the function
   run-parallel {
     do-spinner $s
   } {
     status = $ok
     try {
-      $f
+      $f $@f-args
     } except e {
       status = $e
     } else {
