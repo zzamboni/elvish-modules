@@ -17,8 +17,12 @@ fn csi [@cmd]{
   } $cmd)]) >/dev/tty
 }
 
+fn csi-report [delim @cmd]{
+  with-stty [-echo raw] { csi $@cmd; read-upto $delim </dev/tty }
+}
+
 fn cursor-pos {
-  local:res = (with-stty [-echo raw] { csi 6 n; read-upto R </dev/tty })
+  local:res = (csi-report R 6 n)
   put (re:find '\[(\d+);(\d+)R' $res)[groups][{1,2}][text]
 }
 
