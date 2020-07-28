@@ -1,0 +1,94 @@
+#+title: ANSI / Terminal utilities for Elvish
+#+author: Diego Zamboni
+#+email: diego@zzamboni.org
+
+#+name: module-summary
+Functions for terminal ANSI code manipulation/interaction in Elvish.
+
+This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:tty.elv][tty.elv]] for the generated file.
+
+* Table of Contents                                          :TOC_3:noexport:
+- [[#usage][Usage]]
+  - [[#functions][Functions]]
+- [[#implementation][Implementation]]
+
+* Usage
+
+Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]] (you can put these statements in your =rc.elv= file as well, to automatically install the package upon startup if needed):
+
+#+begin_src elvish
+  use epm
+  epm:install &silent-if-installed github.com/zzamboni/elvish-modules
+#+end_src
+
+In your =rc.elv=, load this module:
+
+#+begin_src elvish
+  use github.com/zzamboni/elvish-modules/<module>
+#+end_src
+
+** Functions
+
+The base function is =tty:csi=, which emits a [[https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences][CSI sequence]] composed by joining all the given parameters together, prepended with the ~ESC [~ sequence. Parameters which are lists are joined by semicolons. For example:
+
+#+begin_src elvish
+  tty:csi 0 K       # Emits CSI 0 K, clear to end of line
+  tty:csi [3 5] H   # Emits CSI 3;5H, move to row 3, column 5
+#+end_src
+
+The =tty:with-stty= executes a function within a context with the given =stty= parameters. For example:
+
+#+begin_src elvish
+  # Read a string without it echoing to the terminal
+  pass = (tty:with-stty [-echo] { read-line })
+#+end_src
+
+Some common sequences have their own functions. Both descriptive names and short names (according to [[https://en.wikipedia.org/wiki/ANSI_escape_code#Terminal_output_sequences][this table]]) are available:
+
+- =tty:cursor-pos= / =tty:dsr=: return cursor position as =[row column]=.
+
+* Implementation
+:PROPERTIES:
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
+:header-args: :mkdirp yes :comments no
+:END:
+
+#+begin_src elvish
+  use re
+  use str
+#+end_src
+
+Execute a function with given =stty= parameters.
+
+#+begin_src elvish
+  fn with-stty [args cmd~]{
+    local:stty = (stty -g)
+    try { stty $@args; cmd } finally { stty $stty }
+  }
+#+end_src
+
+Emit a CSI escape sequence. The arguments are joined without a separator, but elements that are lists are themselves joined by semicolons.
+
+#+begin_src elvish
+  fn csi [@cmd]{
+    print "\e["(str:join '' [(
+          each [e]{
+            if (eq (kind-of $e) list) {
+              str:join ';' $e
+            } else {
+              put $e
+            }
+    } $cmd)]) >/dev/tty
+  }
+#+end_src
+Get cursor position. Returns a two-list element with =[ row column ]=.
+
+#+begin_src elvish
+  fn cursor-pos {
+    local:res = (with-stty [-echo raw] { csi 6 n; read-upto R </dev/tty })
+    put (re:find '\[(\d+);(\d+)R' $res)[groups][{1,2}][text]
+  }
+
+  # Short name alias according to https://en.wikipedia.org/wiki/ANSI_escape_code
+  dsr~ = $cursor-pos~
+#+end_src

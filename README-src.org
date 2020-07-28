@@ -43,4 +43,5 @@ The following modules are included:
 {{{module-summary(terminal-title)}}}
 {{{module-summary(test)}}}
 {{{module-summary(tinytex)}}}
+{{{module-summary(tty)}}}
 {{{module-summary(util)}}}

@@ -1,4 +1,4 @@
-# Created 2020-07-24 Fri 11:28
+# Created 2020-07-28 Tue 14:10
 #+TITLE: zzamboni's Elvish libraries
 #+AUTHOR: Diego Zamboni
 #+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
@@ -73,7 +73,7 @@ The following modules are included:
 
 - [[file:spinners.org][spinners]] ::
      #+name: module-summary
-     Functions to print different styles of progress spinners for use in Elvish scripts.
+     Functions to print different types of progress spinners for use in Elvish scripts.
 
 - [[file:terminal-title.org][terminal-title]] ::
      #+name: module-summary
@@ -86,6 +86,10 @@ The following modules are included:
 - [[file:tinytex.org][tinytex]] ::
      #+name: module-summary
      Convenience functions for [[https://yihui.org/tinytex/][TinyTeX]].
+
+- [[file:tty.org][tty]] ::
+     #+name: module-summary
+     Functions for terminal ANSI code manipulation/interaction in Elvish.
 
 - [[file:util.org][util]] ::
      #+name: module-summary
