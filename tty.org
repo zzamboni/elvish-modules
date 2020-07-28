@@ -47,7 +47,7 @@ If the escape sequence "reports" a value back via the terminal, you can use =tty
 
 The =tty:with-stty= executes a function within a context with the given =stty= parameters. For example:
 
-*Credits:* thanks @hanche for this function, which made =tty:cursor-pos= possible!
+*Credits:* thanks [[https://github.com/hanche][@hanche]] for this function, which made =tty:cursor-pos= possible!
 
 #+begin_src elvish
   # Read a string without it echoing to the terminal
