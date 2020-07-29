@@ -2,8 +2,8 @@ use re
 use str
 
 fn with-stty [args cmd~]{
-  local:stty = (stty -g)
-  try { stty $@args; cmd } finally { stty $stty }
+  local:stty = (stty -g </dev/tty)
+  try { stty $@args </dev/tty >/dev/tty; cmd } finally { stty $stty </dev/tty >/dev/tty}
 }
 
 fn csi [@cmd]{
@@ -28,3 +28,25 @@ fn cursor-pos {
 
 # Short name alias according to https://en.wikipedia.org/wiki/ANSI_escape_code
 dsr~ = $cursor-pos~
+
+fn set-cursor-pos [row col]{
+  csi [$row $col] H
+}
+
+# Short name alias according to https://en.wikipedia.org/wiki/ANSI_escape_code
+cur~ = $set-cursor-pos~
+
+fn clear-line [&mode=0]{
+  csi $mode K
+}
+
+# Short name alias according to https://en.wikipedia.org/wiki/ANSI_escape_code
+el~ = $clear-line~
+
+fn hide-cursor {
+  csi '?' 25 l
+}
+
+fn show-cursor {
+  csi '?' 25 h
+}

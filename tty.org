@@ -57,7 +57,8 @@ The =tty:with-stty= executes a function within a context with the given =stty= p
 Some common sequences have their own functions. Both descriptive names and short names (according to [[https://en.wikipedia.org/wiki/ANSI_escape_code#Terminal_output_sequences][this table]]) are available:
 
 - =tty:cursor-pos= / =tty:dsr=: return the cursor position as =[row column]=.
-
+- =tty:set-cursor-pos= / =tty:cup=: set the cursor position to =row column=.
+- =tty:clear-line= / =tty:el=: clear a part of the line. =&mode= specifies what to clear. If =&mode= is 0 (default), clear from cursor to the end of the line. If =&mode= is 1, clear from cursor to beginning of the line. If =&mode= is 2, clear entire line.
 * Implementation
 :PROPERTIES:
 :header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
@@ -73,8 +74,8 @@ Execute a function with given =stty= parameters.
 
 #+begin_src elvish
   fn with-stty [args cmd~]{
-    local:stty = (stty -g)
-    try { stty $@args; cmd } finally { stty $stty }
+    local:stty = (stty -g </dev/tty)
+    try { stty $@args </dev/tty >/dev/tty; cmd } finally { stty $stty </dev/tty >/dev/tty}
   }
 #+end_src
 
@@ -111,4 +112,38 @@ Get cursor position. Returns a two-list element with =[ row column ]=.
 
   # Short name alias according to https://en.wikipedia.org/wiki/ANSI_escape_code
   dsr~ = $cursor-pos~
+#+end_src
+
+Set cursor position. Takes two arguments =row= and =column=.
+
+#+begin_src elvish
+  fn set-cursor-pos [row col]{
+    csi [$row $col] H
+  }
+
+  # Short name alias according to https://en.wikipedia.org/wiki/ANSI_escape_code
+  cur~ = $set-cursor-pos~
+#+end_src
+
+Clear a part of the line. =&mode= specifies what to clear. If =&mode= is 0 (default), clear from cursor to the end of the line. If =&mode= is 1, clear from cursor to beginning of the line. If =&mode= is 2, clear entire line.
+
+#+begin_src elvish
+  fn clear-line [&mode=0]{
+    csi $mode K
+  }
+
+  # Short name alias according to https://en.wikipedia.org/wiki/ANSI_escape_code
+  el~ = $clear-line~
+#+end_src
+
+Hide or show the cursor.
+
+#+begin_src elvish
+  fn hide-cursor {
+    csi '?' 25 l
+  }
+
+  fn show-cursor {
+    csi '?' 25 h
+  }
 #+end_src
