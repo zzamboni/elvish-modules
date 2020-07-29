@@ -169,6 +169,7 @@ If you want more flexibility in producing spinners, you can create, start and st
 
 #+begin_src elvish
   use str
+  use github.com/zzamboni/elvish-modules/tty
 #+end_src
 
 ** Initialization
@@ -198,20 +199,6 @@ All output is produced through this function.
 #+begin_src elvish
   fn output [@s]{
     print $@s >/dev/tty
-  }
-#+end_src
-
-ANSI escape sequences used to hide/show the cursor and to clear the line.
-
-#+begin_src elvish
-  fn hide-cursor {
-    put "\e[?25l"
-  }
-  fn show-cursor {
-    put "\e[?25h"
-  }
-  fn clear-line {
-    put "\e[0K"
   }
 #+end_src
 
@@ -277,7 +264,9 @@ Once a spinner object is created, =spinners:step= can be used to display and adv
     indentation = (str:join '' [(repeat $-sr[$spinner][indent] ' ')])
     pre-string = (if (not-eq $-sr[$spinner][prefix] '') { put $-sr[$spinner][prefix]' ' } else { put '' })
     post-string = (if (not-eq $-sr[$spinner][title] '') { put ' '$-sr[$spinner][title] } else { put '' })
-    output $indentation$pre-string(styled $steps[$-sr[$spinner][current]] (all $-sr[$spinner][style]))$post-string(clear-line)"\r"
+    tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
+    output $indentation$pre-string(styled $steps[$-sr[$spinner][current]] (all $-sr[$spinner][style]))$post-string
+    tty:clear-line
     inc = 1
     if (eq (kind-of $steps string)) {
       inc = (count $steps[$-sr[$spinner][current]])
@@ -362,8 +351,9 @@ The =spinners:do-spinner= function is the one that actually does the work of:
     -sr[$spinner][stop] = $false
     -sr[$spinner][status] = $ok
     if (not $-sr[$spinner][cursor]) {
-      output (hide-cursor)
+      tty:hide-cursor
     }
+    -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
     while (not $-sr[$spinner][stop]) {
       step $spinner
       spinner-sleep $spinner
@@ -381,9 +371,10 @@ The =spinners:do-spinner= function is the one that actually does the work of:
       step $spinner
       output "\n"
     } else {
-      output (clear-line)
+      tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
+      tty:clear-line
     }
-    if (not $-sr[$spinner][cursor]) { output (show-cursor) }
+    if (not $-sr[$spinner][cursor]) { tty:show-cursor }
     if (and (not $-sr[$spinner][status]) (not $-sr[$spinner][hide-exception])) {
       show $-sr[$spinner][status]
     }

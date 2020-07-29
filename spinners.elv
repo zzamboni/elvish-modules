@@ -1,4 +1,5 @@
 use str
+use github.com/zzamboni/elvish-modules/tty
 
 spinners = (from-json < (path-dir (src)[path])/spinners.json)
 
@@ -8,16 +9,6 @@ default-spinner = 'dots'
 
 fn output [@s]{
   print $@s >/dev/tty
-}
-
-fn hide-cursor {
-  put "\e[?25l"
-}
-fn show-cursor {
-  put "\e[?25h"
-}
-fn clear-line {
-  put "\e[0K"
 }
 
 fn list {
@@ -55,7 +46,9 @@ fn step [spinner]{
   indentation = (str:join '' [(repeat $-sr[$spinner][indent] ' ')])
   pre-string = (if (not-eq $-sr[$spinner][prefix] '') { put $-sr[$spinner][prefix]' ' } else { put '' })
   post-string = (if (not-eq $-sr[$spinner][title] '') { put ' '$-sr[$spinner][title] } else { put '' })
-  output $indentation$pre-string(styled $steps[$-sr[$spinner][current]] (all $-sr[$spinner][style]))$post-string(clear-line)"\r"
+  tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
+  output $indentation$pre-string(styled $steps[$-sr[$spinner][current]] (all $-sr[$spinner][style]))$post-string
+  tty:clear-line
   inc = 1
   if (eq (kind-of $steps string)) {
     inc = (count $steps[$-sr[$spinner][current]])
@@ -110,8 +103,9 @@ fn do-spinner [spinner]{
   -sr[$spinner][stop] = $false
   -sr[$spinner][status] = $ok
   if (not $-sr[$spinner][cursor]) {
-    output (hide-cursor)
+    tty:hide-cursor
   }
+  -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
   while (not $-sr[$spinner][stop]) {
     step $spinner
     spinner-sleep $spinner
@@ -129,9 +123,10 @@ fn do-spinner [spinner]{
     step $spinner
     output "\n"
   } else {
-    output (clear-line)
+    tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
+    tty:clear-line
   }
-  if (not $-sr[$spinner][cursor]) { output (show-cursor) }
+  if (not $-sr[$spinner][cursor]) { tty:show-cursor }
   if (and (not $-sr[$spinner][status]) (not $-sr[$spinner][hide-exception])) {
     show $-sr[$spinner][status]
   }
