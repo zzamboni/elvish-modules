@@ -7,12 +7,8 @@ default-spinner = 'dots'
 
 -sr = [&]
 
-fn output [@s]{
+fn -output [@s]{
   print $@s >/dev/tty
-}
-
-fn list {
-  keys $spinners | order
 }
 
 fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false &id=$nil]{
@@ -36,6 +32,8 @@ fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix=""
     &persist=        $persist
     &hide-exception= $hide-exception
     &current=        0
+    &status=         $ok
+    &stop=           $false
   ]
   # Return ID of the new spinner
   put $id
@@ -47,7 +45,7 @@ fn step [spinner]{
   pre-string = (if (not-eq $-sr[$spinner][prefix] '') { put $-sr[$spinner][prefix]' ' } else { put '' })
   post-string = (if (not-eq $-sr[$spinner][title] '') { put ' '$-sr[$spinner][title] } else { put '' })
   tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
-  output $indentation$pre-string(styled $steps[$-sr[$spinner][current]] (all $-sr[$spinner][style]))$post-string
+  -output $indentation$pre-string(styled $steps[$-sr[$spinner][current]] (all $-sr[$spinner][style]))$post-string
   tty:clear-line
   inc = 1
   if (eq (kind-of $steps string)) {
@@ -71,6 +69,21 @@ fn set-symbol [spinner symbol]{
 
 fn spinner-sleep [s]{
   sleep (to-string (/ $-sr[$s][interval] 1000))
+}
+
+fn persist [spinner]{
+  if (eq $-sr[$spinner][persist] status) {
+    if $-sr[$spinner][status] {
+      set-symbol $spinner success
+    } else {
+      set-symbol $spinner error
+    }
+  } elif (eq (kind-of $-sr[$spinner][persist]) string) {
+    set-symbol $spinner $-sr[$spinner][persist]
+  }
+  step $spinner
+  -output "\n"
+  -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
 }
 
 fn attr [id attr @val]{
@@ -100,8 +113,6 @@ fn attr [id attr @val]{
 }
 
 fn do-spinner [spinner]{
-  -sr[$spinner][stop] = $false
-  -sr[$spinner][status] = $ok
   if (not $-sr[$spinner][cursor]) {
     tty:hide-cursor
   }
@@ -109,19 +120,18 @@ fn do-spinner [spinner]{
   while (not $-sr[$spinner][stop]) {
     step $spinner
     spinner-sleep $spinner
+    if (has-key $-sr[$spinner] next-spinner-id) {
+      next-spinner-id = $-sr[$spinner][next-spinner-id]
+      # Indicator to persist the current spinner and continue with a new definition
+      persist $spinner
+      -sr[$spinner] = $-sr[$next-spinner-id]
+      -sr[$spinner][id] = $spinner
+      -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
+      del -sr[$next-spinner-id]
+    }
   }
   if $-sr[$spinner][persist] {
-    if (eq $-sr[$spinner][persist] status) {
-      if $-sr[$spinner][status] {
-        set-symbol $spinner success
-      } else {
-        set-symbol $spinner error
-      }
-    } elif (eq (kind-of $-sr[$spinner][persist]) string) {
-      set-symbol $spinner $-sr[$spinner][persist]
-    }
-    step $spinner
-    output "\n"
+    persist $spinner
   } else {
     tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
     tty:clear-line
@@ -149,6 +159,7 @@ fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix=""
   f-args = [$s]
   if (eq $f[arg-names] []) { f-args = [] }
   # Run spinner in parallel with the function
+  status = $ok
   run-parallel {
     do-spinner $s
   } {
@@ -157,12 +168,22 @@ fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix=""
       $f $@f-args
     } except e {
       status = $e
-    } else {
-      status = $ok
     } finally {
+      # Short pause to avoid a potential race condition when the
+      # function finishes too quickly
+      sleep 0.05
       stop &status=$status $s
     }
   }
+}
+
+fn persist-and-new [old-spinner &spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false]{
+  new-spinner = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
+  -sr[$old-spinner][next-spinner-id] = $new-spinner
+}
+
+fn list {
+  keys $spinners | order
 }
 
 fn demo [&time=2 &style=blue &persist=$false]{
