@@ -1,5 +1,6 @@
 use ./util
 use re
+use str
 
 before-lastcmd = []
 after-lastcmd = []
@@ -31,6 +32,16 @@ fn lastcmd {
     &to-show=   (-display-text $-plain-bang-insert "!")
     &to-filter= $-plain-bang-insert" !"
   ]
+  all-args = []
+  arg-text = ""
+  if (> $nitems 1) {
+    arg-text = (str:join " " $parts[1:])
+    all-args = [
+      &to-accept= $arg-text
+      &to-show=   (-display-text "*" $arg-text)
+      &to-filter= "* "$arg-text
+    ]
+  }
   items = [
     (range $nitems |
       each [i]{
@@ -51,13 +62,15 @@ fn lastcmd {
     )
   ]
   
-  candidates = [$cmd $@items $bang]
+  candidates = [$cmd $@items $all-args $bang]
   fn insert-full-cmd { edit:listing:close; edit:insert-at-dot $last[cmd] }
   fn insert-part [n]{ edit:listing:close; edit:insert-at-dot $parts[$n] }
+  fn insert-args { edit:listing:close; edit:insert-at-dot $arg-text }
   bindings = [
-    &!=                   $insert-full-cmd~
+    &"!"=                 $insert-full-cmd~
     &"$"=                 { insert-part -1 }
     &$-plain-bang-insert= $insert-plain-bang~
+    &"*"=                 $insert-args~
   ]
   for k $-extra-trigger-keys {
     bindings[$k] = $insert-full-cmd~

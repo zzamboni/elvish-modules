@@ -3,7 +3,7 @@
 #+email: diego@zzamboni.org
 
 #+name: module-summary
-Implement the =!!= (last command), =!$= (last argument of last command) and =!<n>= (nth argument of last command) shortcuts in Elvish.
+Implement the =!!= (last command), =!$= (last argument of last command), ~!*~ (all arguments) and =!<n>= (nth argument of last command) shortcuts in Elvish.
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:alias.elv][alias.elv]] for the generated file.
 
@@ -46,6 +46,7 @@ bang-bang
     ! ls /var/spool/mqueue/
     0 ls
   1 $ /var/spool/mqueue/
+    * /var/spool/mqueue/
 Alt-! !
 #+end_example
 
@@ -64,6 +65,7 @@ bang-bang
     0 sudo
     1 ls
   2 $ /var/spool/mqueue/
+    * ls /var/spool/mqueue/
 Alt-! !
 #+end_example
 
@@ -71,6 +73,25 @@ Pressing =$= (or =2=) at this point will insert the last argument:
 
 #+begin_example
 [~]─> ls -ld /var/spool/mqueue/
+#+end_example
+
+If you wanted to then see the i-node number of the directory, you could type the new partial command and then use the =!*= key to insert all the arguments of the previous command:
+
+#+begin_example
+[~]─> ls -i !
+bang-bang
+    ! ls -ld /var/spool/mqueue/
+    0 ls
+    1 -ld
+  2 $ /var/spool/mqueue/
+    * -ld /var/spool/mqueue/
+Alt-! !
+#+end_example
+
+Pressing =*= at this point will insert all the previous command's arguments:
+
+#+begin_example
+[~]─> ls -i -ld /var/spool/mqueue/
 #+end_example
 
 By default, =bang-bang:init= (which gets called automatically when the module loads) also binds the default "lastcmd" key (=Alt-1=), and when repeated, it will insert the full command. This means it fully emulates the default [[https://elvish.io/learn/cookbook.html#ui-recipes]["last command"]] behavior. If you want to bind bang-bang to other keys, you can pass them in a list in the =&extra-triggers= option to =bang-bang:init=. For example, to bind bang-bang to =Alt-`= in addition to =!=:
@@ -98,6 +119,7 @@ We load some necessary libraries.
 #+begin_src elvish
   use ./util
   use re
+  use str
 #+end_src
 
 ** Configuration
@@ -169,7 +191,7 @@ The =-display-text= function returns the string to display in the menu, with the
   }
 #+end_src
 
-We create the two "fixed" items of the bang-bang menu: the full command and the plain exclamation mark. Each menu item is a map with three keys: =to-accept= is the text to insert when the option is selected, =to-show= is the text to show in the menu, and =to-filter= is the text which can be used by the user to filter/select options.
+We create the three "fixed" items of the bang-bang menu: the full command and the plain exclamation mark. Additionally, if the command has arguments, we create the "all arguments" item. Each menu item is a map with three keys: =to-accept= is the text to insert when the option is selected, =to-show= is the text to show in the menu, and =to-filter= is the text which can be used by the user to filter/select options.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
   cmd = [
@@ -182,6 +204,16 @@ We create the two "fixed" items of the bang-bang menu: the full command and the 
     &to-show=   (-display-text $-plain-bang-insert "!")
     &to-filter= $-plain-bang-insert" !"
   ]
+  all-args = []
+  arg-text = ""
+  if (> $nitems 1) {
+    arg-text = (str:join " " $parts[1:])
+    all-args = [
+      &to-accept= $arg-text
+      &to-show=   (-display-text "*" $arg-text)
+      &to-filter= "* "$arg-text
+    ]
+  }
 #+end_src
 
 We now populate the menu items for each word of the command. For the last one, we also indicate that it can be selected with =$=.
@@ -212,7 +244,7 @@ We now populate the menu items for each word of the command. For the last one, w
 Finally, we put the whole list together.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-  candidates = [$cmd $@items $bang]
+  candidates = [$cmd $@items $all-args $bang]
 #+end_src
 
 Now we create a list with the keybindings for the different elements of the menu. One-key bindings are only assigned for the first 9 elements and for the last one.
@@ -220,10 +252,12 @@ Now we create a list with the keybindings for the different elements of the menu
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
   fn insert-full-cmd { edit:listing:close; edit:insert-at-dot $last[cmd] }
   fn insert-part [n]{ edit:listing:close; edit:insert-at-dot $parts[$n] }
+  fn insert-args { edit:listing:close; edit:insert-at-dot $arg-text }
   bindings = [
-    &!=                   $insert-full-cmd~
+    &"!"=                 $insert-full-cmd~
     &"$"=                 { insert-part -1 }
     &$-plain-bang-insert= $insert-plain-bang~
+    &"*"=                 $insert-args~
   ]
   for k $-extra-trigger-keys {
     bindings[$k] = $insert-full-cmd~
