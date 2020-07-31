@@ -65,7 +65,11 @@ fn y-or-n [&style=default prompt]{
 fn getfile {
   use re
   print 'Drop a file here: ' >/dev/tty
-  re:replace '\\(.)' '$1' (readline)[:-1]
+  fname = (read-line)
+  each [p]{
+    fname = (re:replace $p[0] $p[1] $fname)
+  } [['\\(.)' '$1'] ['^''' ''] ['\s*$' ''] ['''$' '']]
+  put $fname
 }
 
 fn max [a @rest &with=[v]{put $v}]{

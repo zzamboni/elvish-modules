@@ -366,7 +366,11 @@ Thanks to @hanche in the Elvish channel, a short utility to convert a filename a
   fn getfile {
     use re
     print 'Drop a file here: ' >/dev/tty
-    re:replace '\\(.)' '$1' (readline)[:-1]
+    fname = (read-line)
+    each [p]{
+      fname = (re:replace $p[0] $p[1] $fname)
+    } [['\\(.)' '$1'] ['^''' ''] ['\s*$' ''] ['''$' '']]
+    put $fname
   }
 #+end_src
 
