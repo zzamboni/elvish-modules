@@ -1,7 +1,7 @@
 use str
 use github.com/zzamboni/elvish-modules/tty
 
-spinners = (from-json < (path-dir (src)[path])/spinners.json)
+spinners = (from-json < (path-dir (src)[name])/spinners.json)
 
 default-spinner = 'dots'
 

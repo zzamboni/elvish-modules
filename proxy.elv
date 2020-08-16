@@ -4,6 +4,7 @@
 # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 
 use ./prompt-hooks
+use str
 
 host = ""
 
@@ -36,12 +37,12 @@ fn set [@param]{
     proxyhost = $param[0]
   }
   if (not-eq $proxyhost "") {
-    eval (each [var]{ put "E:"$var" = "$host } $env-vars | joins "; ")
+    eval (each [var]{ put "E:"$var" = "$host } $env-vars | str:join "; ")
   }
 }
 
 fn unset {
-  eval (each [var]{ put "del E:"$var } $env-vars | joins "; ")
+  eval (each [var]{ put "del E:"$var } $env-vars | str:join "; ")
 }
 
 fn disable {

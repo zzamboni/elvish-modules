@@ -7,7 +7,7 @@ Manipulation of proxy-related environment variables (including auto-setting/unse
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:proxy.elv][proxy.elv]] for the generated file.
 
-* Table of Contents                                            :TOC:noexport:
+* Table of Contents :TOC:noexport:
 - [[#usage][Usage]]
 - [[#implementation][Implementation]]
   - [[#libraries][Libraries]]
@@ -66,6 +66,7 @@ We use the =prompt-hooks= library to set up the hooks for the auto-set feature.
 
 #+begin_src elvish
   use ./prompt-hooks
+  use str
 #+end_src
 
 ** Configuration
@@ -136,7 +137,7 @@ Set the proxy variables to the given string. If no parameters are given but =$pr
       proxyhost = $param[0]
     }
     if (not-eq $proxyhost "") {
-      eval (each [var]{ put "E:"$var" = "$host } $env-vars | joins "; ")
+      eval (each [var]{ put "E:"$var" = "$host } $env-vars | str:join "; ")
     }
   }
 #+end_src
@@ -145,7 +146,7 @@ Unset the proxy variables.
 
 #+begin_src elvish
   fn unset {
-    eval (each [var]{ put "del E:"$var } $env-vars | joins "; ")
+    eval (each [var]{ put "del E:"$var } $env-vars | str:join "; ")
   }
 #+end_src
 

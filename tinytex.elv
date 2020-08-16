@@ -1,4 +1,5 @@
 use re
+use str
 
 fn install {
   opt=""
@@ -33,7 +34,7 @@ fn install-by-file [f]{
     resp = (read-upto "\n")[0..-1]
     pkgs = [(re:split "[, ]+" $resp | each [n]{ if (not-eq $n '') { put $pkgs[$n] } })]
     if (> (count $pkgs) 0) {
-      echo (styled "Packages selected: "(joins ", " $pkgs) yellow)
+      echo (styled "Packages selected: "(str:join ", " $pkgs) yellow)
     }
   }
   each [pkg]{

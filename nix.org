@@ -15,7 +15,7 @@ Functions to set up the Nix environment variables for Elvish.
   # You should make any changes there and regenerate it from Emacs org-mode using C-c C-v t
 #+end_src
 
-* Table of Contents                                          :TOC_3:noexport:
+* Table of Contents :TOC_3:noexport:
 - [[#libraries][Libraries]]
 - [[#environment-setup][Environment setup]]
   - [[#multi-user-setup][Multi-user setup]]
@@ -32,6 +32,7 @@ We use the =re= and =util= modules.
 
 #+begin_src elvish
   use re
+  use str
   use github.com/zzamboni/elvish-modules/util
 #+end_src
 
@@ -56,7 +57,7 @@ This is the default setup on macOS. This script was ported to Elvish from =/nix/
       "/nix/var/nix/profiles/default"
       $E:HOME"/.nix-profile"
     ]
-    E:NIX_PROFILES = (joins " " $nix-profiles)
+    E:NIX_PROFILES = (str:join " " $nix-profiles)
 
     # Set up the per-user profile.
     mkdir -m 0755 -p $E:NIX_USER_PROFILE_DIR

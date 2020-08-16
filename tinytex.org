@@ -7,7 +7,7 @@ Convenience functions for [[https://yihui.org/tinytex/][TinyTeX]].
 
 I have started using [[https://yihui.org/tinytex/][TinyTeX]] to avoid having a gigantic TeX/LaTeX distribution on my system. This module has some convenience functions I have written to automate some things.
 
-* Table of Contents                                          :TOC_3:noexport:
+* Table of Contents :TOC_3:noexport:
 - [[#usage][Usage]]
 - [[#implementation][Implementation]]
   - [[#install-tinytex][Install TinyTex]]
@@ -31,48 +31,48 @@ In your =rc.elv=, load this module:
 For now, the only function is =tinytex:install-by-file=, which takes a filename, searches for the package which contains that file, and installs it. If only one package matches the file, everything happens automatically:
 
 #+begin_src console
-[~]─> tinytex:install-by-file ifmtarg.sty
-Installing package ifmtarg
-tlmgr: package repository http://mirror.kumi.systems/ctan/systems/texlive/tlnet (verified)
-[1/1, ??:??/??:??] install: ifmtarg [1k]
-running mktexlsr ...
-done running mktexlsr.
-tlmgr: package log updated: /Users/taazadi1/Library/TinyTeX/texmf-var/web2c/tlmgr.log
+  [~]─> tinytex:install-by-file ifmtarg.sty
+  Installing package ifmtarg
+  tlmgr: package repository http://mirror.kumi.systems/ctan/systems/texlive/tlnet (verified)
+  [1/1, ??:??/??:??] install: ifmtarg [1k]
+  running mktexlsr ...
+  done running mktexlsr.
+  tlmgr: package log updated: /Users/taazadi1/Library/TinyTeX/texmf-var/web2c/tlmgr.log
 #+end_src
 
 If more than one package matches the file, it shows you the search results, and you can choose which of the matching packages you want to install:
 
 #+begin_src console
-[~]─> tinytex:install-by-file biber
-There are multiple packages which contain a matching file:
-tlmgr: package repository http://mirror.kumi.systems/ctan/systems/texlive/tlnet (verified)
-0) 00texlive.image:
-	tlpkg/tlpsrc/biber.tlpsrc
-1) arara:
-	texmf-dist/scripts/arara/rules/biber.yaml
-2) biber:
-	texmf-dist/doc/bibtex/biber/biber.pdf
-	texmf-dist/source/bibtex/biber/Changes
-	texmf-dist/source/bibtex/biber/README.md
-	texmf-dist/source/bibtex/biber/biblatex-biber.tar.gz
-	texmf-dist/source/bibtex/biber/utf8-macro-map.html
-3) biber.amd64-freebsd:
-	bin/amd64-freebsd/biber
-4) biber.i386-cygwin:
-	bin/i386-cygwin/biber.exe
-5) biber.i386-freebsd:
-	bin/i386-freebsd/biber
-...
-17) dickimaw:
-	texmf-dist/doc/latex/dickimaw/src/thesis/pictures/bibertool.png
-Please enter the numbers of the packages to install (comma-or-space-separated,
-empty to cancel): 2
-Packages selected: biber
-Installing package biber
-tlmgr: package repository http://mirror.kumi.systems/ctan/systems/texlive/tlnet (verified)
-[1/2, ??:??/??:??] install: biber.x86_64-darwin [27656k]
-[2/2, 00:13/00:13] install: biber [1k]
-tlmgr: package log updated: /Users/taazadi1/Library/TinyTeX/texmf-var/web2c/tlmgr.log
+  [~]─> tinytex:install-by-file biber
+  There are multiple packages which contain a matching file:
+  tlmgr: package repository http://mirror.kumi.systems/ctan/systems/texlive/tlnet (verified)
+  0) 00texlive.image:
+  	tlpkg/tlpsrc/biber.tlpsrc
+  1) arara:
+  	texmf-dist/scripts/arara/rules/biber.yaml
+  2) biber:
+  	texmf-dist/doc/bibtex/biber/biber.pdf
+  	texmf-dist/source/bibtex/biber/Changes
+  	texmf-dist/source/bibtex/biber/README.md
+  	texmf-dist/source/bibtex/biber/biblatex-biber.tar.gz
+  	texmf-dist/source/bibtex/biber/utf8-macro-map.html
+  3) biber.amd64-freebsd:
+  	bin/amd64-freebsd/biber
+  4) biber.i386-cygwin:
+  	bin/i386-cygwin/biber.exe
+  5) biber.i386-freebsd:
+  	bin/i386-freebsd/biber
+  ...
+  17) dickimaw:
+  	texmf-dist/doc/latex/dickimaw/src/thesis/pictures/bibertool.png
+  Please enter the numbers of the packages to install (comma-or-space-separated,
+  empty to cancel): 2
+  Packages selected: biber
+  Installing package biber
+  tlmgr: package repository http://mirror.kumi.systems/ctan/systems/texlive/tlnet (verified)
+  [1/2, ??:??/??:??] install: biber.x86_64-darwin [27656k]
+  [2/2, 00:13/00:13] install: biber [1k]
+  tlmgr: package log updated: /Users/taazadi1/Library/TinyTeX/texmf-var/web2c/tlmgr.log
 #+end_src
 
 * Implementation
@@ -85,6 +85,7 @@ Load libraries
 
 #+begin_src elvish
   use re
+  use str
 #+end_src
 
 ** Install TinyTex
@@ -131,7 +132,7 @@ If a LaTeX compile tells me a certain file is missing, I can just type =tinytex:
       resp = (read-upto "\n")[0..-1]
       pkgs = [(re:split "[, ]+" $resp | each [n]{ if (not-eq $n '') { put $pkgs[$n] } })]
       if (> (count $pkgs) 0) {
-        echo (styled "Packages selected: "(joins ", " $pkgs) yellow)
+        echo (styled "Packages selected: "(str:join ", " $pkgs) yellow)
       }
     }
     each [pkg]{

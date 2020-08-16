@@ -1,13 +1,13 @@
-#+TITLE:  Test framework for Elvish
-#+AUTHOR: Diego Zamboni
-#+EMAIL:  diego@zzamboni.org
+#+title: Test framework for Elvish
+#+author: Diego Zamboni
+#+email: diego@zzamboni.org
 
 #+name: module-summary
 A very simplistic test framework for Elvish.
 
 This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:test.elv][test.elv]] for the generated file.
 
-* Table of Contents                                            :TOC:noexport:
+* Table of Contents :TOC:noexport:
 - [[#usage][Usage]]
   - [[#writing-tests][Writing tests]]
 - [[#implementation][Implementation]]
@@ -44,7 +44,7 @@ Note that =test:check= returns a function, so to actually run the test, you need
   ▶ $false
 #+end_src
 
-#+RESULTS:
+#+results:
 
 =test:is= and =test:is-not= are frontends to =test:check= which explicitly take a lambda and a value. The test passes depending on whether the result from the lambda is equal/not equal to the given value. The main difference to =test:check= is that when the test fails, the value returned from the lambda is reported as well.
 
@@ -84,6 +84,12 @@ You can change the colors for successful and failed tests by assigning the corre
 :header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
 :header-args: :mkdirp yes :comments no
 :END:
+
+Load libraries.
+
+#+begin_src elvish
+  use str
+#+end_src
 
 ** Configuration variables
 
@@ -136,7 +142,7 @@ Some utility functions to produce the test output.
 
 #+begin_src elvish
   fn check [f @d &check-txt='']{
-    msg = (styled (joins " " [$@d]) $info-style)
+    msg = (styled (str:join " " [$@d]) $info-style)
     if (eq $check-txt '') {
       check-txt = $f[def]
     }
