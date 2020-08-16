@@ -187,7 +187,7 @@ The =-display-text= function returns the string to display in the menu, with the
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
   fn -display-text [ind text]{
     indcol = $filler$ind
-    put $indcol[(- $indicator-width):]" "$text
+    put $indcol[(- $indicator-width)..]" "$text
   }
 #+end_src
 
@@ -207,7 +207,7 @@ We create the three "fixed" items of the bang-bang menu: the full command and th
   all-args = []
   arg-text = ""
   if (> $nitems 1) {
-    arg-text = (str:join " " $parts[1:])
+    arg-text = (str:join " " $parts[1..])
     all-args = [
       &to-accept= $arg-text
       &to-show=   (-display-text "*" $arg-text)

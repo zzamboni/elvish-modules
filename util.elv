@@ -2,7 +2,7 @@ fn dotify-string [str dotify-length]{
   if (or (<= $dotify-length 0) (<= (count $str) $dotify-length)) {
     put $str
   } else {
-    put $str[:$dotify-length]'…'
+    put $str[..$dotify-length]'…'
   }
 }
 
@@ -45,8 +45,8 @@ fn readline [&eol="\n" &nostrip=$false &prompt=$nil]{
     } else {
       -read-upto-eol $eol
   })
-  if (and (not $nostrip) (!=s $line '') (==s $line[-1:] $eol)) {
-    put $line[:-1]
+  if (and (not $nostrip) (!=s $line '') (==s $line[-1..] $eol)) {
+    put $line[..-1]
   } else {
     put $line
   }

@@ -228,7 +228,7 @@ By default, electric pairs are inserted only when the cursor is at the end of th
     if (or (<= $dotify-length 0) (<= (count $str) $dotify-length)) {
       put $str
     } else {
-      put $str[:$dotify-length]'…'
+      put $str[..$dotify-length]'…'
     }
   }
 #+end_src
@@ -325,8 +325,8 @@ Finally, we build the =util:readline= function on top of =-read-upto-eol=. This 
       } else {
         -read-upto-eol $eol
     })
-    if (and (not $nostrip) (!=s $line '') (==s $line[-1:] $eol)) {
-      put $line[:-1]
+    if (and (not $nostrip) (!=s $line '') (==s $line[-1..] $eol)) {
+      put $line[..-1]
     } else {
       put $line
     }
