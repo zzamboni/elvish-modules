@@ -1,3 +1,5 @@
+use str
+
 api-key = ''
 
 write-api-key = ''
@@ -49,7 +51,7 @@ fn admins {
 }
 
 fn url-for [what &params=[&]]{
-  params-str = (keys $params | each [k]{ put $k"="$params[$k] } | joins "&")
+  params-str = (keys $params | each [k]{ put $k"="$params[$k] } | str:join "&")
   put $api-url'/'$what'?'$params-str
 }
 

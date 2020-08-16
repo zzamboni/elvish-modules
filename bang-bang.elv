@@ -17,7 +17,7 @@ fn lastcmd {
   parts = [(edit:wordify $last[cmd])]
   nitems = (count $parts)
   indicator-width = (util:max (+ 2 (count $nitems)) (count $-plain-bang-insert))
-  filler = (repeat $indicator-width ' ' | joins '')
+  filler = (repeat $indicator-width ' ' | str:join '')
   fn -display-text [ind text]{
     indcol = $filler$ind
     put $indcol[(- $indicator-width):]" "$text
@@ -61,7 +61,6 @@ fn lastcmd {
       }
     )
   ]
-  
   candidates = [$cmd $@items $all-args $bang]
   fn insert-full-cmd { edit:listing:close; edit:insert-at-dot $last[cmd] }
   fn insert-part [n]{ edit:listing:close; edit:insert-at-dot $parts[$n] }
