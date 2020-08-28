@@ -50,6 +50,10 @@ You can specify a list commands for which you do not want notifications in the =
   always-notify = [ ]
 #+end_src
 
+If you want to know how long the last command took (for example, for displaying in your prompt), you can use the =$long-running-notifications:last-cmd-duration= variable. The value is in seconds.
+
+*Note*: this module measures command execution time with a granularity of seconds, so anything that takes less than one second will be reported as zero.
+
 ** Notification mechanisms
 
 By default, the module tries to determine the best notification method to use based on available commands. The method can be specified manually by assigning one of the following values directly to =$long-running-notifications:notifier=:
