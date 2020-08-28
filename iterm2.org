@@ -37,14 +37,14 @@ This library implements iTerm2's [[https://iterm2.com/documentation-shell-integr
 Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
 
 #+begin_src elvish
-  use epm
-  epm:install github.com/zzamboni/elvish-modules
+use epm
+epm:install github.com/zzamboni/elvish-modules
 #+end_src
 
 In your =rc.elv=, load this module and call =iterm2:init= to enable the integration:
 
 #+begin_src elvish
-  use github.com/zzamboni/elvish-modules/iterm2
+use github.com/zzamboni/elvish-modules/iterm2
 #+end_src
 
 If the [[https://iterm2.com/documentation-utilities.html][iTerm2 utilities]] are installed in their default location of =~/.iterm2=, that directory will be added automatically to the path. Note that some of the functionality provided by the utilities is also provided by functions in this module.
@@ -54,7 +54,7 @@ If the [[https://iterm2.com/documentation-utilities.html][iTerm2 utilities]] are
 After loading the module and *after configuring your prompt*, call the following command:
 
 #+begin_src elvish
-  iterm2:init
+iterm2:init
 #+end_src
 
 After this all [[https://iterm2.com/documentation-shell-integration.html][Shell Integration]] features will be available.
@@ -66,7 +66,7 @@ After this all [[https://iterm2.com/documentation-shell-integration.html][Shell 
 - If you use the Elvish =readline-bindings= module, you should re-bind the =Ctrl-L= key to the =iterm2:clear-screen= function, which clears the screen but emits the necessary prompt marker before redrawing it. For example
 
   #+begin_src elvish
-    edit:insert:binding[Ctrl-L] = $iterm2:clear-screen~
+edit:insert:binding[Ctrl-L] = $iterm2:clear-screen~
   #+end_src
 
 ** iTerm2 escape sequence commands
@@ -89,7 +89,7 @@ The escape sequences used by iTerm2 for shell integration are described in detai
 ** Load some modules
 
 #+begin_src elvish
-  use str
+use str
 #+end_src
 
 ** Base escape sequences
@@ -97,30 +97,30 @@ The escape sequences used by iTerm2 for shell integration are described in detai
 All escape sequences have the same basic sequence: start with an ESC character (=\e=) followed by =]=, semi-colon separated components, and ending with a BEL character (=\a=). The =iterm2:mk-escape-str= builds such a string, using its arguments for the components.
 
 #+begin_src elvish
-  fn mk-escape-str [xs]{ put "\e]"(str:join ';' $xs)"\a" }
+fn mk-escape-str [xs]{ put "\e]"(str:join ';' $xs)"\a" }
 #+end_src
 
 The =iterm2:escape-cmd= calls =iterm2:mk-escape-str= and prints the result.
 
 #+begin_src elvish
-  fn escape-cmd [xs]{
-    print (mk-escape-str $xs)
-  }
+fn escape-cmd [xs]{
+  print (mk-escape-str $xs)
+}
 #+end_src
 
 Two types of escape sequences are used: custom iTerm2 commands start with =1337=, and the "FinalTerm" commands used for the basic shell integration start with =133=. These two sequences are produced by =iterm2:mk-iterm2-cmd= and =iterm2:mk-ftcs-cmd=, respectively.
 
 #+begin_src elvish
-  fn mk-iterm2-cmd [@x]{ mk-escape-str [1337 $@x] }
-  fn mk-ftcs-cmd [@x]{ mk-escape-str [133 $@x] }
+fn mk-iterm2-cmd [@x]{ mk-escape-str [1337 $@x] }
+fn mk-ftcs-cmd [@x]{ mk-escape-str [133 $@x] }
 #+end_src
 
 iTerm2 commands come in two types: plain commands and "set" commands, which assign a value. We have two functions to emit these as needed, and a function to emit FTCS command sequences.
 
 #+begin_src elvish
-  fn cmd [@x]{ print (mk-iterm2-cmd $@x) }
-  fn set [@x]{ print (mk-iterm2-cmd (str:join '=' $x)) }
-  fn ftcs-cmd [@x]{ print (mk-ftcs-cmd $@x) }
+fn cmd [@x]{ print (mk-iterm2-cmd $@x) }
+fn set [@x]{ print (mk-iterm2-cmd (str:join '=' $x)) }
+fn ftcs-cmd [@x]{ print (mk-ftcs-cmd $@x) }
 #+end_src
 
 ** iTerm2 commands
@@ -130,47 +130,47 @@ iTerm2 commands come in two types: plain commands and "set" commands, which assi
 Set window title and tab background color. Arguments are the red, green and blue values. =iterm2:reset-title-color= resets to the default.
 
 #+begin_src elvish
-  fn set-title-color [r g b]{
-    escape-cmd [6 1 bg red brightness $r]
-    escape-cmd [6 1 bg green brightness $g]
-    escape-cmd [6 1 bg blue brightness $b]
-  }
+fn set-title-color [r g b]{
+  escape-cmd [6 1 bg red brightness $r]
+  escape-cmd [6 1 bg green brightness $g]
+  escape-cmd [6 1 bg blue brightness $b]
+}
 
-  fn reset-title-color {
-    escape-cmd [6 1 bg '*' default]
-  }
+fn reset-title-color {
+  escape-cmd [6 1 bg '*' default]
+}
 #+end_src
 
 Change color palette. See [[https://www.iterm2.com/documentation-escape-codes.html][the documentation]] for the possible =key= values.
 
 #+begin_src elvish
-  fn setcolor [key r g b]{
-    set SetColors $key (printf %02x%02x%02x $r $g $b)
-  }
+fn setcolor [key r g b]{
+  set SetColors $key (printf %02x%02x%02x $r $g $b)
+}
 #+end_src
 
 Report foreground and background colors.
 
 #+begin_src elvish
-  fn report-background-color {
-    print (mk-escape-str [4 -2 '?'])
-  }
+fn report-background-color {
+  print (mk-escape-str [4 -2 '?'])
+}
 
-  fn report-foreground-color {
-    print (mk-escape-str [4 -1 '?'])
-  }
+fn report-foreground-color {
+  print (mk-escape-str [4 -1 '?'])
+}
 #+end_src
 
 Set background image. Without an argument, the background image is removed.
 
 #+begin_src elvish
-  fn setbackground [@file]{
-    encoded-file = ""
-    if (not-eq $file []) {
-      encoded-file = (print $file[0] | /usr/bin/base64)
-    }
-    set SetBackgroundImageFile $encoded-file
+fn setbackground [@file]{
+  encoded-file = ""
+  if (not-eq $file []) {
+    encoded-file = (print $file[0] | /usr/bin/base64)
   }
+  set SetBackgroundImageFile $encoded-file
+}
 #+end_src
 
 *** Hyperlinks
@@ -178,17 +178,17 @@ Set background image. Without an argument, the background image is removed.
 Produce a hyperlink in the terminal. =params= if given, should be a map containing key/value pairs (the only supported param at the moment is =id=). This function does not print the string, you need to do that with =print= or =echo=, e.g.:
 
 #+begin_src elvish :tangle no
-  echo "This is" (iterm2:hyperlink http://zzamboni.org "my website")
+echo "This is" (iterm2:hyperlink http://zzamboni.org "my website")
 #+end_src
 
 #+begin_src elvish
-  fn hyperlink [url text &params=[&]]{
-    params-str = ""
-    if (not-eq $params [&]) {
-      params-str = (str:join ":" (each [k]{ print $k"="$params[$k] } [(keys $params)]))
-    }
-    put (mk-escape-str [ '8' $params-str $url ])$text(mk-escape-str [ '8' '' ''])
+fn hyperlink [url text &params=[&]]{
+  params-str = ""
+  if (not-eq $params [&]) {
+    params-str = (str:join ":" (each [k]{ print $k"="$params[$k] } [(keys $params)]))
   }
+  put (mk-escape-str [ '8' $params-str $url ])$text(mk-escape-str [ '8' '' ''])
+}
 #+end_src
 
 *** Marks
@@ -196,13 +196,13 @@ Produce a hyperlink in the terminal. =params= if given, should be a map containi
 Setting a mark at the current position.
 
 #+begin_src elvish
-  fn mark { cmd SetMark }
+fn mark { cmd SetMark }
 #+end_src
 
 *** Bring iTerm2 to the foreground.
 
 #+begin_src elvish
-  fn focus { cmd StealFocus }
+fn focus { cmd StealFocus }
 #+end_src
 
 *** Set current directory
@@ -210,9 +210,9 @@ Setting a mark at the current position.
 Inform iTerm2 of the current directory. This is a wrapper around =iterm2:set CurrentDir=, but we have a dedicated function because it's commonly used.
 
 #+begin_src elvish
-  fn setdir [d]{
-    set CurrentDir $d
-  }
+fn setdir [d]{
+  set CurrentDir $d
+}
 #+end_src
 
 *** Notifications
@@ -220,9 +220,9 @@ Inform iTerm2 of the current directory. This is a wrapper around =iterm2:set Cur
 Post a notification through iTerm2.
 
 #+begin_src elvish
-  fn notify [msg]{
-    print (mk-escape-str [9 $msg])
-  }
+fn notify [msg]{
+  print (mk-escape-str [9 $msg])
+}
 #+end_src
 
 *** Copy to clipboard
@@ -230,22 +230,22 @@ Post a notification through iTerm2.
 Everything displayed in the terminal between calling =iterm2:startcopy= and =iterm2:endcopy= is copied to the clipboard. The general clipboard is used by default, but an option =&name= can be passed to =iterm2:startcopy= with values =rule=, =find= or =font= (not sure what each does, but they are mentioned in the iTerm2 documentation).
 
 #+begin_src elvish
-  fn startcopy [&name=""]{
-    set CopyToClipboard $name
-  }
+fn startcopy [&name=""]{
+  set CopyToClipboard $name
+}
 
-  fn endcopy {
-    cmd EndCopy
-  }
+fn endcopy {
+  cmd EndCopy
+}
 #+end_src
 
 If you want to put a stored string in the clipboard, you can use =iterm2:copystr=.
 
 #+begin_src elvish
-  fn copystr [s]{
-    encoded-str = (print $s | /usr/bin/base64)
-    set Copy :$encoded-str
-  }
+fn copystr [s]{
+  encoded-str = (print $s | /usr/bin/base64)
+  set Copy :$encoded-str
+}
 #+end_src
 
 *** Annotations
@@ -257,42 +257,42 @@ Set an annotation at the current position. By default, the annotation covers the
 - ~&xy=[x y]~ :: position of the annotation. If =&xy= is specified, =&length= must ber specified as well.
 
 #+begin_src elvish
-  fn annotate [ann &hidden=$false &length=$nil &xy=$nil]{
-    parts = [ $ann ]
-    if (and $length $xy) {
-      parts = [ $ann $length $@xy ]
-    } elif (and $length (not $xy)) {
-      parts = [ $length $ann ]
-    }
-    cmd = AddAnnotation
-    if $hidden { cmd = AddHiddenAnnotation }
-    cmd $cmd=(str:join "|" $parts)
+fn annotate [ann &hidden=$false &length=$nil &xy=$nil]{
+  parts = [ $ann ]
+  if (and $length $xy) {
+    parts = [ $ann $length $@xy ]
+  } elif (and $length (not $xy)) {
+    parts = [ $length $ann ]
   }
+  cmd = AddAnnotation
+  if $hidden { cmd = AddHiddenAnnotation }
+  cmd $cmd=(str:join "|" $parts)
+}
 #+end_src
 
 *** Change profile
 
 #+begin_src elvish
-  fn profile [p]{ set SetProfile $p }
+fn profile [p]{ set SetProfile $p }
 #+end_src
 
 *** Set and report iTerm2 user variables
 
 #+begin_src elvish
-  fn setuservar [var val]{
-    set SetUserVar $var (print $val | /usr/bin/base64)
-  }
-  fn reportvar [var]{
-    set ReportVariable (print $var | /usr/bin/base64)
-  }
+fn setuservar [var val]{
+  set SetUserVar $var (print $val | /usr/bin/base64)
+}
+fn reportvar [var]{
+  set ReportVariable (print $var | /usr/bin/base64)
+}
 #+end_src
 
 *** Set the badge on the terminal
 
 #+begin_src elvish
-  fn setbadge [@badge]{
-    set SetBadgeFormat (print $@badge | /usr/bin/base64)
-  }
+fn setbadge [@badge]{
+  set SetBadgeFormat (print $@badge | /usr/bin/base64)
+}
 #+end_src
 
 *** Set current hostname, user, directory
@@ -300,13 +300,13 @@ Set an annotation at the current position. By default, the annotation covers the
 These functions can be used to set these values, which are used for allowing file downloads.
 
 #+begin_src elvish
-  fn set-remotehost [user host]{
-    set RemoteHost $user"@"$host
-  }
+fn set-remotehost [user host]{
+  set RemoteHost $user"@"$host
+}
 
-  fn set-currentdir [dir]{
-    set CurrentDir $dir
-  }
+fn set-currentdir [dir]{
+  set CurrentDir $dir
+}
 #+end_src
 
 *** Set window title
@@ -314,7 +314,7 @@ These functions can be used to set these values, which are used for allowing fil
 This is not really an iTerm2-specific escape sequence, but it's here to maintain compatibility with the original code from which this module came :)
 
 #+begin_src elvish
-  fn windowtitle [t]{ print "\e]0;"$t"\a" }
+fn windowtitle [t]{ print "\e]0;"$t"\a" }
 #+end_src
 
 *** Other commands
@@ -344,10 +344,10 @@ The following commands are used to mark the different parts of the prompt, comma
 #+end_example
 
 #+begin_src elvish
-  fn ftcs-prompt { ftcs-cmd A }
-  fn ftcs-command-start { ftcs-cmd B }
-  fn ftcs-command-executed [cmd]{ ftcs-cmd C }
-  fn ftcs-command-finished [&status=0]{ ftcs-cmd D $status }
+fn ftcs-prompt { ftcs-cmd A }
+fn ftcs-command-start { ftcs-cmd B }
+fn ftcs-command-executed [cmd]{ ftcs-cmd C }
+fn ftcs-command-finished [&status=0]{ ftcs-cmd D $status }
 #+end_src
 
 *** Shell integration
@@ -359,47 +359,47 @@ At the moment, proper capture of the command means modifying the prompt function
 *Note:* at the moment Elvish does not have a mechanism for capturing the exit code of the last command executed, therefore the FTCS "command finished" marker is always emitted with an exit code of zero, so the marker is always colored as if the command was successful.
 
 #+begin_src elvish
-  use platform
+use platform
 
-  original-prompt-fn = $nil
+original-prompt-fn = $nil
 
-  fn init {
-    # Save the original prompt
-    original-prompt-fn = $edit:prompt
-    # Define a new prompt function which calls the original one and
-    # additionally emits the necessary escape codes at the end.
-    edit:prompt = {
-      $original-prompt-fn
-      set-currentdir $pwd >/dev/tty
-      ftcs-command-start >/dev/tty
-    }
-    # Emit end-of-command and start-of-prompt markers before displaying
-    # each new prompt line, and set current host/user/dir.
-    edit:before-readline = [
-      {
-        ftcs-command-finished
-        set-remotehost $E:USER (platform:hostname)
-        ftcs-prompt
-      }
-      $@edit:before-readline
-    ]
-    # Emit start-of-command-output marker after the user presses Enter
-    # on the command line.
-    edit:after-readline = [
-      $ftcs-command-executed~
-      $@edit:after-readline
-    ]
+fn init {
+  # Save the original prompt
+  original-prompt-fn = $edit:prompt
+  # Define a new prompt function which calls the original one and
+  # additionally emits the necessary escape codes at the end.
+  edit:prompt = {
+    $original-prompt-fn
+    set-currentdir $pwd >/dev/tty
+    ftcs-command-start >/dev/tty
   }
+  # Emit end-of-command and start-of-prompt markers before displaying
+  # each new prompt line, and set current host/user/dir.
+  edit:before-readline = [
+    {
+      ftcs-command-finished
+      set-remotehost $E:USER (platform:hostname)
+      ftcs-prompt
+    }
+    $@edit:before-readline
+  ]
+  # Emit start-of-command-output marker after the user presses Enter
+  # on the command line.
+  edit:after-readline = [
+    $ftcs-command-executed~
+    $@edit:after-readline
+  ]
+}
 #+end_src
 
 The =iterm2:clear-screen= function clears the screen and issues the corresponding markers before redrawing the prompt. If you are using the readline bindings through =use readline-bindings=, you should bind this function to the =Ctrl-L= key to keep the correct markers when clearing the screen.
 
 #+begin_src elvish
-  fn clear-screen {
-    clear > /dev/tty
-    ftcs-prompt > /dev/tty
-    edit:redraw &full=$true
-  }
+fn clear-screen {
+  clear > /dev/tty
+  ftcs-prompt > /dev/tty
+  edit:redraw &full=$true
+}
 #+end_src
 
 ** iTerm2 utilities
@@ -407,7 +407,7 @@ The =iterm2:clear-screen= function clears the screen and issues the correspondin
 If the [[https://iterm2.com/documentation-utilities.html][iTerm2 utilities]] are installed in their default location of =~/.iterm2=, we detect them and add them automatically to the path. Note that some of the functionality provided by the utilities is also provided by functions in this module.
 
 #+begin_src elvish
-  if (-is-dir ~/.iterm2) {
-    paths = [ $@paths ~/.iterm2 ]
-  }
+if (-is-dir ~/.iterm2) {
+  paths = [ $@paths ~/.iterm2 ]
+}
 #+end_src
