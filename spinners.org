@@ -5,7 +5,7 @@
 #+name: module-summary
 Functions to print different types of progress spinners for use in Elvish scripts.
 
-This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:spinners.elv][spinners.elv]] for the generated file.
+This file is written in [[https://leanpub.com/lit-config][literate programming style]], to make it easy to explain. See [[file:spinners.elv][spinners.elv]] for the generated file.
 
 * Table of Contents :TOC_3:noexport:
 - [[#usage][Usage]]

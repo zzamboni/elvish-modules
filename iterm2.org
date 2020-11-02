@@ -82,7 +82,7 @@ The FTCS codes used for shell integration cal also be emitted manually if needed
 :CUSTOM_ID: implementation
 :END:
 
-*Note:* This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:iterm2.elv][iterm2.elv]] for the generated file.
+*Note:* This file is written in [[https://leanpub.com/lit-config][literate programming style]], to make it easy to explain. See [[file:iterm2.elv][iterm2.elv]] for the generated file.
 
 The escape sequences used by iTerm2 for shell integration are described in detail in the [[https://www.iterm2.com/documentation-escape-codes.html][Proprietary Escape Codes]] documentation.
 

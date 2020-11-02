@@ -5,7 +5,7 @@
 #+name: module-summary
 Implement the =!!= (last command), =!$= (last argument of last command), ~!*~ (all arguments) and =!<n>= (nth argument of last command) shortcuts in Elvish.
 
-This file is written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]], to make it easy to explain. See [[file:alias.elv][alias.elv]] for the generated file.
+This file is written in [[https://leanpub.com/lit-config][literate programming style]], to make it easy to explain. See [[file:alias.elv][alias.elv]] for the generated file.
 
 * Table of Contents :TOC:noexport:
 - [[#usage][Usage]]
