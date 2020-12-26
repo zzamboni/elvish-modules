@@ -13,15 +13,15 @@ arg-replacer = '{}'
 aliases = [&]
 
 fn -load-alias [name file]{
-  nop $aliases
-  -source $file
-  -tmpfile = (mktemp)
-  echo 'aliases['$name'] = $'$name'~' > $-tmpfile
-  -source $-tmpfile
-  rm -f $-tmpfile
+  str = (str:join "\n" [
+      'use github.com/zzamboni/elvish-modules/alias'
+      (cat $file)
+      "alias:aliases["$name"] = $"$name"~"
+      ])
+  eval $str
 }
 
-fn def [&verbose=false &use=[] name @cmd]{
+fn def [&verbose=$false &use=[] name @cmd]{
   file = $dir/$name.elv
   use-statements = [(each [m]{ put "use "$m";" } $use)]
   echo "#alias:new" $name (if (not-eq $use []) { put "&use="(to-string $use) }) $@cmd > $file
@@ -37,13 +37,13 @@ fn def [&verbose=false &use=[] name @cmd]{
     } $cmd)
   ]
   echo 'fn '$name' [@_args]{' $@use-statements $@new-cmd $args-at-end '}' >> $file
-  if (not-eq $verbose false) {
-    echo (styled "Defining alias "$name green)
-  }
   -load-alias $name $file
+  if $verbose {
+    echo (styled "Alias "$name" defined (will take effect on new sessions, or when you run '-source "$file"')." green)
+  }
 }
 
-fn new [&verbose=false &use=[] @arg]{ def &verbose=$verbose &use=$use $@arg }
+new~ = $def~
 
 fn bash-alias [@args]{
   line = $@args
@@ -63,7 +63,7 @@ fn list {
   _ = ?(grep -h '^#alias:new ' $dir/*.elv | sed 's/^#//')
 }
 
-fn ls { list } # Alias for list
+ls~ = $list~ # ls is an alias for list
 
 fn undef [name]{
   file = $dir/$name.elv
@@ -76,7 +76,7 @@ fn undef [name]{
   }
 }
 
-fn rm [@arg]{ undef $@arg }
+rm~ = $undef~ # rm is an alias for undef
 
 fn init {
   if (not ?(test -d $dir)) {
@@ -85,10 +85,7 @@ fn init {
 
   for file [(_ = ?(put $dir/*.elv))] {
     content = (cat $file | slurp)
-    if (or (re:match '^#alias:def ' $content) (re:match '\nalias\[' $content)) {
-      m = (re:find '^#alias:(def|new) (\S+)\s+(.*)\n' $content)[groups]
-      new $m[2][text] $m[3][text]
-    } elif (re:match '^#alias:new ' $content) {
+    if (re:match '^#alias:new ' $content) {
       name = (re:find '^#alias:new (\S+)\s+(.*)\n' $content)[groups][1][text]
       -load-alias $name $file
     }
