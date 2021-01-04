@@ -60,6 +60,7 @@ We load the [[https://github.com/zzamboni/elvish-modules/blob/master/prompt-hook
 #+begin_src elvish
   use ./prompt-hooks
   use re
+  use str
 #+end_src
 
 The ANSI escape sequences to start/end the title setting can be configured in the =$terminal-title:start= and =$terminal-title:end= variables. The default values work with [[http://tldp.org/HOWTO/Xterm-Title-3.html][xterm]] terminal types (including Terminal.app on macOS with the =xterm-256color= terminal type, which I use), but you can change them if needed.
@@ -72,8 +73,9 @@ The ANSI escape sequences to start/end the title setting can be configured in th
 The =set-title= function takes a string and sets it as the current terminal title.
 
 #+begin_src elvish
-  fn set-title [title]{
-    print $start$title$end
+  fn set-title [@title]{
+    title-str = (str:join ' ' $title)
+    print $start$title-str$end
   }
 #+end_src
 
