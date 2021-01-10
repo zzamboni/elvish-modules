@@ -138,12 +138,9 @@ The =-load-alias= function receives the name of the alias and the file in which 
 
 #+begin_src elvish
 fn -load-alias [name file]{
-  str = (str:join "\n" [
-      'use github.com/zzamboni/elvish-modules/alias'
-      (cat $file)
-      "alias:aliases["$name"] = $"$name"~"
-      ])
-  eval $str
+  body = $nil
+  eval (slurp < $file)"; body = $"$name"~"
+  aliases[$name] = $body
 }
 #+end_src
 
