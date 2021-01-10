@@ -13,12 +13,9 @@ arg-replacer = '{}'
 aliases = [&]
 
 fn -load-alias [name file]{
-  str = (str:join "\n" [
-      'use github.com/zzamboni/elvish-modules/alias'
-      (cat $file)
-      "alias:aliases["$name"] = $"$name"~"
-      ])
-  eval $str
+  body = $nil
+  eval (slurp < $file)"; body = $"$name"~"
+  aliases[$name] = $body
 }
 
 fn def [&verbose=$false &use=[] name @cmd]{
