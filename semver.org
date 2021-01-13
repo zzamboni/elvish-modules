@@ -19,29 +19,29 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
 Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
 
 #+begin_src elvish
-  use epm
-  epm:install github.com/zzamboni/elvish-modules
+use epm
+epm:install github.com/zzamboni/elvish-modules
 #+end_src
 
 In your =rc.elv=, load this module:
 
 #+begin_src elvish
-  use github.com/zzamboni/elvish-modules/semver
+use github.com/zzamboni/elvish-modules/semver
 #+end_src
 
 The =semver:cmp= function receives two version numbers and returns -1, 0 or 1 depending on whether the first version number is older, the same or newer than the second. It uses the rules as described in [[https://semver.org/#spec-item-11][the Semantic Versioning specification]].
 
 #+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/semver
-  vers = [
-    1.0.1 1.0 1.0.0 2.0.0 2.1.0 2.1.1 1.0.0-alpha
-    1.0.0-alpha.beta 1.0.0-alpha.1 1.0.0-beta
-    1.0.0-beta.2 1.0.0-beta.11 1.0.0-rc.1 1.0.0 1.0 1
-  ]
-  range (- (count $vers) 1) | each [i]{
-    v1 v2 = $vers[$i (+ $i 1)]
-    echo semver:cmp $v1 $v2
-    semver:cmp $v1 $v2
-  }
+vers = [
+  1.0.1 1.0 1.0.0 2.0.0 2.1.0 2.1.1 1.0.0-alpha
+  1.0.0-alpha.beta 1.0.0-alpha.1 1.0.0-beta
+  1.0.0-beta.2 1.0.0-beta.11 1.0.0-rc.1 1.0.0 1.0 1
+]
+range (- (count $vers) 1) | each [i]{
+  v1 v2 = $vers[$i (+ $i 1)]
+  echo semver:cmp $v1 $v2
+  semver:cmp $v1 $v2
+}
 #+end_src
 
 #+RESULTS:
@@ -81,14 +81,14 @@ semver:cmp 1.0 1
 The =semver:eq=, =semver:not-eq=, =semver:<=, =semver:<==, =semver:>= and =semver:>== functions behave just like their [[https://elvish.io/ref/builtin.html#section-3][numeric or string versions]], but with version numbers. They all use =semver:cmp= to do the comparison.
 
 #+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/semver
-  semver:<      1.0.0 2.0.0 2.1.0
-  semver:<      1.0.0-alpha 1.0.0 2.1.0
-  semver:<=     1.0.0 1.0.0 2.1.0
-  semver:>      1.0.0 1.0.0-rc1 0.9.0
-  semver:>=     1.0.0-rc1 1.0.0-rc1 0.9.0
-  semver:eq     1.0.0 1.0 1
-  semver:not-eq 1.0.0 1.0 1
-  semver:not-eq 1.0.0 1.0.1 2.0.0
+semver:<      1.0.0 2.0.0 2.1.0
+semver:<      1.0.0-alpha 1.0.0 2.1.0
+semver:<=     1.0.0 1.0.0 2.1.0
+semver:>      1.0.0 1.0.0-rc1 0.9.0
+semver:>=     1.0.0-rc1 1.0.0-rc1 0.9.0
+semver:eq     1.0.0 1.0 1
+semver:not-eq 1.0.0 1.0 1
+semver:not-eq 1.0.0 1.0.1 2.0.0
 #+end_src
 
 #+RESULTS:
@@ -110,9 +110,10 @@ The =semver:eq=, =semver:not-eq=, =semver:<=, =semver:<==, =semver:>= and =semve
 We start by including some necessary libraries.
 
 #+begin_src elvish
-  use re
-  use builtin
-  use ./util
+use re
+use str
+use builtin
+use ./util
 #+end_src
 
 ** Support functions
@@ -120,44 +121,44 @@ We start by including some necessary libraries.
 The =-signed-compare= function compares two values using an arbitrary function which should return whether the first is "less than" the second, and return =$true= or =$false= accordingly. Based on this, it returns -1, 0 or -1 to represent the order of the two values.
 
 #+begin_src elvish
-  fn -signed-compare [ltfn v1 v2]{
-    util:cond [
-      { $ltfn $v1 $v2 }  1
-      { $ltfn $v2 $v1 } -1
-      :else              0
-    ]
-  }
+fn -signed-compare [ltfn v1 v2]{
+  util:cond [
+    { $ltfn $v1 $v2 }  1
+    { $ltfn $v2 $v1 } -1
+    :else              0
+  ]
+}
 #+end_src
 
 The =-num-str-cmp= function compares two values numerically if they both are integers, and lexically (as strings) otherwise.
 
 #+begin_src elvish
-  fn -num-str-cmp [e1 e2]{
-    lt = (util:cond [
-        { re:match '^\d+$' $e1$e2 } $<~
-        :else                       $<s~
-    ])
-    -signed-compare $lt $e1 $e2
-  }
+fn -num-str-cmp [e1 e2]{
+  lt = (util:cond [
+      { re:match '^\d+$' $e1$e2 } [@a]{ < $@a }
+      :else                       [@a]{ <s $@a }
+  ])
+  -signed-compare $lt $e1 $e2
+}
 #+end_src
 
 The =-part-compare= function receives two period-separated strings and returns their order according to the first component that differs (0 is both are equal).
 
 #+begin_src elvish
-  fn -part-compare [v1 v2]{
-    v1s = [(splits '.' $v1)]
-    v2s = [(splits '.' $v2)]
-    num = (util:max (count $v1s) (count $v2s))
-    fill = [(repeat $num 0)]
-    range $num | each [i]{
-      comp = (-num-str-cmp [$@v1s $@fill][$i] [$@v2s $@fill][$i])
-      if (!= $comp 0) {
-        put $comp
-        return
-      }
+fn -part-compare [v1 v2]{
+  v1s = [(str:split '.' $v1)]
+  v2s = [(str:split '.' $v2)]
+  num = (util:max (count $v1s) (count $v2s))
+  fill = [(repeat $num 0)]
+  range $num | each [i]{
+    comp = (-num-str-cmp [$@v1s $@fill][$i] [$@v2s $@fill][$i])
+    if (!= $comp 0) {
+      put $comp
+      return
     }
-    put 0
   }
+  put 0
+}
 #+end_src
 
 ** Main comparison function
@@ -171,20 +172,20 @@ The =semver:cmp= function receives two version numbers in the form MAJOR.MINOR.P
 
 
 #+begin_src elvish
-  fn cmp [v1 v2]{
-    rel1 prerel1 @_ = (splits '-' $v1) $false
-    rel2 prerel2 @_ = (splits '-' $v2) $false
-    comp = (-part-compare $rel1 $rel2)
-    if (!= $comp 0) {
-      put $comp
+fn cmp [v1 v2]{
+  rel1 prerel1 @_ = (str:split '-' $v1) $false
+  rel2 prerel2 @_ = (str:split '-' $v2) $false
+  comp = (-part-compare $rel1 $rel2)
+  if (!= $comp 0) {
+    put $comp
+  } else {
+    if (and $prerel1 $prerel2) {
+      -part-compare $prerel1 $prerel2
     } else {
-      if (and $prerel1 $prerel2) {
-        -part-compare $prerel1 $prerel2
-      } else {
-        -signed-compare [v1 v2]{ and $v1 (not $v2) } $prerel1 $prerel2
-      }
+      -signed-compare [v1 v2]{ and $v1 (not $v2) } $prerel1 $prerel2
     }
   }
+}
 #+end_src
 
 ** Comparing lists of version numbers
@@ -192,26 +193,26 @@ The =semver:cmp= function receives two version numbers in the form MAJOR.MINOR.P
 The =-seq-compare= function receives a list of version numbers, an operator and an expected value. All neighboring pairs in the list are compared using =semver:cmp=, and the result is compared against the expected using the operator. The function returns =$true= if the list is empty, or if all the pairs satisfy the condition. This allows us to implement all the list-comparison functions below just by modifying the operator and the expected value.
 
 #+begin_src elvish
-  fn -seq-compare [op expected @vers]{
-    res = $true
-    last = $false
-    each [v]{
-      if $last {
-        res = (and $res ($op (cmp $last $v) $expected))
-      }
-      last = $v
-    } $vers
-    put $res
-  }
+fn -seq-compare [op expected @vers]{
+  res = $true
+  last = $false
+  each [v]{
+    if $last {
+      res = (and $res ($op (cmp $last $v) $expected))
+    }
+    last = $v
+  } $vers
+  put $res
+}
 #+end_src
 
 All of the user-facing functions are implemented by passing the corresponding functions and values to =-seq-compare=.
 
 #+begin_src elvish
-  fn '<'    [@vers]{ -seq-compare $builtin:eq~      1 $@vers }
-  fn '>'    [@vers]{ -seq-compare $builtin:eq~     -1 $@vers }
-  fn eq     [@vers]{ -seq-compare $builtin:eq~      0 $@vers }
-  fn not-eq [@vers]{ -seq-compare $builtin:not-eq~  0 $@vers }
-  fn '<='   [@vers]{ -seq-compare $builtin:not-eq~ -1 $@vers }
-  fn '>='   [@vers]{ -seq-compare $builtin:not-eq~  1 $@vers }
+fn '<'    [@vers]{ -seq-compare $builtin:eq~      1 $@vers }
+fn '>'    [@vers]{ -seq-compare $builtin:eq~     -1 $@vers }
+fn eq     [@vers]{ -seq-compare $builtin:eq~      0 $@vers }
+fn not-eq [@vers]{ -seq-compare $builtin:not-eq~  0 $@vers }
+fn '<='   [@vers]{ -seq-compare $builtin:not-eq~ -1 $@vers }
+fn '>='   [@vers]{ -seq-compare $builtin:not-eq~  1 $@vers }
 #+end_src
