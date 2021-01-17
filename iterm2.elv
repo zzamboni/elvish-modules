@@ -10,7 +10,7 @@ fn mk-iterm2-cmd [@x]{ mk-escape-str [1337 $@x] }
 fn mk-ftcs-cmd [@x]{ mk-escape-str [133 $@x] }
 
 fn cmd [@x]{ print (mk-iterm2-cmd $@x) }
-fn set [@x]{ print (mk-iterm2-cmd (str:join '=' $x)) }
+fn set-var [@x]{ print (mk-iterm2-cmd (str:join '=' $x)) }
 fn ftcs-cmd [@x]{ print (mk-ftcs-cmd $@x) }
 
 fn set-title-color [r g b]{
@@ -24,7 +24,7 @@ fn reset-title-color {
 }
 
 fn setcolor [key r g b]{
-  set SetColors $key (printf %02x%02x%02x $r $g $b)
+  set-var SetColors $key (printf %02x%02x%02x $r $g $b)
 }
 
 fn report-background-color {
@@ -40,7 +40,7 @@ fn setbackground [@file]{
   if (not-eq $file []) {
     encoded-file = (print $file[0] | /usr/bin/base64)
   }
-  set SetBackgroundImageFile $encoded-file
+  set-var SetBackgroundImageFile $encoded-file
 }
 
 fn hyperlink [url text &params=[&]]{
@@ -56,7 +56,7 @@ fn mark { cmd SetMark }
 fn focus { cmd StealFocus }
 
 fn setdir [d]{
-  set CurrentDir $d
+  set-var CurrentDir $d
 }
 
 fn notify [msg]{
@@ -64,7 +64,7 @@ fn notify [msg]{
 }
 
 fn startcopy [&name=""]{
-  set CopyToClipboard $name
+  set-var CopyToClipboard $name
 }
 
 fn endcopy {
@@ -73,7 +73,7 @@ fn endcopy {
 
 fn copystr [s]{
   encoded-str = (print $s | /usr/bin/base64)
-  set Copy :$encoded-str
+  set-var Copy :$encoded-str
 }
 
 fn annotate [ann &hidden=$false &length=$nil &xy=$nil]{
@@ -88,25 +88,25 @@ fn annotate [ann &hidden=$false &length=$nil &xy=$nil]{
   cmd $cmd=(str:join "|" $parts)
 }
 
-fn profile [p]{ set SetProfile $p }
+fn profile [p]{ set-var SetProfile $p }
 
 fn setuservar [var val]{
-  set SetUserVar $var (print $val | /usr/bin/base64)
+  set-var SetUserVar $var (print $val | /usr/bin/base64)
 }
 fn reportvar [var]{
-  set ReportVariable (print $var | /usr/bin/base64)
+  set-var ReportVariable (print $var | /usr/bin/base64)
 }
 
 fn setbadge [@badge]{
-  set SetBadgeFormat (print $@badge | /usr/bin/base64)
+  set-var SetBadgeFormat (print $@badge | /usr/bin/base64)
 }
 
 fn set-remotehost [user host]{
-  set RemoteHost $user"@"$host
+  set-var RemoteHost $user"@"$host
 }
 
 fn set-currentdir [dir]{
-  set CurrentDir $dir
+  set-var CurrentDir $dir
 }
 
 fn windowtitle [t]{ print "\e]0;"$t"\a" }

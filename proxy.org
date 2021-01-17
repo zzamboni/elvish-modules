@@ -131,7 +131,7 @@ Check whether the proxy is set. We use the first variable in =$proxy:env-vars= f
 Set the proxy variables to the given string. If no parameters are given but =$proxy:host= is set, then its value is used. Note that passing an argument to this function *does not set $param:host*, this needs to be done explicitly if you want it.
 
 #+begin_src elvish
-  fn set [@param]{
+  fn set-proxy [@param]{
     proxyhost = $host
     if (> (count $param) 0) {
       proxyhost = $param[0]
@@ -145,7 +145,7 @@ Set the proxy variables to the given string. If no parameters are given but =$pr
 Unset the proxy variables.
 
 #+begin_src elvish
-  fn unset {
+  fn unset-proxy {
     eval (each [var]{ put "del E:"$var } $env-vars | str:join "; ")
   }
 #+end_src
@@ -155,7 +155,7 @@ Disable auto-set and unset the proxy.
 #+begin_src elvish
   fn disable {
     disable-autoset = $true
-    unset
+    unset-proxy
   }
 #+end_src
 
@@ -179,7 +179,7 @@ This is the function that powers the auto-set feature. It runs =$proxy:test= and
         if (and $notify (not (is-set))) {
           echo (styled "Setting proxy "$host blue)
         }
-        set
+        set-proxy
       } else {
         fail "You need to set $proxy:host to the proxy to use"
       }
@@ -187,7 +187,7 @@ This is the function that powers the auto-set feature. It runs =$proxy:test= and
       if (and $notify (is-set)) {
         echo (styled "Unsetting proxy" blue)
       }
-      unset
+      unset-proxy
     }
   }
 #+end_src

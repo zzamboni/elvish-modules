@@ -119,7 +119,7 @@ iTerm2 commands come in two types: plain commands and "set" commands, which assi
 
 #+begin_src elvish
 fn cmd [@x]{ print (mk-iterm2-cmd $@x) }
-fn set [@x]{ print (mk-iterm2-cmd (str:join '=' $x)) }
+fn set-var [@x]{ print (mk-iterm2-cmd (str:join '=' $x)) }
 fn ftcs-cmd [@x]{ print (mk-ftcs-cmd $@x) }
 #+end_src
 
@@ -145,7 +145,7 @@ Change color palette. See [[https://www.iterm2.com/documentation-escape-codes.ht
 
 #+begin_src elvish
 fn setcolor [key r g b]{
-  set SetColors $key (printf %02x%02x%02x $r $g $b)
+  set-var SetColors $key (printf %02x%02x%02x $r $g $b)
 }
 #+end_src
 
@@ -169,7 +169,7 @@ fn setbackground [@file]{
   if (not-eq $file []) {
     encoded-file = (print $file[0] | /usr/bin/base64)
   }
-  set SetBackgroundImageFile $encoded-file
+  set-var SetBackgroundImageFile $encoded-file
 }
 #+end_src
 
@@ -211,7 +211,7 @@ Inform iTerm2 of the current directory. This is a wrapper around =iterm2:set Cur
 
 #+begin_src elvish
 fn setdir [d]{
-  set CurrentDir $d
+  set-var CurrentDir $d
 }
 #+end_src
 
@@ -231,7 +231,7 @@ Everything displayed in the terminal between calling =iterm2:startcopy= and =ite
 
 #+begin_src elvish
 fn startcopy [&name=""]{
-  set CopyToClipboard $name
+  set-var CopyToClipboard $name
 }
 
 fn endcopy {
@@ -244,7 +244,7 @@ If you want to put a stored string in the clipboard, you can use =iterm2:copystr
 #+begin_src elvish
 fn copystr [s]{
   encoded-str = (print $s | /usr/bin/base64)
-  set Copy :$encoded-str
+  set-var Copy :$encoded-str
 }
 #+end_src
 
@@ -273,17 +273,17 @@ fn annotate [ann &hidden=$false &length=$nil &xy=$nil]{
 *** Change profile
 
 #+begin_src elvish
-fn profile [p]{ set SetProfile $p }
+fn profile [p]{ set-var SetProfile $p }
 #+end_src
 
 *** Set and report iTerm2 user variables
 
 #+begin_src elvish
 fn setuservar [var val]{
-  set SetUserVar $var (print $val | /usr/bin/base64)
+  set-var SetUserVar $var (print $val | /usr/bin/base64)
 }
 fn reportvar [var]{
-  set ReportVariable (print $var | /usr/bin/base64)
+  set-var ReportVariable (print $var | /usr/bin/base64)
 }
 #+end_src
 
@@ -291,7 +291,7 @@ fn reportvar [var]{
 
 #+begin_src elvish
 fn setbadge [@badge]{
-  set SetBadgeFormat (print $@badge | /usr/bin/base64)
+  set-var SetBadgeFormat (print $@badge | /usr/bin/base64)
 }
 #+end_src
 
@@ -301,11 +301,11 @@ These functions can be used to set these values, which are used for allowing fil
 
 #+begin_src elvish
 fn set-remotehost [user host]{
-  set RemoteHost $user"@"$host
+  set-var RemoteHost $user"@"$host
 }
 
 fn set-currentdir [dir]{
-  set CurrentDir $dir
+  set-var CurrentDir $dir
 }
 #+end_src
 
