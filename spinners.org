@@ -28,18 +28,18 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
 Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]] (you can put these statements in your =rc.elv= file as well, to automatically install the package upon startup if needed):
 
 #+begin_src elvish
-  use epm
-  epm:install &silent-if-installed github.com/zzamboni/elvish-modules
+use epm
+epm:install &silent-if-installed github.com/zzamboni/elvish-modules
 #+end_src
 
 In your =rc.elv=, load this module:
 
 #+begin_src elvish
-  use github.com/zzamboni/elvish-modules/spinners
+use github.com/zzamboni/elvish-modules/spinners
 #+end_src
 
 #+begin_src elvish :tangle spinners-examples.elv :export none
-  use github.com/zzamboni/elvish-modules/spinners
+use github.com/zzamboni/elvish-modules/spinners
 #+end_src
 ** Available spinners
 
@@ -50,7 +50,7 @@ The spinner definitions are taken from the [[https://github.com/sindresorhus/cli
 You can get the list of available spinners using the =spinners:list= function.
 
 #+begin_src elvish :use github.com/zzamboni/elvish-modules/spinners :exports both
-  spinners:list | take 5
+spinners:list | take 5
 #+end_src
 
 #+results:
@@ -65,20 +65,20 @@ You can get the list of available spinners using the =spinners:list= function.
 The easiest way to create a spinner is to use =spinners:run= to execute a lambda while displaying a spinner. The spinner will stop automatically when the lambda finishes:
 
 #+begin_src elvish :tangle spinners-examples.elv
-  spinners:run { sleep 3 }
+spinners:run { sleep 3 }
 #+end_src
 
 By default, the spinner specified by =$spinners:default-spinner= will be used. You can change this by passing the =&spinner= option. You can also specify a title to show next to the spinner by passing the =&title= option:
 
 #+begin_src elvish :tangle spinners-examples.elv
-  spinners:run &spinner=arrow &title="Loading modules" { sleep 3 }
+spinners:run &spinner=arrow &title="Loading modules" { sleep 3 }
 #+end_src
 
 The input and output of =spinners:run= are connected to the lambda, so you can use it as part of a pipeline. E.g.:
 
 #+begin_src elvish :tangle spinners-examples.elv
-  spinners:run &title=(styled "Counting files" blue) &style=green { fd . . } | count
-  fd . . | spinners:run &title="Counting characters in filenames" { each [f]{ all $f } } | count
+spinners:run &title=(styled "Counting files" blue) &style=green { fd . . } | count
+fd . . | spinners:run &title="Counting characters in filenames" { each [f]{ all $f } } | count
 #+end_src
 
 The following options are available:
@@ -99,15 +99,15 @@ A spinner definition consists of frames and an interval. If you don't want to us
 If the lambda accepts an argument, the spinner ID will be passed to it. You can use it to manipulate the spinner while it runs using =spinners:attr= to modify its attributes and behavior (the same as the option names above). For example:
 
 #+begin_src elvish :tangle spinners-examples.elv
-  spinners:run &title="Starting title" &persist=$true [s]{
-    sleep 3
-    spinners:attr $s title "New title!"
-    sleep 3
-    spinners:attr $s spinner shark
-    spinners:attr $s style [ red ]
-    sleep 3
-    spinners:attr $s persist success
-  }
+spinners:run &title="Starting title" &persist=$true [s]{
+  sleep 3
+  spinners:attr $s title "New title!"
+  sleep 3
+  spinners:attr $s spinner shark
+  spinners:attr $s style [ red ]
+  sleep 3
+  spinners:attr $s persist success
+}
 #+end_src
 
 ** Spinner persistence and exception handling
@@ -129,8 +129,8 @@ This behavior can be changed by the following options to =spinners:run=:
 You can define custom persistence symbols by adding elements to =$spinners:persist-symbols=, indexed by the symbol name, and containing two keys =symbol= and =color=. For example:
 
 #+begin_src elvish :tangle spinners-examples.elv
-  spinners:persist-symbols[unicorn] = [ &symbol="🦄" &color=default ]
-  spinners:run &title="Getting a unicorn" &persist=unicorn { sleep 3 }
+spinners:persist-symbols[unicorn] = [ &symbol="🦄" &color=default ]
+spinners:run &title="Getting a unicorn" &persist=unicorn { sleep 3 }
 #+end_src
 
 [[file:images/spinners-persist-unicorn.gif]]
@@ -141,28 +141,28 @@ If you want more flexibility in producing spinners, you can create, start and st
 
 1. Create a spinner using the =spinners:new= function. This function returns the ID of the new spinner, which you must store to use in spinner operations. The =spinners:new= function accepts the same options as =spinners:run= to specify the parameters of the spinner. For example:
    #+begin_src elvish :tangle spinners-examples.elv
-     s = (spinners:new &title="Test spinner" &persist=status &hide-exception)
+s = (spinners:new &title="Test spinner" &persist=status &hide-exception)
    #+end_src
 2. Start the spinner with the =spinners:start= function. This displays and starts the spinner running with a background function, so it returns immediately. *Note:* if you do this from the terminal, the spinner will display on top of the command line as you type other commands.
    #+begin_src elvish :tangle spinners-examples.elv
-     spinners:start $s
+spinners:start $s
    #+end_src
 3. While the spinner runs, you can use the =spinners:attr= function to set any of its attributes (the same as the option names in the =spinners:new= function) to modify the spinner on the fly. You can even change the spinner type by changing the =spinner= attribute. You can also persist and continue the current spinner and continue in a new line with =spinners:persist=, and also persist the current one and continue with a new one with the =spinners:persist-and-new= function, which takes the same arguments as the =spinners:run= function.
    #+begin_src elvish :tangle spinners-examples.elv
-     sleep 3
-     spinners:attr $s title "New title!"
-     sleep 2
-     spinners:persist $s
-     sleep 1
-     spinners:attr $s spinner shark
-     sleep 3
-     spinners:attr $s status ?(fail error)
-     spinners:persist-and-new $s &indent=2 &title=(styled "Next step" blue)
-     sleep 3
+sleep 3
+spinners:attr $s title "New title!"
+sleep 2
+spinners:persist $s
+sleep 1
+spinners:attr $s spinner shark
+sleep 3
+spinners:attr $s status ?(fail error)
+spinners:persist-and-new $s &indent=2 &title=(styled "Next step" blue)
+sleep 3
    #+end_src
 4. Stop the spinner with the =spinners:stop= function. You can use the =&status= option to pass an exception object or =$ok= which can be used to determine the final state of the spinner (e.g. if you created it with =&persist=status=):
    #+begin_src elvish :tangle spinners-examples.elv
-     spinners:stop $s
+spinners:stop $s
    #+end_src
 
 *Note:* if you call =spinners:start= and =spinners:stop= by hand, be aware that when the spinner stops Elvish will produce a notification about the background process. To prevent this you have to set =$notify-bg-job-success= to =$false= before calling =$spinners:stop=. This is not necessary if you use =spinners:run=.
@@ -178,8 +178,8 @@ During the execution of a spinner, the =spinners:persist= function can be used t
 ** Modules
 
 #+begin_src elvish
-  use str
-  use github.com/zzamboni/elvish-modules/tty
+use str
+use github.com/zzamboni/elvish-modules/tty
 #+end_src
 
 ** Initialization
@@ -187,19 +187,19 @@ During the execution of a spinner, the =spinners:persist= function can be used t
 When the module is loaded, we read the spinner definitions from =spinners.json=.
 
 #+begin_src elvish
-  spinners = (from-json < (path-dir (src)[name])/spinners.json)
+spinners = (from-json < (path-dir (src)[name])/spinners.json)
 #+end_src
 
 By default the =dots= spinner is used.
 
 #+begin_src elvish
-  default-spinner = 'dots'
+default-spinner = 'dots'
 #+end_src
 
 We store spinners in the =$spinners:-sr= variable, indexed by ID.
 
 #+begin_src elvish
-  -sr = [&]
+-sr = [&]
 #+end_src
 
 ** Utility functions
@@ -207,9 +207,9 @@ We store spinners in the =$spinners:-sr= variable, indexed by ID.
 All output is produced through this function.
 
 #+begin_src elvish
-  fn -output [@s]{
-    print $@s >/dev/tty
-  }
+fn -output [@s]{
+  print $@s >/dev/tty
+}
 #+end_src
 
 ** Spinner creation, advancing and status
@@ -231,128 +231,128 @@ A /spinner object/ is a definition of a spinner, and is a map containing the fol
 =spinners:new= creates a new spinner object containing the keys above, stores it in the registry, and returns its ID. The =&spinner= option can be used to initialize =&frames= and =&interval= from the default spinner definitions. If not given, =$spinners:default-spinner= is used. If =&frames= and =&interval= are given, they are used to override the default values. =&title=, =&prefix= and =&style= default to empty.
 
 #+begin_src elvish
-  fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false &id=$nil]{
-    # Determine ID to use
-    id = (or $id (e=?(uuidgen)) (randint 0 9999999))
-    # Use default spinner if none is specified
-    if (not $spinner) { spinner = $default-spinner }
-    # Automatically convert non-list styles, so you can do e.g. &style=red
-    if (not-eq (kind-of $style) list) { style = [$style] }
-    # Create and store the new spinner object
-    -sr[$id] = [
-      &id=             $id
-      &spinner=        $spinner
-      &frames=         (or $frames $spinners[$spinner][frames])
-      &interval=       (or $interval $spinners[$spinner][interval])
-      &title=          $title
-      &prefix=         $prefix
-      &indent=         $indent
-      &style=          $style
-      &cursor=         $cursor
-      &persist=        $persist
-      &hide-exception= $hide-exception
-      &current=        0
-      &status=         $ok
-      &stop=           $false
-    ]
-    # Return ID of the new spinner
-    put $id
-  }
+fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false &id=$nil]{
+  # Determine ID to use
+  id = (or $id (e=?(uuidgen)) (randint 0 9999999))
+  # Use default spinner if none is specified
+  if (not $spinner) { spinner = $default-spinner }
+  # Automatically convert non-list styles, so you can do e.g. &style=red
+  if (not-eq (kind-of $style) list) { style = [$style] }
+  # Create and store the new spinner object
+  -sr[$id] = [
+    &id=             $id
+    &spinner=        $spinner
+    &frames=         (or $frames $spinners[$spinner][frames])
+    &interval=       (or $interval $spinners[$spinner][interval])
+    &title=          $title
+    &prefix=         $prefix
+    &indent=         $indent
+    &style=          $style
+    &cursor=         $cursor
+    &persist=        $persist
+    &hide-exception= $hide-exception
+    &current=        0
+    &status=         $ok
+    &stop=           $false
+  ]
+  # Return ID of the new spinner
+  put $id
+}
 #+end_src
 
 Once a spinner object is created, =spinners:step= can be used to display and advance the spinner. This function returns an updated spinner object, which needs to be stored by the caller (Elvish does not support modifying arguments by reference).
 
 #+begin_src elvish
-  fn step [spinner]{
-    steps = $-sr[$spinner][frames]
-    indentation = (str:join '' [(repeat $-sr[$spinner][indent] ' ')])
-    pre-string = (if (not-eq $-sr[$spinner][prefix] '') { put $-sr[$spinner][prefix]' ' } else { put '' })
-    post-string = (if (not-eq $-sr[$spinner][title] '') { put ' '$-sr[$spinner][title] } else { put '' })
-    tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
-    -output $indentation$pre-string(styled $steps[$-sr[$spinner][current]] (all $-sr[$spinner][style]))$post-string
-    tty:clear-line
-    inc = 1
-    if (eq (kind-of $steps string)) {
-      inc = (count $steps[$-sr[$spinner][current]])
-    }
-    -sr[$spinner][current] = (% (+ $-sr[$spinner][current] $inc) (count $steps))
+fn step [spinner]{
+  steps = $-sr[$spinner][frames]
+  indentation = (str:join '' [(repeat $-sr[$spinner][indent] ' ')])
+  pre-string = (if (not-eq $-sr[$spinner][prefix] '') { put $-sr[$spinner][prefix]' ' } else { put '' })
+  post-string = (if (not-eq $-sr[$spinner][title] '') { put ' '$-sr[$spinner][title] } else { put '' })
+  tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
+  -output $indentation$pre-string(styled $steps[$-sr[$spinner][current]] (all $-sr[$spinner][style]))$post-string
+  tty:clear-line
+  inc = 1
+  if (eq (kind-of $steps string)) {
+    inc = (count $steps[$-sr[$spinner][current]])
   }
+  -sr[$spinner][current] = (% (+ $-sr[$spinner][current] $inc) (count $steps))
+}
 #+end_src
 
 Set the status of the spinner to different outcomes, will be displayed the next time the =step= function is called. The definition of the symbols to display can be customized by adding or changing elements in =$spinners:persist-symbols=.
 
 #+begin_src elvish
-  persist-symbols = [
-    &success= [ &symbol="✔" &color=green ]
-    &error=   [ &symbol="✖" &color=red ]
-    &warning= [ &symbol="⚠" &color=yellow ]
-    &info=    [ &symbol="ℹ" &color=blue ]
-  ]
+persist-symbols = [
+  &success= [ &symbol="✔" &color=green ]
+  &error=   [ &symbol="✖" &color=red ]
+  &warning= [ &symbol="⚠" &color=yellow ]
+  &info=    [ &symbol="ℹ" &color=blue ]
+]
 #+end_src
 
 #+begin_src elvish
-  fn set-symbol [spinner symbol]{
-    -sr[$spinner][frames] = [ $persist-symbols[$symbol][symbol] ]
-    -sr[$spinner][style] = [ $persist-symbols[$symbol][color] ]
-    -sr[$spinner][current] = 0
-  }
+fn set-symbol [spinner symbol]{
+  -sr[$spinner][frames] = [ $persist-symbols[$symbol][symbol] ]
+  -sr[$spinner][style] = [ $persist-symbols[$symbol][color] ]
+  -sr[$spinner][current] = 0
+}
 #+end_src
 
 Wait an amount of time as defined by the spinner's =interval= field.
 
 #+begin_src elvish
-  fn spinner-sleep [s]{
-    sleep (to-string (/ $-sr[$s][interval] 1000))
-  }
+fn spinner-sleep [s]{
+  sleep (to-string (/ $-sr[$s][interval] 1000))
+}
 #+end_src
 
 Persist a spinner by setting its symbol to the one corresponding to its =persist= field (if any, otherwise just leave it as-is), and then moving the cursor to the next line and storing the new position as the spinner's =initial-pos= field.
 
 #+begin_src elvish
-  fn persist [spinner]{
-    if (eq $-sr[$spinner][persist] status) {
-      if $-sr[$spinner][status] {
-        set-symbol $spinner success
-      } else {
-        set-symbol $spinner error
-      }
-    } elif (eq (kind-of $-sr[$spinner][persist]) string) {
-      set-symbol $spinner $-sr[$spinner][persist]
+fn persist [spinner]{
+  if (eq $-sr[$spinner][persist] status) {
+    if $-sr[$spinner][status] {
+      set-symbol $spinner success
+    } else {
+      set-symbol $spinner error
     }
-    step $spinner
-    -output "\n"
-    -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
+  } elif (eq (kind-of $-sr[$spinner][persist]) string) {
+    set-symbol $spinner $-sr[$spinner][persist]
   }
+  step $spinner
+  -output "\n"
+  -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
+}
 #+end_src
 
 Individual fields of a spinner can be queried or modified using the =spinners:attr= function. If no value is given, returns the value of the attribute, otherwise just sets it (no return value). The =spinner= field is treated specially by fetching the corresponding =frames= and =interval= attributes from the default spinner definitions, instead of just storing its value. It also resets the =current= counter to zero, since different spinners have different number of frames.
 
 #+begin_src elvish
-  fn attr [id attr @val]{
-    if (has-key $-sr $id) {
-      if (eq $val []) {
-        put $-sr[$id][$attr]
-      } else {
-        if (eq $attr spinner) {
-          # Automatically populate frames and interval based on spinner
-          name = $val[0]
-          -sr[$id][spinner]  = $name
-          -sr[$id][frames]   = $spinners[$name][frames]
-          -sr[$id][interval] = $spinners[$name][interval]
-          -sr[$id][current]  = 0
-        } elif (eq $attr style) {
-          # Automatically convert non-list styles, so you can do e.g. &style=red
-          style = $val[0]
-          if (not-eq (kind-of $style) list) { style = [$style] }
-          -sr[$id][style] = $style
-        } else {
-          -sr[$id][$attr] = $val[0]
-        }
-      }
+fn attr [id attr @val]{
+  if (has-key $-sr $id) {
+    if (eq $val []) {
+      put $-sr[$id][$attr]
     } else {
-      fail "Nonexisting spinner with ID "$id
+      if (eq $attr spinner) {
+        # Automatically populate frames and interval based on spinner
+        name = $val[0]
+        -sr[$id][spinner]  = $name
+        -sr[$id][frames]   = $spinners[$name][frames]
+        -sr[$id][interval] = $spinners[$name][interval]
+        -sr[$id][current]  = 0
+      } elif (eq $attr style) {
+        # Automatically convert non-list styles, so you can do e.g. &style=red
+        style = $val[0]
+        if (not-eq (kind-of $style) list) { style = [$style] }
+        -sr[$id][style] = $style
+      } else {
+        -sr[$id][$attr] = $val[0]
+      }
     }
+  } else {
+    fail "Nonexisting spinner with ID "$id
   }
+}
 #+end_src
 
 ** Starting and stopping a spinner
@@ -370,53 +370,53 @@ The =spinners:do-spinner= function is the one that actually does the work of:
 - Deleting the spinner definition from the internal registry.
 
 #+begin_src elvish
-  fn do-spinner [spinner]{
-    if (not $-sr[$spinner][cursor]) {
-      tty:hide-cursor
-    }
-    -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
-    while (not $-sr[$spinner][stop]) {
-      step $spinner
-      spinner-sleep $spinner
-      if (has-key $-sr[$spinner] next-spinner-id) {
-        next-spinner-id = $-sr[$spinner][next-spinner-id]
-        # Indicator to persist the current spinner and continue with a new definition
-        persist $spinner
-        -sr[$spinner] = $-sr[$next-spinner-id]
-        -sr[$spinner][id] = $spinner
-        -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
-        del -sr[$next-spinner-id]
-      }
-    }
-    if $-sr[$spinner][persist] {
-      persist $spinner
-    } else {
-      tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
-      tty:clear-line
-    }
-    if (not $-sr[$spinner][cursor]) { tty:show-cursor }
-    if (and (not $-sr[$spinner][status]) (not $-sr[$spinner][hide-exception])) {
-      show $-sr[$spinner][status]
-    }
-    del -sr[$spinner]
+fn do-spinner [spinner]{
+  if (not $-sr[$spinner][cursor]) {
+    tty:hide-cursor
   }
+  -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
+  while (not $-sr[$spinner][stop]) {
+    step $spinner
+    spinner-sleep $spinner
+    if (has-key $-sr[$spinner] next-spinner-id) {
+      next-spinner-id = $-sr[$spinner][next-spinner-id]
+      # Indicator to persist the current spinner and continue with a new definition
+      persist $spinner
+      -sr[$spinner] = $-sr[$next-spinner-id]
+      -sr[$spinner][id] = $spinner
+      -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
+      del -sr[$next-spinner-id]
+    }
+  }
+  if $-sr[$spinner][persist] {
+    persist $spinner
+  } else {
+    tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
+    tty:clear-line
+  }
+  if (not $-sr[$spinner][cursor]) { tty:show-cursor }
+  if (and (not $-sr[$spinner][status]) (not $-sr[$spinner][hide-exception])) {
+    show $-sr[$spinner][status]
+  }
+  del -sr[$spinner]
+}
 #+end_src
 
 The =spinners:start= function simply calls =do-spinner= in the background.
 
 #+begin_src elvish
-  fn start [spinner]{
-    do-spinner $spinner &
-  }
+fn start [spinner]{
+  do-spinner $spinner &
+}
 #+end_src
 
 Stop execution of a spinner by setting its =stop= flag. This will be caught by the spinner process in the background, which does the work of stopping, persisting and removing the spinner. The =&status= option should be used to pass an exception object used to set the status of the spinner.
 
 #+begin_src elvish
-  fn stop [spinner &status=$ok]{
-    -sr[$spinner][status] = $status
-    -sr[$spinner][stop] = $true
-  }
+fn stop [spinner &status=$ok]{
+  -sr[$spinner][status] = $status
+  -sr[$spinner][stop] = $true
+}
 #+end_src
 
 ** Running a function with a spinner
@@ -424,58 +424,58 @@ Stop execution of a spinner by setting its =stop= flag. This will be caught by t
 Simplest point of entry for displaying a spinner while a function is running. Takes a lambda as the only mandatory argument. A spinner will be automatically created and displayed until the lambda finishes. It takes the same options as =spinners:new=, which can be used to specify the details of the spinner to use.
 
 #+begin_src elvish
-  fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false f]{
-    # Create spinner
-    s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
-    # Determine whether to pass the spinner ID to the function
-    f-args = [$s]
-    if (eq $f[arg-names] []) { f-args = [] }
-    # Run spinner in parallel with the function
+fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false f]{
+  # Create spinner
+  s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
+  # Determine whether to pass the spinner ID to the function
+  f-args = [$s]
+  if (eq $f[arg-names] []) { f-args = [] }
+  # Run spinner in parallel with the function
+  status = $ok
+  run-parallel {
+    do-spinner $s
+  } {
     status = $ok
-    run-parallel {
-      do-spinner $s
-    } {
-      status = $ok
-      try {
-        $f $@f-args
-      } except e {
-        status = $e
-      } finally {
-        # Short pause to avoid a potential race condition when the
-        # function finishes too quickly
-        sleep 0.05
-        stop &status=$status $s
-      }
+    try {
+      $f $@f-args
+    } except e {
+      status = $e
+    } finally {
+      # Short pause to avoid a potential race condition when the
+      # function finishes too quickly
+      sleep 0.05
+      stop &status=$status $s
     }
   }
+}
 #+end_src
 
 During the execution of a spinner, the =spinners:persist-and-new= function can be used to persist the current spinner (according to its settings), move the cursor to the next line, and then continue with a new spinner. This function accepts the same arguments as =spinners:run=, settings from the old spinner are *not* inherited.
 
 #+begin_src elvish
-  fn persist-and-new [old-spinner &spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false]{
-    new-spinner = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
-    -sr[$old-spinner][next-spinner-id] = $new-spinner
-  }
+fn persist-and-new [old-spinner &spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false]{
+  new-spinner = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
+  -sr[$old-spinner][next-spinner-id] = $new-spinner
+}
 #+end_src
 ** List and demo mode
 
 Return the list of available spinners
 
 #+begin_src elvish
-  fn list {
-    keys $spinners | order
-  }
+fn list {
+  keys $spinners | order
+}
 #+end_src
 
 Produce all the spinners in sequence.
 
 #+begin_src elvish
-  fn demo [&time=2 &style=blue &persist=$false]{
-    list | each [s]{
-      run &spinner=$s &title=$s &style=$style &persist=$persist { sleep $time }
-    }
+fn demo [&time=2 &style=blue &persist=$false]{
+  list | each [s]{
+    run &spinner=$s &title=$s &style=$style &persist=$persist { sleep $time }
   }
+}
 #+end_src
 
 ** Spinner definitions
@@ -508,1286 +508,1286 @@ The spinner definitions are taken from the [[https://github.com/sindresorhus/cli
 #+end_example
 
 #+begin_src javascript :tangle spinners.json
-  {
+{
     "dots": {
-      "interval": 80,
-      "frames": [
-        "⠋",
-        "⠙",
-        "⠹",
-        "⠸",
-        "⠼",
-        "⠴",
-        "⠦",
-        "⠧",
-        "⠇",
-        "⠏"
-      ]
+        "interval": 80,
+        "frames": [
+            "⠋",
+            "⠙",
+            "⠹",
+            "⠸",
+            "⠼",
+            "⠴",
+            "⠦",
+            "⠧",
+            "⠇",
+            "⠏"
+        ]
     },
     "dots2": {
-      "interval": 80,
-      "frames": [
-        "⣾",
-        "⣽",
-        "⣻",
-        "⢿",
-        "⡿",
-        "⣟",
-        "⣯",
-        "⣷"
-      ]
+        "interval": 80,
+        "frames": [
+            "⣾",
+            "⣽",
+            "⣻",
+            "⢿",
+            "⡿",
+            "⣟",
+            "⣯",
+            "⣷"
+        ]
     },
     "dots3": {
-      "interval": 80,
-      "frames": [
-        "⠋",
-        "⠙",
-        "⠚",
-        "⠞",
-        "⠖",
-        "⠦",
-        "⠴",
-        "⠲",
-        "⠳",
-        "⠓"
-      ]
+        "interval": 80,
+        "frames": [
+            "⠋",
+            "⠙",
+            "⠚",
+            "⠞",
+            "⠖",
+            "⠦",
+            "⠴",
+            "⠲",
+            "⠳",
+            "⠓"
+        ]
     },
     "dots4": {
-      "interval": 80,
-      "frames": [
-        "⠄",
-        "⠆",
-        "⠇",
-        "⠋",
-        "⠙",
-        "⠸",
-        "⠰",
-        "⠠",
-        "⠰",
-        "⠸",
-        "⠙",
-        "⠋",
-        "⠇",
-        "⠆"
-      ]
+        "interval": 80,
+        "frames": [
+            "⠄",
+            "⠆",
+            "⠇",
+            "⠋",
+            "⠙",
+            "⠸",
+            "⠰",
+            "⠠",
+            "⠰",
+            "⠸",
+            "⠙",
+            "⠋",
+            "⠇",
+            "⠆"
+        ]
     },
     "dots5": {
-      "interval": 80,
-      "frames": [
-        "⠋",
-        "⠙",
-        "⠚",
-        "⠒",
-        "⠂",
-        "⠂",
-        "⠒",
-        "⠲",
-        "⠴",
-        "⠦",
-        "⠖",
-        "⠒",
-        "⠐",
-        "⠐",
-        "⠒",
-        "⠓",
-        "⠋"
-      ]
+        "interval": 80,
+        "frames": [
+            "⠋",
+            "⠙",
+            "⠚",
+            "⠒",
+            "⠂",
+            "⠂",
+            "⠒",
+            "⠲",
+            "⠴",
+            "⠦",
+            "⠖",
+            "⠒",
+            "⠐",
+            "⠐",
+            "⠒",
+            "⠓",
+            "⠋"
+        ]
     },
     "dots6": {
-      "interval": 80,
-      "frames": [
-        "⠁",
-        "⠉",
-        "⠙",
-        "⠚",
-        "⠒",
-        "⠂",
-        "⠂",
-        "⠒",
-        "⠲",
-        "⠴",
-        "⠤",
-        "⠄",
-        "⠄",
-        "⠤",
-        "⠴",
-        "⠲",
-        "⠒",
-        "⠂",
-        "⠂",
-        "⠒",
-        "⠚",
-        "⠙",
-        "⠉",
-        "⠁"
-      ]
+        "interval": 80,
+        "frames": [
+            "⠁",
+            "⠉",
+            "⠙",
+            "⠚",
+            "⠒",
+            "⠂",
+            "⠂",
+            "⠒",
+            "⠲",
+            "⠴",
+            "⠤",
+            "⠄",
+            "⠄",
+            "⠤",
+            "⠴",
+            "⠲",
+            "⠒",
+            "⠂",
+            "⠂",
+            "⠒",
+            "⠚",
+            "⠙",
+            "⠉",
+            "⠁"
+        ]
     },
     "dots7": {
-      "interval": 80,
-      "frames": [
-        "⠈",
-        "⠉",
-        "⠋",
-        "⠓",
-        "⠒",
-        "⠐",
-        "⠐",
-        "⠒",
-        "⠖",
-        "⠦",
-        "⠤",
-        "⠠",
-        "⠠",
-        "⠤",
-        "⠦",
-        "⠖",
-        "⠒",
-        "⠐",
-        "⠐",
-        "⠒",
-        "⠓",
-        "⠋",
-        "⠉",
-        "⠈"
-      ]
+        "interval": 80,
+        "frames": [
+            "⠈",
+            "⠉",
+            "⠋",
+            "⠓",
+            "⠒",
+            "⠐",
+            "⠐",
+            "⠒",
+            "⠖",
+            "⠦",
+            "⠤",
+            "⠠",
+            "⠠",
+            "⠤",
+            "⠦",
+            "⠖",
+            "⠒",
+            "⠐",
+            "⠐",
+            "⠒",
+            "⠓",
+            "⠋",
+            "⠉",
+            "⠈"
+        ]
     },
     "dots8": {
-      "interval": 80,
-      "frames": [
-        "⠁",
-        "⠁",
-        "⠉",
-        "⠙",
-        "⠚",
-        "⠒",
-        "⠂",
-        "⠂",
-        "⠒",
-        "⠲",
-        "⠴",
-        "⠤",
-        "⠄",
-        "⠄",
-        "⠤",
-        "⠠",
-        "⠠",
-        "⠤",
-        "⠦",
-        "⠖",
-        "⠒",
-        "⠐",
-        "⠐",
-        "⠒",
-        "⠓",
-        "⠋",
-        "⠉",
-        "⠈",
-        "⠈"
-      ]
+        "interval": 80,
+        "frames": [
+            "⠁",
+            "⠁",
+            "⠉",
+            "⠙",
+            "⠚",
+            "⠒",
+            "⠂",
+            "⠂",
+            "⠒",
+            "⠲",
+            "⠴",
+            "⠤",
+            "⠄",
+            "⠄",
+            "⠤",
+            "⠠",
+            "⠠",
+            "⠤",
+            "⠦",
+            "⠖",
+            "⠒",
+            "⠐",
+            "⠐",
+            "⠒",
+            "⠓",
+            "⠋",
+            "⠉",
+            "⠈",
+            "⠈"
+        ]
     },
     "dots9": {
-      "interval": 80,
-      "frames": [
-        "⢹",
-        "⢺",
-        "⢼",
-        "⣸",
-        "⣇",
-        "⡧",
-        "⡗",
-        "⡏"
-      ]
+        "interval": 80,
+        "frames": [
+            "⢹",
+            "⢺",
+            "⢼",
+            "⣸",
+            "⣇",
+            "⡧",
+            "⡗",
+            "⡏"
+        ]
     },
     "dots10": {
-      "interval": 80,
-      "frames": [
-        "⢄",
-        "⢂",
-        "⢁",
-        "⡁",
-        "⡈",
-        "⡐",
-        "⡠"
-      ]
+        "interval": 80,
+        "frames": [
+            "⢄",
+            "⢂",
+            "⢁",
+            "⡁",
+            "⡈",
+            "⡐",
+            "⡠"
+        ]
     },
     "dots11": {
-      "interval": 100,
-      "frames": [
-        "⠁",
-        "⠂",
-        "⠄",
-        "⡀",
-        "⢀",
-        "⠠",
-        "⠐",
-        "⠈"
-      ]
+        "interval": 100,
+        "frames": [
+            "⠁",
+            "⠂",
+            "⠄",
+            "⡀",
+            "⢀",
+            "⠠",
+            "⠐",
+            "⠈"
+        ]
     },
     "dots12": {
-      "interval": 80,
-      "frames": [
-        "⢀⠀",
-        "⡀⠀",
-        "⠄⠀",
-        "⢂⠀",
-        "⡂⠀",
-        "⠅⠀",
-        "⢃⠀",
-        "⡃⠀",
-        "⠍⠀",
-        "⢋⠀",
-        "⡋⠀",
-        "⠍⠁",
-        "⢋⠁",
-        "⡋⠁",
-        "⠍⠉",
-        "⠋⠉",
-        "⠋⠉",
-        "⠉⠙",
-        "⠉⠙",
-        "⠉⠩",
-        "⠈⢙",
-        "⠈⡙",
-        "⢈⠩",
-        "⡀⢙",
-        "⠄⡙",
-        "⢂⠩",
-        "⡂⢘",
-        "⠅⡘",
-        "⢃⠨",
-        "⡃⢐",
-        "⠍⡐",
-        "⢋⠠",
-        "⡋⢀",
-        "⠍⡁",
-        "⢋⠁",
-        "⡋⠁",
-        "⠍⠉",
-        "⠋⠉",
-        "⠋⠉",
-        "⠉⠙",
-        "⠉⠙",
-        "⠉⠩",
-        "⠈⢙",
-        "⠈⡙",
-        "⠈⠩",
-        "⠀⢙",
-        "⠀⡙",
-        "⠀⠩",
-        "⠀⢘",
-        "⠀⡘",
-        "⠀⠨",
-        "⠀⢐",
-        "⠀⡐",
-        "⠀⠠",
-        "⠀⢀",
-        "⠀⡀"
-      ]
+        "interval": 80,
+        "frames": [
+            "⢀⠀",
+            "⡀⠀",
+            "⠄⠀",
+            "⢂⠀",
+            "⡂⠀",
+            "⠅⠀",
+            "⢃⠀",
+            "⡃⠀",
+            "⠍⠀",
+            "⢋⠀",
+            "⡋⠀",
+            "⠍⠁",
+            "⢋⠁",
+            "⡋⠁",
+            "⠍⠉",
+            "⠋⠉",
+            "⠋⠉",
+            "⠉⠙",
+            "⠉⠙",
+            "⠉⠩",
+            "⠈⢙",
+            "⠈⡙",
+            "⢈⠩",
+            "⡀⢙",
+            "⠄⡙",
+            "⢂⠩",
+            "⡂⢘",
+            "⠅⡘",
+            "⢃⠨",
+            "⡃⢐",
+            "⠍⡐",
+            "⢋⠠",
+            "⡋⢀",
+            "⠍⡁",
+            "⢋⠁",
+            "⡋⠁",
+            "⠍⠉",
+            "⠋⠉",
+            "⠋⠉",
+            "⠉⠙",
+            "⠉⠙",
+            "⠉⠩",
+            "⠈⢙",
+            "⠈⡙",
+            "⠈⠩",
+            "⠀⢙",
+            "⠀⡙",
+            "⠀⠩",
+            "⠀⢘",
+            "⠀⡘",
+            "⠀⠨",
+            "⠀⢐",
+            "⠀⡐",
+            "⠀⠠",
+            "⠀⢀",
+            "⠀⡀"
+        ]
     },
     "dots8Bit": {
-      "interval": 80,
-      "frames": [
-        "⠀",
-        "⠁",
-        "⠂",
-        "⠃",
-        "⠄",
-        "⠅",
-        "⠆",
-        "⠇",
-        "⡀",
-        "⡁",
-        "⡂",
-        "⡃",
-        "⡄",
-        "⡅",
-        "⡆",
-        "⡇",
-        "⠈",
-        "⠉",
-        "⠊",
-        "⠋",
-        "⠌",
-        "⠍",
-        "⠎",
-        "⠏",
-        "⡈",
-        "⡉",
-        "⡊",
-        "⡋",
-        "⡌",
-        "⡍",
-        "⡎",
-        "⡏",
-        "⠐",
-        "⠑",
-        "⠒",
-        "⠓",
-        "⠔",
-        "⠕",
-        "⠖",
-        "⠗",
-        "⡐",
-        "⡑",
-        "⡒",
-        "⡓",
-        "⡔",
-        "⡕",
-        "⡖",
-        "⡗",
-        "⠘",
-        "⠙",
-        "⠚",
-        "⠛",
-        "⠜",
-        "⠝",
-        "⠞",
-        "⠟",
-        "⡘",
-        "⡙",
-        "⡚",
-        "⡛",
-        "⡜",
-        "⡝",
-        "⡞",
-        "⡟",
-        "⠠",
-        "⠡",
-        "⠢",
-        "⠣",
-        "⠤",
-        "⠥",
-        "⠦",
-        "⠧",
-        "⡠",
-        "⡡",
-        "⡢",
-        "⡣",
-        "⡤",
-        "⡥",
-        "⡦",
-        "⡧",
-        "⠨",
-        "⠩",
-        "⠪",
-        "⠫",
-        "⠬",
-        "⠭",
-        "⠮",
-        "⠯",
-        "⡨",
-        "⡩",
-        "⡪",
-        "⡫",
-        "⡬",
-        "⡭",
-        "⡮",
-        "⡯",
-        "⠰",
-        "⠱",
-        "⠲",
-        "⠳",
-        "⠴",
-        "⠵",
-        "⠶",
-        "⠷",
-        "⡰",
-        "⡱",
-        "⡲",
-        "⡳",
-        "⡴",
-        "⡵",
-        "⡶",
-        "⡷",
-        "⠸",
-        "⠹",
-        "⠺",
-        "⠻",
-        "⠼",
-        "⠽",
-        "⠾",
-        "⠿",
-        "⡸",
-        "⡹",
-        "⡺",
-        "⡻",
-        "⡼",
-        "⡽",
-        "⡾",
-        "⡿",
-        "⢀",
-        "⢁",
-        "⢂",
-        "⢃",
-        "⢄",
-        "⢅",
-        "⢆",
-        "⢇",
-        "⣀",
-        "⣁",
-        "⣂",
-        "⣃",
-        "⣄",
-        "⣅",
-        "⣆",
-        "⣇",
-        "⢈",
-        "⢉",
-        "⢊",
-        "⢋",
-        "⢌",
-        "⢍",
-        "⢎",
-        "⢏",
-        "⣈",
-        "⣉",
-        "⣊",
-        "⣋",
-        "⣌",
-        "⣍",
-        "⣎",
-        "⣏",
-        "⢐",
-        "⢑",
-        "⢒",
-        "⢓",
-        "⢔",
-        "⢕",
-        "⢖",
-        "⢗",
-        "⣐",
-        "⣑",
-        "⣒",
-        "⣓",
-        "⣔",
-        "⣕",
-        "⣖",
-        "⣗",
-        "⢘",
-        "⢙",
-        "⢚",
-        "⢛",
-        "⢜",
-        "⢝",
-        "⢞",
-        "⢟",
-        "⣘",
-        "⣙",
-        "⣚",
-        "⣛",
-        "⣜",
-        "⣝",
-        "⣞",
-        "⣟",
-        "⢠",
-        "⢡",
-        "⢢",
-        "⢣",
-        "⢤",
-        "⢥",
-        "⢦",
-        "⢧",
-        "⣠",
-        "⣡",
-        "⣢",
-        "⣣",
-        "⣤",
-        "⣥",
-        "⣦",
-        "⣧",
-        "⢨",
-        "⢩",
-        "⢪",
-        "⢫",
-        "⢬",
-        "⢭",
-        "⢮",
-        "⢯",
-        "⣨",
-        "⣩",
-        "⣪",
-        "⣫",
-        "⣬",
-        "⣭",
-        "⣮",
-        "⣯",
-        "⢰",
-        "⢱",
-        "⢲",
-        "⢳",
-        "⢴",
-        "⢵",
-        "⢶",
-        "⢷",
-        "⣰",
-        "⣱",
-        "⣲",
-        "⣳",
-        "⣴",
-        "⣵",
-        "⣶",
-        "⣷",
-        "⢸",
-        "⢹",
-        "⢺",
-        "⢻",
-        "⢼",
-        "⢽",
-        "⢾",
-        "⢿",
-        "⣸",
-        "⣹",
-        "⣺",
-        "⣻",
-        "⣼",
-        "⣽",
-        "⣾",
-        "⣿"
-      ]
+        "interval": 80,
+        "frames": [
+            "⠀",
+            "⠁",
+            "⠂",
+            "⠃",
+            "⠄",
+            "⠅",
+            "⠆",
+            "⠇",
+            "⡀",
+            "⡁",
+            "⡂",
+            "⡃",
+            "⡄",
+            "⡅",
+            "⡆",
+            "⡇",
+            "⠈",
+            "⠉",
+            "⠊",
+            "⠋",
+            "⠌",
+            "⠍",
+            "⠎",
+            "⠏",
+            "⡈",
+            "⡉",
+            "⡊",
+            "⡋",
+            "⡌",
+            "⡍",
+            "⡎",
+            "⡏",
+            "⠐",
+            "⠑",
+            "⠒",
+            "⠓",
+            "⠔",
+            "⠕",
+            "⠖",
+            "⠗",
+            "⡐",
+            "⡑",
+            "⡒",
+            "⡓",
+            "⡔",
+            "⡕",
+            "⡖",
+            "⡗",
+            "⠘",
+            "⠙",
+            "⠚",
+            "⠛",
+            "⠜",
+            "⠝",
+            "⠞",
+            "⠟",
+            "⡘",
+            "⡙",
+            "⡚",
+            "⡛",
+            "⡜",
+            "⡝",
+            "⡞",
+            "⡟",
+            "⠠",
+            "⠡",
+            "⠢",
+            "⠣",
+            "⠤",
+            "⠥",
+            "⠦",
+            "⠧",
+            "⡠",
+            "⡡",
+            "⡢",
+            "⡣",
+            "⡤",
+            "⡥",
+            "⡦",
+            "⡧",
+            "⠨",
+            "⠩",
+            "⠪",
+            "⠫",
+            "⠬",
+            "⠭",
+            "⠮",
+            "⠯",
+            "⡨",
+            "⡩",
+            "⡪",
+            "⡫",
+            "⡬",
+            "⡭",
+            "⡮",
+            "⡯",
+            "⠰",
+            "⠱",
+            "⠲",
+            "⠳",
+            "⠴",
+            "⠵",
+            "⠶",
+            "⠷",
+            "⡰",
+            "⡱",
+            "⡲",
+            "⡳",
+            "⡴",
+            "⡵",
+            "⡶",
+            "⡷",
+            "⠸",
+            "⠹",
+            "⠺",
+            "⠻",
+            "⠼",
+            "⠽",
+            "⠾",
+            "⠿",
+            "⡸",
+            "⡹",
+            "⡺",
+            "⡻",
+            "⡼",
+            "⡽",
+            "⡾",
+            "⡿",
+            "⢀",
+            "⢁",
+            "⢂",
+            "⢃",
+            "⢄",
+            "⢅",
+            "⢆",
+            "⢇",
+            "⣀",
+            "⣁",
+            "⣂",
+            "⣃",
+            "⣄",
+            "⣅",
+            "⣆",
+            "⣇",
+            "⢈",
+            "⢉",
+            "⢊",
+            "⢋",
+            "⢌",
+            "⢍",
+            "⢎",
+            "⢏",
+            "⣈",
+            "⣉",
+            "⣊",
+            "⣋",
+            "⣌",
+            "⣍",
+            "⣎",
+            "⣏",
+            "⢐",
+            "⢑",
+            "⢒",
+            "⢓",
+            "⢔",
+            "⢕",
+            "⢖",
+            "⢗",
+            "⣐",
+            "⣑",
+            "⣒",
+            "⣓",
+            "⣔",
+            "⣕",
+            "⣖",
+            "⣗",
+            "⢘",
+            "⢙",
+            "⢚",
+            "⢛",
+            "⢜",
+            "⢝",
+            "⢞",
+            "⢟",
+            "⣘",
+            "⣙",
+            "⣚",
+            "⣛",
+            "⣜",
+            "⣝",
+            "⣞",
+            "⣟",
+            "⢠",
+            "⢡",
+            "⢢",
+            "⢣",
+            "⢤",
+            "⢥",
+            "⢦",
+            "⢧",
+            "⣠",
+            "⣡",
+            "⣢",
+            "⣣",
+            "⣤",
+            "⣥",
+            "⣦",
+            "⣧",
+            "⢨",
+            "⢩",
+            "⢪",
+            "⢫",
+            "⢬",
+            "⢭",
+            "⢮",
+            "⢯",
+            "⣨",
+            "⣩",
+            "⣪",
+            "⣫",
+            "⣬",
+            "⣭",
+            "⣮",
+            "⣯",
+            "⢰",
+            "⢱",
+            "⢲",
+            "⢳",
+            "⢴",
+            "⢵",
+            "⢶",
+            "⢷",
+            "⣰",
+            "⣱",
+            "⣲",
+            "⣳",
+            "⣴",
+            "⣵",
+            "⣶",
+            "⣷",
+            "⢸",
+            "⢹",
+            "⢺",
+            "⢻",
+            "⢼",
+            "⢽",
+            "⢾",
+            "⢿",
+            "⣸",
+            "⣹",
+            "⣺",
+            "⣻",
+            "⣼",
+            "⣽",
+            "⣾",
+            "⣿"
+        ]
     },
     "line": {
-      "interval": 130,
-      "frames": [
-        "-",
-        "\\",
-        "|",
-        "/"
-      ]
+        "interval": 130,
+        "frames": [
+            "-",
+            "\\",
+            "|",
+            "/"
+        ]
     },
     "line2": {
-      "interval": 100,
-      "frames": [
-        "⠂",
-        "-",
-        "–",
-        "—",
-        "–",
-        "-"
-      ]
+        "interval": 100,
+        "frames": [
+            "⠂",
+            "-",
+            "–",
+            "—",
+            "–",
+            "-"
+        ]
     },
     "pipe": {
-      "interval": 100,
-      "frames": [
-        "┤",
-        "┘",
-        "┴",
-        "└",
-        "├",
-        "┌",
-        "┬",
-        "┐"
-      ]
+        "interval": 100,
+        "frames": [
+            "┤",
+            "┘",
+            "┴",
+            "└",
+            "├",
+            "┌",
+            "┬",
+            "┐"
+        ]
     },
     "simpleDots": {
-      "interval": 400,
-      "frames": [
-        ".  ",
-        ".. ",
-        "...",
-        "   "
-      ]
+        "interval": 400,
+        "frames": [
+            ".  ",
+            ".. ",
+            "...",
+            "   "
+        ]
     },
     "simpleDotsScrolling": {
-      "interval": 200,
-      "frames": [
-        ".  ",
-        ".. ",
-        "...",
-        " ..",
-        "  .",
-        "   "
-      ]
+        "interval": 200,
+        "frames": [
+            ".  ",
+            ".. ",
+            "...",
+            " ..",
+            "  .",
+            "   "
+        ]
     },
     "star": {
-      "interval": 70,
-      "frames": [
-        "✶",
-        "✸",
-        "✹",
-        "✺",
-        "✹",
-        "✷"
-      ]
+        "interval": 70,
+        "frames": [
+            "✶",
+            "✸",
+            "✹",
+            "✺",
+            "✹",
+            "✷"
+        ]
     },
     "star2": {
-      "interval": 80,
-      "frames": [
-        "+",
-        "x",
-        "*"
-      ]
+        "interval": 80,
+        "frames": [
+            "+",
+            "x",
+            "*"
+        ]
     },
     "flip": {
-      "interval": 70,
-      "frames": [
-        "_",
-        "_",
-        "_",
-        "-",
-        "`",
-        "`",
-        "'",
-        "´",
-        "-",
-        "_",
-        "_",
-        "_"
-      ]
+        "interval": 70,
+        "frames": [
+            "_",
+            "_",
+            "_",
+            "-",
+            "`",
+            "`",
+            "'",
+            "´",
+            "-",
+            "_",
+            "_",
+            "_"
+        ]
     },
     "hamburger": {
-      "interval": 100,
-      "frames": [
-        "☱",
-        "☲",
-        "☴"
-      ]
+        "interval": 100,
+        "frames": [
+            "☱",
+            "☲",
+            "☴"
+        ]
     },
     "growVertical": {
-      "interval": 120,
-      "frames": [
-        "▁",
-        "▃",
-        "▄",
-        "▅",
-        "▆",
-        "▇",
-        "▆",
-        "▅",
-        "▄",
-        "▃"
-      ]
+        "interval": 120,
+        "frames": [
+            "▁",
+            "▃",
+            "▄",
+            "▅",
+            "▆",
+            "▇",
+            "▆",
+            "▅",
+            "▄",
+            "▃"
+        ]
     },
     "growHorizontal": {
-      "interval": 120,
-      "frames": [
-        "▏",
-        "▎",
-        "▍",
-        "▌",
-        "▋",
-        "▊",
-        "▉",
-        "▊",
-        "▋",
-        "▌",
-        "▍",
-        "▎"
-      ]
+        "interval": 120,
+        "frames": [
+            "▏",
+            "▎",
+            "▍",
+            "▌",
+            "▋",
+            "▊",
+            "▉",
+            "▊",
+            "▋",
+            "▌",
+            "▍",
+            "▎"
+        ]
     },
     "balloon": {
-      "interval": 140,
-      "frames": [
-        " ",
-        ".",
-        "o",
-        "O",
-        "@",
-        "*",
-        " "
-      ]
+        "interval": 140,
+        "frames": [
+            " ",
+            ".",
+            "o",
+            "O",
+            "@",
+            "*",
+            " "
+        ]
     },
     "balloon2": {
-      "interval": 120,
-      "frames": [
-        ".",
-        "o",
-        "O",
-        "°",
-        "O",
-        "o",
-        "."
-      ]
+        "interval": 120,
+        "frames": [
+            ".",
+            "o",
+            "O",
+            "°",
+            "O",
+            "o",
+            "."
+        ]
     },
     "noise": {
-      "interval": 100,
-      "frames": [
-        "▓",
-        "▒",
-        "░"
-      ]
+        "interval": 100,
+        "frames": [
+            "▓",
+            "▒",
+            "░"
+        ]
     },
     "bounce": {
-      "interval": 120,
-      "frames": [
-        "⠁",
-        "⠂",
-        "⠄",
-        "⠂"
-      ]
+        "interval": 120,
+        "frames": [
+            "⠁",
+            "⠂",
+            "⠄",
+            "⠂"
+        ]
     },
     "boxBounce": {
-      "interval": 120,
-      "frames": [
-        "▖",
-        "▘",
-        "▝",
-        "▗"
-      ]
+        "interval": 120,
+        "frames": [
+            "▖",
+            "▘",
+            "▝",
+            "▗"
+        ]
     },
     "boxBounce2": {
-      "interval": 100,
-      "frames": [
-        "▌",
-        "▀",
-        "▐",
-        "▄"
-      ]
+        "interval": 100,
+        "frames": [
+            "▌",
+            "▀",
+            "▐",
+            "▄"
+        ]
     },
     "triangle": {
-      "interval": 50,
-      "frames": [
-        "◢",
-        "◣",
-        "◤",
-        "◥"
-      ]
+        "interval": 50,
+        "frames": [
+            "◢",
+            "◣",
+            "◤",
+            "◥"
+        ]
     },
     "arc": {
-      "interval": 100,
-      "frames": [
-        "◜",
-        "◠",
-        "◝",
-        "◞",
-        "◡",
-        "◟"
-      ]
+        "interval": 100,
+        "frames": [
+            "◜",
+            "◠",
+            "◝",
+            "◞",
+            "◡",
+            "◟"
+        ]
     },
     "circle": {
-      "interval": 120,
-      "frames": [
-        "◡",
-        "⊙",
-        "◠"
-      ]
+        "interval": 120,
+        "frames": [
+            "◡",
+            "⊙",
+            "◠"
+        ]
     },
     "squareCorners": {
-      "interval": 180,
-      "frames": [
-        "◰",
-        "◳",
-        "◲",
-        "◱"
-      ]
+        "interval": 180,
+        "frames": [
+            "◰",
+            "◳",
+            "◲",
+            "◱"
+        ]
     },
     "circleQuarters": {
-      "interval": 120,
-      "frames": [
-        "◴",
-        "◷",
-        "◶",
-        "◵"
-      ]
+        "interval": 120,
+        "frames": [
+            "◴",
+            "◷",
+            "◶",
+            "◵"
+        ]
     },
     "circleHalves": {
-      "interval": 50,
-      "frames": [
-        "◐",
-        "◓",
-        "◑",
-        "◒"
-      ]
+        "interval": 50,
+        "frames": [
+            "◐",
+            "◓",
+            "◑",
+            "◒"
+        ]
     },
     "squish": {
-      "interval": 100,
-      "frames": [
-        "╫",
-        "╪"
-      ]
+        "interval": 100,
+        "frames": [
+            "╫",
+            "╪"
+        ]
     },
     "toggle": {
-      "interval": 250,
-      "frames": [
-        "⊶",
-        "⊷"
-      ]
+        "interval": 250,
+        "frames": [
+            "⊶",
+            "⊷"
+        ]
     },
     "toggle2": {
-      "interval": 80,
-      "frames": [
-        "▫",
-        "▪"
-      ]
+        "interval": 80,
+        "frames": [
+            "▫",
+            "▪"
+        ]
     },
     "toggle3": {
-      "interval": 120,
-      "frames": [
-        "□",
-        "■"
-      ]
+        "interval": 120,
+        "frames": [
+            "□",
+            "■"
+        ]
     },
     "toggle4": {
-      "interval": 100,
-      "frames": [
-        "■",
-        "□",
-        "▪",
-        "▫"
-      ]
+        "interval": 100,
+        "frames": [
+            "■",
+            "□",
+            "▪",
+            "▫"
+        ]
     },
     "toggle5": {
-      "interval": 100,
-      "frames": [
-        "▮",
-        "▯"
-      ]
+        "interval": 100,
+        "frames": [
+            "▮",
+            "▯"
+        ]
     },
     "toggle6": {
-      "interval": 300,
-      "frames": [
-        "ဝ",
-        "၀"
-      ]
+        "interval": 300,
+        "frames": [
+            "ဝ",
+            "၀"
+        ]
     },
     "toggle7": {
-      "interval": 80,
-      "frames": [
-        "⦾",
-        "⦿"
-      ]
+        "interval": 80,
+        "frames": [
+            "⦾",
+            "⦿"
+        ]
     },
     "toggle8": {
-      "interval": 100,
-      "frames": [
-        "◍",
-        "◌"
-      ]
+        "interval": 100,
+        "frames": [
+            "◍",
+            "◌"
+        ]
     },
     "toggle9": {
-      "interval": 100,
-      "frames": [
-        "◉",
-        "◎"
-      ]
+        "interval": 100,
+        "frames": [
+            "◉",
+            "◎"
+        ]
     },
     "toggle10": {
-      "interval": 100,
-      "frames": [
-        "㊂",
-        "㊀",
-        "㊁"
-      ]
+        "interval": 100,
+        "frames": [
+            "㊂",
+            "㊀",
+            "㊁"
+        ]
     },
     "toggle11": {
-      "interval": 50,
-      "frames": [
-        "⧇",
-        "⧆"
-      ]
+        "interval": 50,
+        "frames": [
+            "⧇",
+            "⧆"
+        ]
     },
     "toggle12": {
-      "interval": 120,
-      "frames": [
-        "☗",
-        "☖"
-      ]
+        "interval": 120,
+        "frames": [
+            "☗",
+            "☖"
+        ]
     },
     "toggle13": {
-      "interval": 80,
-      "frames": [
-        "=",
-        "*",
-        "-"
-      ]
+        "interval": 80,
+        "frames": [
+            "=",
+            "*",
+            "-"
+        ]
     },
     "arrow": {
-      "interval": 100,
-      "frames": [
-        "←",
-        "↖",
-        "↑",
-        "↗",
-        "→",
-        "↘",
-        "↓",
-        "↙"
-      ]
+        "interval": 100,
+        "frames": [
+            "←",
+            "↖",
+            "↑",
+            "↗",
+            "→",
+            "↘",
+            "↓",
+            "↙"
+        ]
     },
     "arrow2": {
-      "interval": 80,
-      "frames": [
-        "⬆️ ",
-        "↗️ ",
-        "➡️ ",
-        "↘️ ",
-        "⬇️ ",
-        "↙️ ",
-        "⬅️ ",
-        "↖️ "
-      ]
+        "interval": 80,
+        "frames": [
+            "⬆️ ",
+            "↗️ ",
+            "➡️ ",
+            "↘️ ",
+            "⬇️ ",
+            "↙️ ",
+            "⬅️ ",
+            "↖️ "
+        ]
     },
     "arrow3": {
-      "interval": 120,
-      "frames": [
-        "▹▹▹▹▹",
-        "▸▹▹▹▹",
-        "▹▸▹▹▹",
-        "▹▹▸▹▹",
-        "▹▹▹▸▹",
-        "▹▹▹▹▸"
-      ]
+        "interval": 120,
+        "frames": [
+            "▹▹▹▹▹",
+            "▸▹▹▹▹",
+            "▹▸▹▹▹",
+            "▹▹▸▹▹",
+            "▹▹▹▸▹",
+            "▹▹▹▹▸"
+        ]
     },
     "bouncingBar": {
-      "interval": 80,
-      "frames": [
-        "[    ]",
-        "[=   ]",
-        "[==  ]",
-        "[=== ]",
-        "[ ===]",
-        "[  ==]",
-        "[   =]",
-        "[    ]",
-        "[   =]",
-        "[  ==]",
-        "[ ===]",
-        "[====]",
-        "[=== ]",
-        "[==  ]",
-        "[=   ]"
-      ]
+        "interval": 80,
+        "frames": [
+            "[    ]",
+            "[=   ]",
+            "[==  ]",
+            "[=== ]",
+            "[ ===]",
+            "[  ==]",
+            "[   =]",
+            "[    ]",
+            "[   =]",
+            "[  ==]",
+            "[ ===]",
+            "[====]",
+            "[=== ]",
+            "[==  ]",
+            "[=   ]"
+        ]
     },
     "bouncingBall": {
-      "interval": 80,
-      "frames": [
-        "( ●    )",
-        "(  ●   )",
-        "(   ●  )",
-        "(    ● )",
-        "(     ●)",
-        "(    ● )",
-        "(   ●  )",
-        "(  ●   )",
-        "( ●    )",
-        "(●     )"
-      ]
+        "interval": 80,
+        "frames": [
+            "( ●    )",
+            "(  ●   )",
+            "(   ●  )",
+            "(    ● )",
+            "(     ●)",
+            "(    ● )",
+            "(   ●  )",
+            "(  ●   )",
+            "( ●    )",
+            "(●     )"
+        ]
     },
     "smiley": {
-      "interval": 200,
-      "frames": [
-        "😄 ",
-        "😝 "
-      ]
+        "interval": 200,
+        "frames": [
+            "😄 ",
+            "😝 "
+        ]
     },
     "monkey": {
-      "interval": 300,
-      "frames": [
-        "🙈 ",
-        "🙈 ",
-        "🙉 ",
-        "🙊 "
-      ]
+        "interval": 300,
+        "frames": [
+            "🙈 ",
+            "🙈 ",
+            "🙉 ",
+            "🙊 "
+        ]
     },
     "hearts": {
-      "interval": 100,
-      "frames": [
-        "💛 ",
-        "💙 ",
-        "💜 ",
-        "💚 ",
-        "❤️ "
-      ]
+        "interval": 100,
+        "frames": [
+            "💛 ",
+            "💙 ",
+            "💜 ",
+            "💚 ",
+            "❤️ "
+        ]
     },
     "clock": {
-      "interval": 100,
-      "frames": [
-        "🕛 ",
-        "🕐 ",
-        "🕑 ",
-        "🕒 ",
-        "🕓 ",
-        "🕔 ",
-        "🕕 ",
-        "🕖 ",
-        "🕗 ",
-        "🕘 ",
-        "🕙 ",
-        "🕚 "
-      ]
+        "interval": 100,
+        "frames": [
+            "🕛 ",
+            "🕐 ",
+            "🕑 ",
+            "🕒 ",
+            "🕓 ",
+            "🕔 ",
+            "🕕 ",
+            "🕖 ",
+            "🕗 ",
+            "🕘 ",
+            "🕙 ",
+            "🕚 "
+        ]
     },
     "earth": {
-      "interval": 180,
-      "frames": [
-        "🌍 ",
-        "🌎 ",
-        "🌏 "
-      ]
+        "interval": 180,
+        "frames": [
+            "🌍 ",
+            "🌎 ",
+            "🌏 "
+        ]
     },
     "material": {
-      "interval": 17,
-      "frames": [
-        "█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
-        "██▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
-        "███▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
-        "████▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
-        "██████▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
-        "██████▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
-        "███████▁▁▁▁▁▁▁▁▁▁▁▁▁",
-        "████████▁▁▁▁▁▁▁▁▁▁▁▁",
-        "█████████▁▁▁▁▁▁▁▁▁▁▁",
-        "█████████▁▁▁▁▁▁▁▁▁▁▁",
-        "██████████▁▁▁▁▁▁▁▁▁▁",
-        "███████████▁▁▁▁▁▁▁▁▁",
-        "█████████████▁▁▁▁▁▁▁",
-        "██████████████▁▁▁▁▁▁",
-        "██████████████▁▁▁▁▁▁",
-        "▁██████████████▁▁▁▁▁",
-        "▁██████████████▁▁▁▁▁",
-        "▁██████████████▁▁▁▁▁",
-        "▁▁██████████████▁▁▁▁",
-        "▁▁▁██████████████▁▁▁",
-        "▁▁▁▁█████████████▁▁▁",
-        "▁▁▁▁██████████████▁▁",
-        "▁▁▁▁██████████████▁▁",
-        "▁▁▁▁▁██████████████▁",
-        "▁▁▁▁▁██████████████▁",
-        "▁▁▁▁▁██████████████▁",
-        "▁▁▁▁▁▁██████████████",
-        "▁▁▁▁▁▁██████████████",
-        "▁▁▁▁▁▁▁█████████████",
-        "▁▁▁▁▁▁▁█████████████",
-        "▁▁▁▁▁▁▁▁████████████",
-        "▁▁▁▁▁▁▁▁████████████",
-        "▁▁▁▁▁▁▁▁▁███████████",
-        "▁▁▁▁▁▁▁▁▁███████████",
-        "▁▁▁▁▁▁▁▁▁▁██████████",
-        "▁▁▁▁▁▁▁▁▁▁██████████",
-        "▁▁▁▁▁▁▁▁▁▁▁▁████████",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁███████",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁██████",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█████",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█████",
-        "█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁████",
-        "██▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁███",
-        "██▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁███",
-        "███▁▁▁▁▁▁▁▁▁▁▁▁▁▁███",
-        "████▁▁▁▁▁▁▁▁▁▁▁▁▁▁██",
-        "█████▁▁▁▁▁▁▁▁▁▁▁▁▁▁█",
-        "█████▁▁▁▁▁▁▁▁▁▁▁▁▁▁█",
-        "██████▁▁▁▁▁▁▁▁▁▁▁▁▁█",
-        "████████▁▁▁▁▁▁▁▁▁▁▁▁",
-        "█████████▁▁▁▁▁▁▁▁▁▁▁",
-        "█████████▁▁▁▁▁▁▁▁▁▁▁",
-        "█████████▁▁▁▁▁▁▁▁▁▁▁",
-        "█████████▁▁▁▁▁▁▁▁▁▁▁",
-        "███████████▁▁▁▁▁▁▁▁▁",
-        "████████████▁▁▁▁▁▁▁▁",
-        "████████████▁▁▁▁▁▁▁▁",
-        "██████████████▁▁▁▁▁▁",
-        "██████████████▁▁▁▁▁▁",
-        "▁██████████████▁▁▁▁▁",
-        "▁██████████████▁▁▁▁▁",
-        "▁▁▁█████████████▁▁▁▁",
-        "▁▁▁▁▁████████████▁▁▁",
-        "▁▁▁▁▁████████████▁▁▁",
-        "▁▁▁▁▁▁███████████▁▁▁",
-        "▁▁▁▁▁▁▁▁█████████▁▁▁",
-        "▁▁▁▁▁▁▁▁█████████▁▁▁",
-        "▁▁▁▁▁▁▁▁▁█████████▁▁",
-        "▁▁▁▁▁▁▁▁▁█████████▁▁",
-        "▁▁▁▁▁▁▁▁▁▁█████████▁",
-        "▁▁▁▁▁▁▁▁▁▁▁████████▁",
-        "▁▁▁▁▁▁▁▁▁▁▁████████▁",
-        "▁▁▁▁▁▁▁▁▁▁▁▁███████▁",
-        "▁▁▁▁▁▁▁▁▁▁▁▁███████▁",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁███████",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁███████",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█████",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁████",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁████",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁████",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁███",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁███",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁██",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁██",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁██",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
-        "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁"
-      ]
+        "interval": 17,
+        "frames": [
+            "█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
+            "██▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
+            "███▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
+            "████▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
+            "██████▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
+            "██████▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
+            "███████▁▁▁▁▁▁▁▁▁▁▁▁▁",
+            "████████▁▁▁▁▁▁▁▁▁▁▁▁",
+            "█████████▁▁▁▁▁▁▁▁▁▁▁",
+            "█████████▁▁▁▁▁▁▁▁▁▁▁",
+            "██████████▁▁▁▁▁▁▁▁▁▁",
+            "███████████▁▁▁▁▁▁▁▁▁",
+            "█████████████▁▁▁▁▁▁▁",
+            "██████████████▁▁▁▁▁▁",
+            "██████████████▁▁▁▁▁▁",
+            "▁██████████████▁▁▁▁▁",
+            "▁██████████████▁▁▁▁▁",
+            "▁██████████████▁▁▁▁▁",
+            "▁▁██████████████▁▁▁▁",
+            "▁▁▁██████████████▁▁▁",
+            "▁▁▁▁█████████████▁▁▁",
+            "▁▁▁▁██████████████▁▁",
+            "▁▁▁▁██████████████▁▁",
+            "▁▁▁▁▁██████████████▁",
+            "▁▁▁▁▁██████████████▁",
+            "▁▁▁▁▁██████████████▁",
+            "▁▁▁▁▁▁██████████████",
+            "▁▁▁▁▁▁██████████████",
+            "▁▁▁▁▁▁▁█████████████",
+            "▁▁▁▁▁▁▁█████████████",
+            "▁▁▁▁▁▁▁▁████████████",
+            "▁▁▁▁▁▁▁▁████████████",
+            "▁▁▁▁▁▁▁▁▁███████████",
+            "▁▁▁▁▁▁▁▁▁███████████",
+            "▁▁▁▁▁▁▁▁▁▁██████████",
+            "▁▁▁▁▁▁▁▁▁▁██████████",
+            "▁▁▁▁▁▁▁▁▁▁▁▁████████",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁███████",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁██████",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█████",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█████",
+            "█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁████",
+            "██▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁███",
+            "██▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁███",
+            "███▁▁▁▁▁▁▁▁▁▁▁▁▁▁███",
+            "████▁▁▁▁▁▁▁▁▁▁▁▁▁▁██",
+            "█████▁▁▁▁▁▁▁▁▁▁▁▁▁▁█",
+            "█████▁▁▁▁▁▁▁▁▁▁▁▁▁▁█",
+            "██████▁▁▁▁▁▁▁▁▁▁▁▁▁█",
+            "████████▁▁▁▁▁▁▁▁▁▁▁▁",
+            "█████████▁▁▁▁▁▁▁▁▁▁▁",
+            "█████████▁▁▁▁▁▁▁▁▁▁▁",
+            "█████████▁▁▁▁▁▁▁▁▁▁▁",
+            "█████████▁▁▁▁▁▁▁▁▁▁▁",
+            "███████████▁▁▁▁▁▁▁▁▁",
+            "████████████▁▁▁▁▁▁▁▁",
+            "████████████▁▁▁▁▁▁▁▁",
+            "██████████████▁▁▁▁▁▁",
+            "██████████████▁▁▁▁▁▁",
+            "▁██████████████▁▁▁▁▁",
+            "▁██████████████▁▁▁▁▁",
+            "▁▁▁█████████████▁▁▁▁",
+            "▁▁▁▁▁████████████▁▁▁",
+            "▁▁▁▁▁████████████▁▁▁",
+            "▁▁▁▁▁▁███████████▁▁▁",
+            "▁▁▁▁▁▁▁▁█████████▁▁▁",
+            "▁▁▁▁▁▁▁▁█████████▁▁▁",
+            "▁▁▁▁▁▁▁▁▁█████████▁▁",
+            "▁▁▁▁▁▁▁▁▁█████████▁▁",
+            "▁▁▁▁▁▁▁▁▁▁█████████▁",
+            "▁▁▁▁▁▁▁▁▁▁▁████████▁",
+            "▁▁▁▁▁▁▁▁▁▁▁████████▁",
+            "▁▁▁▁▁▁▁▁▁▁▁▁███████▁",
+            "▁▁▁▁▁▁▁▁▁▁▁▁███████▁",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁███████",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁███████",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█████",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁████",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁████",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁████",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁███",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁███",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁██",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁██",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁██",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁",
+            "▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁"
+        ]
     },
     "moon": {
-      "interval": 80,
-      "frames": [
-        "🌑 ",
-        "🌒 ",
-        "🌓 ",
-        "🌔 ",
-        "🌕 ",
-        "🌖 ",
-        "🌗 ",
-        "🌘 "
-      ]
+        "interval": 80,
+        "frames": [
+            "🌑 ",
+            "🌒 ",
+            "🌓 ",
+            "🌔 ",
+            "🌕 ",
+            "🌖 ",
+            "🌗 ",
+            "🌘 "
+        ]
     },
     "runner": {
-      "interval": 140,
-      "frames": [
-        "🚶 ",
-        "🏃 "
-      ]
+        "interval": 140,
+        "frames": [
+            "🚶 ",
+            "🏃 "
+        ]
     },
     "pong": {
-      "interval": 80,
-      "frames": [
-        "▐⠂       ▌",
-        "▐⠈       ▌",
-        "▐ ⠂      ▌",
-        "▐ ⠠      ▌",
-        "▐  ⡀     ▌",
-        "▐  ⠠     ▌",
-        "▐   ⠂    ▌",
-        "▐   ⠈    ▌",
-        "▐    ⠂   ▌",
-        "▐    ⠠   ▌",
-        "▐     ⡀  ▌",
-        "▐     ⠠  ▌",
-        "▐      ⠂ ▌",
-        "▐      ⠈ ▌",
-        "▐       ⠂▌",
-        "▐       ⠠▌",
-        "▐       ⡀▌",
-        "▐      ⠠ ▌",
-        "▐      ⠂ ▌",
-        "▐     ⠈  ▌",
-        "▐     ⠂  ▌",
-        "▐    ⠠   ▌",
-        "▐    ⡀   ▌",
-        "▐   ⠠    ▌",
-        "▐   ⠂    ▌",
-        "▐  ⠈     ▌",
-        "▐  ⠂     ▌",
-        "▐ ⠠      ▌",
-        "▐ ⡀      ▌",
-        "▐⠠       ▌"
-      ]
+        "interval": 80,
+        "frames": [
+            "▐⠂       ▌",
+            "▐⠈       ▌",
+            "▐ ⠂      ▌",
+            "▐ ⠠      ▌",
+            "▐  ⡀     ▌",
+            "▐  ⠠     ▌",
+            "▐   ⠂    ▌",
+            "▐   ⠈    ▌",
+            "▐    ⠂   ▌",
+            "▐    ⠠   ▌",
+            "▐     ⡀  ▌",
+            "▐     ⠠  ▌",
+            "▐      ⠂ ▌",
+            "▐      ⠈ ▌",
+            "▐       ⠂▌",
+            "▐       ⠠▌",
+            "▐       ⡀▌",
+            "▐      ⠠ ▌",
+            "▐      ⠂ ▌",
+            "▐     ⠈  ▌",
+            "▐     ⠂  ▌",
+            "▐    ⠠   ▌",
+            "▐    ⡀   ▌",
+            "▐   ⠠    ▌",
+            "▐   ⠂    ▌",
+            "▐  ⠈     ▌",
+            "▐  ⠂     ▌",
+            "▐ ⠠      ▌",
+            "▐ ⡀      ▌",
+            "▐⠠       ▌"
+        ]
     },
     "shark": {
-      "interval": 120,
-      "frames": [
-        "▐|\\____________▌",
-        "▐_|\\___________▌",
-        "▐__|\\__________▌",
-        "▐___|\\_________▌",
-        "▐____|\\________▌",
-        "▐_____|\\_______▌",
-        "▐______|\\______▌",
-        "▐_______|\\_____▌",
-        "▐________|\\____▌",
-        "▐_________|\\___▌",
-        "▐__________|\\__▌",
-        "▐___________|\\_▌",
-        "▐____________|\\▌",
-        "▐____________/|▌",
-        "▐___________/|_▌",
-        "▐__________/|__▌",
-        "▐_________/|___▌",
-        "▐________/|____▌",
-        "▐_______/|_____▌",
-        "▐______/|______▌",
-        "▐_____/|_______▌",
-        "▐____/|________▌",
-        "▐___/|_________▌",
-        "▐__/|__________▌",
-        "▐_/|___________▌",
-        "▐/|____________▌"
-      ]
+        "interval": 120,
+        "frames": [
+            "▐|\\____________▌",
+            "▐_|\\___________▌",
+            "▐__|\\__________▌",
+            "▐___|\\_________▌",
+            "▐____|\\________▌",
+            "▐_____|\\_______▌",
+            "▐______|\\______▌",
+            "▐_______|\\_____▌",
+            "▐________|\\____▌",
+            "▐_________|\\___▌",
+            "▐__________|\\__▌",
+            "▐___________|\\_▌",
+            "▐____________|\\▌",
+            "▐____________/|▌",
+            "▐___________/|_▌",
+            "▐__________/|__▌",
+            "▐_________/|___▌",
+            "▐________/|____▌",
+            "▐_______/|_____▌",
+            "▐______/|______▌",
+            "▐_____/|_______▌",
+            "▐____/|________▌",
+            "▐___/|_________▌",
+            "▐__/|__________▌",
+            "▐_/|___________▌",
+            "▐/|____________▌"
+        ]
     },
     "dqpb": {
-      "interval": 100,
-      "frames": [
-        "d",
-        "q",
-        "p",
-        "b"
-      ]
+        "interval": 100,
+        "frames": [
+            "d",
+            "q",
+            "p",
+            "b"
+        ]
     },
     "weather": {
-      "interval": 100,
-      "frames": [
-        "☀️ ",
-        "☀️ ",
-        "☀️ ",
-        "🌤 ",
-        "⛅️ ",
-        "🌥 ",
-        "☁️ ",
-        "🌧 ",
-        "🌨 ",
-        "🌧 ",
-        "🌨 ",
-        "🌧 ",
-        "🌨 ",
-        "⛈ ",
-        "🌨 ",
-        "🌧 ",
-        "🌨 ",
-        "☁️ ",
-        "🌥 ",
-        "⛅️ ",
-        "🌤 ",
-        "☀️ ",
-        "☀️ "
-      ]
+        "interval": 100,
+        "frames": [
+            "☀️ ",
+            "☀️ ",
+            "☀️ ",
+            "🌤 ",
+            "⛅️ ",
+            "🌥 ",
+            "☁️ ",
+            "🌧 ",
+            "🌨 ",
+            "🌧 ",
+            "🌨 ",
+            "🌧 ",
+            "🌨 ",
+            "⛈ ",
+            "🌨 ",
+            "🌧 ",
+            "🌨 ",
+            "☁️ ",
+            "🌥 ",
+            "⛅️ ",
+            "🌤 ",
+            "☀️ ",
+            "☀️ "
+        ]
     },
     "christmas": {
-      "interval": 400,
-      "frames": [
-        "🌲",
-        "🎄"
-      ]
+        "interval": 400,
+        "frames": [
+            "🌲",
+            "🎄"
+        ]
     },
     "grenade": {
-      "interval": 80,
-      "frames": [
-        "،   ",
-        "′   ",
-        " ´ ",
-        " ‾ ",
-        "  ⸌",
-        "  ⸊",
-        "  |",
-        "  ⁎",
-        "  ⁕",
-        " ෴ ",
-        "  ⁓",
-        "   ",
-        "   ",
-        "   "
-      ]
+        "interval": 80,
+        "frames": [
+            "،   ",
+            "′   ",
+            " ´ ",
+            " ‾ ",
+            "  ⸌",
+            "  ⸊",
+            "  |",
+            "  ⁎",
+            "  ⁕",
+            " ෴ ",
+            "  ⁓",
+            "   ",
+            "   ",
+            "   "
+        ]
     },
     "point": {
-      "interval": 125,
-      "frames": [
-        "∙∙∙",
-        "●∙∙",
-        "∙●∙",
-        "∙∙●",
-        "∙∙∙"
-      ]
+        "interval": 125,
+        "frames": [
+            "∙∙∙",
+            "●∙∙",
+            "∙●∙",
+            "∙∙●",
+            "∙∙∙"
+        ]
     },
     "layer": {
-      "interval": 150,
-      "frames": [
-        "-",
-        "=",
-        "≡"
-      ]
+        "interval": 150,
+        "frames": [
+            "-",
+            "=",
+            "≡"
+        ]
     },
     "betaWave": {
-      "interval": 80,
-      "frames": [
-        "ρββββββ",
-        "βρβββββ",
-        "ββρββββ",
-        "βββρβββ",
-        "ββββρββ",
-        "βββββρβ",
-        "ββββββρ"
-      ]
+        "interval": 80,
+        "frames": [
+            "ρββββββ",
+            "βρβββββ",
+            "ββρββββ",
+            "βββρβββ",
+            "ββββρββ",
+            "βββββρβ",
+            "ββββββρ"
+        ]
     }
-  }
+}
 #+end_src

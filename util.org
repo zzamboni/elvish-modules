@@ -46,14 +46,14 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
 Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]]:
 
 #+begin_src elvish
-  use epm
-  epm:install github.com/zzamboni/elvish-modules
+use epm
+epm:install github.com/zzamboni/elvish-modules
 #+end_src
 
 In your =rc.elv=, load this module:
 
 #+begin_src elvish
-  use github.com/zzamboni/elvish-modules/util
+use github.com/zzamboni/elvish-modules/util
 #+end_src
 
 The following functions are included:
@@ -63,7 +63,7 @@ The following functions are included:
 =util:dotify-string= shortens a string to a maximum length, followed by dots.
 
 #+begin_src elvish :use github.com/zzamboni/elvish-modules/util :exports both
-  util:dotify-string somelongstring 5
+util:dotify-string somelongstring 5
 #+end_src
 
 #+results:
@@ -74,7 +74,7 @@ The following functions are included:
 =util:pipesplit= does parallel redirection of stdout and stderr to different commands. It takes three lambdas: The first one is executed, its stdout is redirected to the second one, and its stderr to the third one.
 
 #+begin_src elvish :use github.com/zzamboni/elvish-modules/util :exports both
-  util:pipesplit { echo stdout-test; echo stderr-test >&2 } { echo STDOUT: (cat) } { echo STDERR: (cat) }
+util:pipesplit { echo stdout-test; echo stderr-test >&2 } { echo STDOUT: (cat) } { echo STDERR: (cat) }
 #+end_src
 
 #+results:
@@ -86,7 +86,7 @@ The following functions are included:
 =util:eval= does dynamic evaluation of code. Note that due to Elvish's scoping rules, statements are evaluated within the context of the =util= module, so variable assignments will not be persistent. Also, if you need to make use of any modules within the code, you need to explicitly load them with =use=.
 
 #+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
-  util:eval "put foo"
+util:eval "put foo"
 #+end_src
 
 #+results:
@@ -97,7 +97,7 @@ The following functions are included:
 =util:readline= reads a line from the current input pipe, until the first end of line. Depending on the version of Elvish you have, it either uses an external command, or an internal function, but the result is the same.
 
 #+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
-  echo "hi there\nhow are you" | util:readline
+echo "hi there\nhow are you" | util:readline
 #+end_src
 
 #+RESULTS:
@@ -125,20 +125,20 @@ echo "hi there.how are you" | util:readline &eol=. &nostrip
 =y-or-n= receives a prompt string, shows the prompt to the user and accepts =y= or =n= as an answer. Returns =$true= if the user responds with =y=. The =&style= option can be used to specify the style for the prompt, as accepted by [[https://elvish.io/ref/edit.html#editstyled][styled]].
 
 #+begin_src elvish
-  [~]─> util:y-or-n "Do you agree?"
-  Do you agree? [y/n] y
-  ▶ $true
-  [~]─> util:y-or-n &style=red "Is this green?"
-  Is this green? [y/n] n
-  ▶ $false
+[~]─> util:y-or-n "Do you agree?"
+Do you agree? [y/n] y
+▶ $true
+[~]─> util:y-or-n &style=red "Is this green?"
+Is this green? [y/n] n
+▶ $false
 #+end_src
 
 Typical use is as part of an =if= statement:
 
 #+begin_src elvish
-  [~]─> if (util:y-or-n "Are you OK?") { echo "Great!" }
-  Are you OK? [y/n] y
-  Great!
+[~]─> if (util:y-or-n "Are you OK?") { echo "Great!" }
+Are you OK? [y/n] y
+Great!
 #+end_src
 
 ** Get a filename from the macOS Finder
@@ -146,18 +146,18 @@ Typical use is as part of an =if= statement:
 On macOS, dragging a file from the Finder into a Terminal window results in its path being pasted. Unfortunately it gets pasted with escape characters which Elvish does not always interpret correctly, and also with an extra space at the end. The =util:getfile= function can be used instead of the filename, and when you drag the file it captures and fixes the filename.
 
 #+begin_src elvish
-  [~]─> util:getfile
-  Drop a file here: /System/Library/Address\ Book\ Plug-Ins
-  # (The pathname is entered by drag-and-dropping a file from the Finder)
-  ▶ '/System/Library/Address Book Plug-Ins'
+[~]─> util:getfile
+Drop a file here: /System/Library/Address\ Book\ Plug-Ins
+# (The pathname is entered by drag-and-dropping a file from the Finder)
+▶ '/System/Library/Address Book Plug-Ins'
 #+end_src
 
 Typical use is in place of the filename you want to drag into the Terminal:
 
 #+begin_src elvish
-  [~]─> ls -ld (util:getfile)
-  Drop a file here: /System/Library/Address\ Book\ Plug-Ins
-  drwxr-xr-x 8 root wheel 256 Oct 25 18:16 '/System/Library/Address Book Plug-Ins'
+[~]─> ls -ld (util:getfile)
+Drop a file here: /System/Library/Address\ Book\ Plug-Ins
+drwxr-xr-x 8 root wheel 256 Oct 25 18:16 '/System/Library/Address Book Plug-Ins'
 #+end_src
 
 ** Maximum/minimum
@@ -165,10 +165,10 @@ Typical use is in place of the filename you want to drag into the Terminal:
 Return the maximum/minimum in a list of numbers. If the =&with= option is provided, it must be a function which receives on argument and returns a number, which is used for the comparison instead of the actual values. In this case, the list elements can be anything, as long as the =&with= function returns a numeric value.
 
 #+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
-  util:max 3 4 5 2 -1 4 0
-  util:min 3 4 5 2 -1 4 0
-  util:max a bc def ghijkl &with=$count~
-  util:min a bc def ghijkl &with=$count~
+util:max 3 4 5 2 -1 4 0
+util:min 3 4 5 2 -1 4 0
+util:max a bc def ghijkl &with=$count~
+util:min a bc def ghijkl &with=$count~
 #+end_src
 
 #+results:
@@ -184,17 +184,17 @@ Return the maximum/minimum in a list of numbers. If the =&with= option is provid
 In the example below, the values are scalars. Note that =:else= has no special significance - it's simply evaluated as a string, which represents a booleanly true value. Any other true value (e.g. =:default=, =$true=, etc.) could be used.
 
 #+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
-  fn pos-neg-or-zero [n]{
-    util:cond [
-      { < $n 0 } "negative"
-      { > $n 0 } "positive"
-      :else      "zero"
-    ]
-  }
+fn pos-neg-or-zero [n]{
+  util:cond [
+    { < $n 0 } "negative"
+    { > $n 0 } "positive"
+    :else      "zero"
+  ]
+}
 
-  pos-neg-or-zero 5
-  pos-neg-or-zero -1
-  pos-neg-or-zero 0
+pos-neg-or-zero 5
+pos-neg-or-zero -1
+pos-neg-or-zero 0
 #+end_src
 
 #+results:
@@ -207,13 +207,13 @@ In the example below, the values are scalars. Note that =:else= has no special s
 The =util:electric-delimiters= function sets up the necessary bindings to automatically insert and delete matching pairs of delimiters. By default the following pairs are recognized, but the list can be augmented by adding the corresponding delimiters to the =util:electric-pairs= variable:
 
 #+begin_src elvish
-  util:electric-pairs = ['()' '{}' '[]' '""' "''"]
+util:electric-pairs = ['()' '{}' '[]' '""' "''"]
 #+end_src
 
 By default, electric pairs are inserted only when the cursor is at the end of the line, or at a space character (i.e. do not insert the full pair when the cursor is on another character). The variable =$util:electric-pair-always= can be set to =$true= to always insert the electric pair.
 
 #+begin_src elvish
-  util:electric-pair-always = $false
+util:electric-pair-always = $false
 #+end_src
 * Implementation
 :PROPERTIES:
@@ -224,23 +224,23 @@ By default, electric pairs are inserted only when the cursor is at the end of th
 ** Dotifying strings
 
 #+begin_src elvish
-  fn dotify-string [str dotify-length]{
-    if (or (<= $dotify-length 0) (<= (count $str) $dotify-length)) {
-      put $str
-    } else {
-      put $str[:$dotify-length]'…'
-    }
+fn dotify-string [str dotify-length]{
+  if (or (<= $dotify-length 0) (<= (count $str) $dotify-length)) {
+    put $str
+  } else {
+    put $str[:$dotify-length]'…'
   }
+}
 #+end_src
 
 *** Tests
 
 #+begin_src elvish :tangle no :noweb-ref tests
-  (test:set dotify-string [
-      (test:is { util:dotify-string "somelongstring" 5 } "somel…" Long string gets dotified)
-      (test:is { util:dotify-string "short" 5 }          "short"  Equal-as-limit string stays the same)
-      (test:is { util:dotify-string "bah" 5 }            "bah"    Short string stays the same)
-  ])
+(test:set dotify-string [
+    (test:is { util:dotify-string "somelongstring" 5 } "somel…" Long string gets dotified)
+    (test:is { util:dotify-string "short" 5 }          "short"  Equal-as-limit string stays the same)
+    (test:is { util:dotify-string "bah" 5 }            "bah"    Short string stays the same)
+])
 #+end_src
 
 ** Parallel redirection of stdout/stderr to different commands
@@ -248,21 +248,21 @@ By default, electric pairs are inserted only when the cursor is at the end of th
 The implementation of this function was inspired by the discussion [[https://github.com/elves/elvish/issues/500][in this issue]].
 
 #+begin_src elvish
-  fn pipesplit [l1 l2 l3]{
-    pout = (pipe)
-    perr = (pipe)
-    run-parallel {
-      $l1 > $pout 2> $perr
-      pwclose $pout
-      pwclose $perr
-    } {
-      $l2 < $pout
-      prclose $pout
-    } {
-      $l3 < $perr
-      prclose $perr
-    }
+fn pipesplit [l1 l2 l3]{
+  pout = (pipe)
+  perr = (pipe)
+  run-parallel {
+    $l1 > $pout 2> $perr
+    pwclose $pout
+    pwclose $perr
+  } {
+    $l2 < $pout
+    prclose $pout
+  } {
+    $l3 < $perr
+    prclose $perr
   }
+}
 #+end_src
 
 *** Tests
@@ -270,9 +270,9 @@ The implementation of this function was inspired by the discussion [[https://git
 We sort the output of =pipesplit= because the functions run in parallel, to ensure a predictable order.
 
 #+begin_src elvish :tangle no :noweb-ref tests
-  (test:set pipesplit [
-      (test:is { put [(util:pipesplit { echo stdout; echo stderr >&2 } { echo STDOUT: (cat) } { echo STDERR: (cat) } | sort)] } ["STDERR: stderr" "STDOUT: stdout"] Parallel redirection)
-  ])
+(test:set pipesplit [
+    (test:is { put [(util:pipesplit { echo stdout; echo stderr >&2 } { echo STDOUT: (cat) } { echo STDERR: (cat) } | sort)] } ["STDERR: stderr" "STDOUT: stdout"] Parallel redirection)
+])
 #+end_src
 
 ** Evaluating code
@@ -280,20 +280,20 @@ We sort the output of =pipesplit= because the functions run in parallel, to ensu
 Elvish does not include an =eval= function, but we emulate one using the =-source= command.
 
 #+begin_src elvish
-  fn eval [str]{
-    tmpf = (mktemp)
-    echo $str > $tmpf
-    -source $tmpf
-    rm -f $tmpf
-  }
+fn eval [str]{
+  tmpf = (mktemp)
+  echo $str > $tmpf
+  -source $tmpf
+  rm -f $tmpf
+}
 #+end_src
 
 *** Tests
 
 #+begin_src elvish :tangle no :noweb-ref tests
-  (test:set eval [
-      (test:is { util:eval "echo yes" } yes Evaluated code)
-  ])
+(test:set eval [
+    (test:is { util:eval "echo yes" } yes Evaluated code)
+])
 #+end_src
 
 ** Reading a line of input
@@ -301,61 +301,61 @@ Elvish does not include an =eval= function, but we emulate one using the =-sourc
 The base of reading a line of input is a low-level function which reads the actual text. We define a default version of the =-read-upto-eol= function which uses the external =head= command to read a line. Note that this version does not respect the value of =$eol=, since the end of line is always marked by a newline.
 
 #+begin_src elvish
-  -read-upto-eol~ = [eol]{ put (head -n1) }
+-read-upto-eol~ = [eol]{ put (head -n1) }
 #+end_src
 
 However, in recent versions of Elvish, the =read-upto= function can be used to read a line of text without invoking an external command, and can make proper use of different =$eol= values (default is still newline).
 
 #+begin_src elvish
-  use builtin
-  if (has-key $builtin: read-upto~) {
-    -read-upto-eol~ = [eol]{ read-upto $eol }
-  }
+use builtin
+if (has-key $builtin: read-upto~) {
+  -read-upto-eol~ = [eol]{ read-upto $eol }
+}
 #+end_src
 
 Finally, we build the =util:readline= function on top of =-read-upto-eol=. This function was written by and is included here with the kind permission of [[https://folk.ntnu.no/hanche/en/][Harald Hanche-Olsen]]. Note that if =&prompt= is specified, all input/output is forced to =/dev/tty=, as the existence of a prompt implies interactive use. Otherwise input is read from stdin.
 
 #+begin_src elvish
-  fn readline [&eol="\n" &nostrip=$false &prompt=$nil]{
-    if $prompt {
-      print $prompt > /dev/tty
-    }
-    local:line = (if $prompt {
-        -read-upto-eol $eol < /dev/tty
-      } else {
-        -read-upto-eol $eol
-    })
-    if (and (not $nostrip) (!=s $line '') (==s $line[-1:] $eol)) {
-      put $line[:-1]
-    } else {
-      put $line
-    }
+fn readline [&eol="\n" &nostrip=$false &prompt=$nil]{
+  if $prompt {
+    print $prompt > /dev/tty
   }
+  local:line = (if $prompt {
+      -read-upto-eol $eol < /dev/tty
+    } else {
+      -read-upto-eol $eol
+  })
+  if (and (not $nostrip) (!=s $line '') (==s $line[-1:] $eol)) {
+    put $line[:-1]
+  } else {
+    put $line
+  }
+}
 #+end_src
 *** Tests
 
 #+begin_src elvish :tangle no :noweb-ref tests
-  (test:set eval [
-      (test:is { echo "line1\nline2" | util:readline }                line1     Readline)
-      (test:is { echo "line1\nline2" | util:readline &nostrip }       "line1\n" Readline with nostrip)
-      (test:is { echo | util:readline }                               ''        Readline empty line)
-      (test:is { echo "line1.line2" | util:readline &eol=. }          line1     Readline with different EOL)
-      (test:is { echo "line1.line2" | util:readline &eol=. &nostrip } line1.    Readline with different EOL)
-  ])
+(test:set eval [
+    (test:is { echo "line1\nline2" | util:readline }                line1     Readline)
+    (test:is { echo "line1\nline2" | util:readline &nostrip }       "line1\n" Readline with nostrip)
+    (test:is { echo | util:readline }                               ''        Readline empty line)
+    (test:is { echo "line1.line2" | util:readline &eol=. }          line1     Readline with different EOL)
+    (test:is { echo "line1.line2" | util:readline &eol=. &nostrip } line1.    Readline with different EOL)
+])
 #+end_src
 
 ** Yes-or-no prompts
 
 #+begin_src elvish
-  fn y-or-n [&style=default prompt]{
-    prompt = $prompt" [y/n] "
-    if (not-eq $style default) {
-      prompt = (styled $prompt $style)
-    }
-    print $prompt > /dev/tty
-    resp = (readline)
-    eq $resp y
+fn y-or-n [&style=default prompt]{
+  prompt = $prompt" [y/n] "
+  if (not-eq $style default) {
+    prompt = (styled $prompt $style)
   }
+  print $prompt > /dev/tty
+  resp = (readline)
+  eq $resp y
+}
 #+end_src
 
 ** Get a filename from the macOS Finder
@@ -363,15 +363,15 @@ Finally, we build the =util:readline= function on top of =-read-upto-eol=. This 
 Thanks to @hanche in the Elvish channel, a short utility to convert a filename as dragged-and-dropped from the Finder into a usable filename.
 
 #+begin_src elvish
-  fn getfile {
-    use re
-    print 'Drop a file here: ' >/dev/tty
-    fname = (read-line)
-    each [p]{
-      fname = (re:replace $p[0] $p[1] $fname)
-    } [['\\(.)' '$1'] ['^''' ''] ['\s*$' ''] ['''$' '']]
-    put $fname
-  }
+fn getfile {
+  use re
+  print 'Drop a file here: ' >/dev/tty
+  fname = (read-line)
+  each [p]{
+    fname = (re:replace $p[0] $p[1] $fname)
+  } [['\\(.)' '$1'] ['^''' ''] ['\s*$' ''] ['''$' '']]
+  put $fname
+}
 #+end_src
 
 ** Maximum/minimum
@@ -379,42 +379,42 @@ Thanks to @hanche in the Elvish channel, a short utility to convert a filename a
 Choose the maximum and minimum numbers from the given list.
 
 #+begin_src elvish
-  fn max [a @rest &with=[v]{put $v}]{
-    res = $a
-    val = ($with $a)
-    each [n]{
-      nval = ($with $n)
-      if (> $nval $val) {
-        res = $n
-        val = $nval
-      }
-    } $rest
-    put $res
-  }
+fn max [a @rest &with=[v]{put $v}]{
+  res = $a
+  val = ($with $a)
+  each [n]{
+    nval = ($with $n)
+    if (> $nval $val) {
+      res = $n
+      val = $nval
+    }
+  } $rest
+  put $res
+}
 
-  fn min [a @rest &with=[v]{put $v}]{
-    res = $a
-    val = ($with $a)
-    each [n]{
-      nval = ($with $n)
-      if (< $nval $val) {
-        res = $n
-        val = $nval
-      }
-    } $rest
-    put $res
-  }
+fn min [a @rest &with=[v]{put $v}]{
+  res = $a
+  val = ($with $a)
+  each [n]{
+    nval = ($with $n)
+    if (< $nval $val) {
+      res = $n
+      val = $nval
+    }
+  } $rest
+  put $res
+}
 #+end_src
 
 *** Tests
 
 #+begin_src elvish :tangle no :noweb-ref tests
-  (test:set max-min [
-      (test:is { util:max 1 2 3 -1 5 0 }  5 Maximum)
-      (test:is { util:min 1 2 3 -1 5 0 } -1 Minimum)
-      (test:is { util:max a bc def ghijkl &with=$count~ } ghijkl Maximum with function)
-      (test:is { util:min a bc def ghijkl &with=$count~ } a Minimum with function)
-  ])
+(test:set max-min [
+    (test:is { util:max 1 2 3 -1 5 0 }  5 Maximum)
+    (test:is { util:min 1 2 3 -1 5 0 } -1 Minimum)
+    (test:is { util:max a bc def ghijkl &with=$count~ } ghijkl Maximum with function)
+    (test:is { util:min a bc def ghijkl &with=$count~ } a Minimum with function)
+])
 #+end_src
 
 ** Conditionals
@@ -422,29 +422,29 @@ Choose the maximum and minimum numbers from the given list.
 We simply step through the /expression value/ pairs, and =put= the first value whose expression (or its result, if it's a closure) returns true.
 
 #+begin_src elvish
-  fn cond [clauses]{
-    range &step=2 (count $clauses) | each [i]{
-      exp = $clauses[$i]
-      if (eq (kind-of $exp) fn) { exp = ($exp) }
-      if $exp {
-        put $clauses[(+ $i 1)]
-        return
-      }
+fn cond [clauses]{
+  range &step=2 (count $clauses) | each [i]{
+    exp = $clauses[$i]
+    if (eq (kind-of $exp) fn) { exp = ($exp) }
+    if $exp {
+      put $clauses[(+ $i 1)]
+      return
     }
   }
+}
 #+end_src
 
 *** Tests
 
 #+begin_src elvish :tangle no :noweb-ref tests
-  (test:set cond [
-      (test:is { util:cond [ $false no $true yes ] }                  yes   Conditional with constant test)
-      (test:is { util:cond [ $false no { eq 1 1 } yes ] }             yes   Conditional with function test)
-      (test:is { util:cond [ $false no { eq 0 1 } yes :else final ] } final Default option with :else)
-      (test:is { put [(util:cond [ $false no ])] }                    []    No conditions match, no output)
-      (test:is { put [(util:cond [ ])] }                              []    Empty conditions, no output)
-      (test:is { util:cond [ { eq 1 1 } $eq~ ] }                      $eq~  Return value is a function)
-  ])
+(test:set cond [
+    (test:is { util:cond [ $false no $true yes ] }                  yes   Conditional with constant test)
+    (test:is { util:cond [ $false no { eq 1 1 } yes ] }             yes   Conditional with function test)
+    (test:is { util:cond [ $false no { eq 0 1 } yes :else final ] } final Default option with :else)
+    (test:is { put [(util:cond [ $false no ])] }                    []    No conditions match, no output)
+    (test:is { put [(util:cond [ ])] }                              []    Empty conditions, no output)
+    (test:is { util:cond [ { eq 1 1 } $eq~ ] }                      $eq~  Return value is a function)
+])
 #+end_src
 
 ** Pipeline-or-argument input
@@ -452,26 +452,26 @@ We simply step through the /expression value/ pairs, and =put= the first value w
 =util:optional-input= gets optional pipeline input for any function, mimicking the behavior of =each=. If an argument is given, it is interpreted as an array and its contents is used as the input. Otherwise, it reads the input from the pipeline using =all=. Returns the data as an array
 
 #+begin_src elvish
-  fn optional-input [@input]{
-    if (eq $input []) {
-      input = [(all)]
-    } elif (eq (count $input) 1) {
-      input = [ (all $input[0]) ]
-    } else {
-      fail "util:optional-input: want 0 or 1 arguments, got "(count $input)
-    }
-    put $input
+fn optional-input [@input]{
+  if (eq $input []) {
+    input = [(all)]
+  } elif (eq (count $input) 1) {
+    input = [ (all $input[0]) ]
+  } else {
+    fail "util:optional-input: want 0 or 1 arguments, got "(count $input)
   }
+  put $input
+}
 #+end_src
 
 *** Tests
 
 #+begin_src elvish :tangle no :noweb-ref tests
-  (test:set optional-input [
-      (test:is { util:optional-input [foo bar] }         [foo bar]     Input from list)
-      (test:is { put foo bar baz | util:optional-input } [foo bar baz] Input from pipeline)
-      (test:is { put | util:optional-input }             []            Empty input)
-  ])
+(test:set optional-input [
+    (test:is { util:optional-input [foo bar] }         [foo bar]     Input from list)
+    (test:is { put foo bar baz | util:optional-input } [foo bar baz] Input from pipeline)
+    (test:is { put | util:optional-input }             []            Empty input)
+])
 #+end_src
 
 ** Electric editing in command line
@@ -481,79 +481,79 @@ The =util:electric-delimiters= function sets up the necessary bindings to automa
 We first define the characters (and their corresponding pairs) that should trigger electric insertion.
 
 #+begin_src elvish
-  electric-pairs = ['()' '{}' '[]' '""' "''"]
-  #+end_src
+electric-pairs = ['()' '{}' '[]' '""' "''"]
+#+end_src
 
 By default, electric pairs are inserted only when the cursor is at the end of the line, at a space character (i.e. do not insert the full pair when the cursor is on another character), or at the closing character of a delimiter pair (which allows inserting nested elimiter pairs). The variable =$util:electric-pair-always= can be set to =$true= to always insert the electric pair. The =-should-insert-pair= function returns whether, depending on the cursor position and on the configuration variable, the full pair should be inserted at the moment.
 
-  #+begin_src elvish
-    electric-pair-always = $false
+#+begin_src elvish
+electric-pair-always = $false
 
-    fn -should-insert-pair {
-      at-end = (== $edit:-dot (count $edit:current-command))
-      at-space = $false
-      at-closing = $false
-      if (not $at-end) {
-        at-space = (eq $edit:current-command[$edit:-dot] ' ')
-        at-closing = (or (each [p]{ eq $edit:current-command[$edit:-dot] $p[1] } $electric-pairs))
-      }
-      or $electric-pair-always $at-end $at-space $at-closing
-    }
+fn -should-insert-pair {
+  at-end = (== $edit:-dot (count $edit:current-command))
+  at-space = $false
+  at-closing = $false
+  if (not $at-end) {
+    at-space = (eq $edit:current-command[$edit:-dot] ' ')
+    at-closing = (or (each [p]{ eq $edit:current-command[$edit:-dot] $p[1] } $electric-pairs))
+  }
+  or $electric-pair-always $at-end $at-space $at-closing
+}
 #+end_src
 
 The =-electric-insert-fn= function returns a lambda which inserts either the full electric pair, or only the first character, depending on the configuration and cursor position as checked by =-should-insert-pair=. The lambda returned by =-electric-insert-fn= is the one that should be bound to the first character of all electric pairs of characters.
 
 #+begin_src elvish
-  fn -electric-insert-fn [pair]{
-    put {
-      if (-should-insert-pair) {
-        edit:insert-at-dot $pair
-        edit:move-dot-left
-      } else {
-        edit:insert-at-dot $pair[0]
-      }
+fn -electric-insert-fn [pair]{
+  put {
+    if (-should-insert-pair) {
+      edit:insert-at-dot $pair
+      edit:move-dot-left
+    } else {
+      edit:insert-at-dot $pair[0]
     }
   }
+}
 #+end_src
 
 The =-electric-backspace= function is bound to the Backspace key, and performs an electric delete of both characters in the pair only if the character to be deleted is the first of an electric pair, and if the corresponding pair is right next to it. Otherwise, the normal behavior (delete character to the left of the cursor) takes place.
 
 #+begin_src elvish
-  fn -electric-backspace {
-    if (> $edit:-dot 0) {
-      char1 = ''
-      char2 = ''
-      # To get the previous character, loop through the indices in case
-      # the previous character is multi-byte
-      i = (- $edit:-dot 1)
-      while (not ?(char1=$edit:current-command[$i])) { i = (- $i 1) }
-      if (< $edit:-dot (count $edit:current-command)) {
-        char2 = $edit:current-command[$edit:-dot]
-      }
-      pending-delete = $true
-      for pair $electric-pairs {
-        if (and (==s $char1 $pair[0]) (==s $char2 $pair[1])) {
-          edit:kill-rune-left
-          edit:kill-rune-right
-          pending-delete = $false
-        }
-      }
-      if $pending-delete {
+fn -electric-backspace {
+  if (> $edit:-dot 0) {
+    char1 = ''
+    char2 = ''
+    # To get the previous character, loop through the indices in case
+    # the previous character is multi-byte
+    i = (- $edit:-dot 1)
+    while (not ?(char1=$edit:current-command[$i])) { i = (- $i 1) }
+    if (< $edit:-dot (count $edit:current-command)) {
+      char2 = $edit:current-command[$edit:-dot]
+    }
+    pending-delete = $true
+    for pair $electric-pairs {
+      if (and (==s $char1 $pair[0]) (==s $char2 $pair[1])) {
         edit:kill-rune-left
+        edit:kill-rune-right
+        pending-delete = $false
       }
     }
+    if $pending-delete {
+      edit:kill-rune-left
+    }
   }
+}
 #+end_src
 
 The =electric-delimiters= function is the only user-facing function, and is the one that sets up the corresponding keybindings to call the "electric" functions above.
 
 #+begin_src elvish
-  fn electric-delimiters {
-    for pair $electric-pairs {
-      edit:insert:binding[$pair[0]] = (-electric-insert-fn $pair)
-    }
-    edit:insert:binding[Backspace] = $-electric-backspace~
+fn electric-delimiters {
+  for pair $electric-pairs {
+    edit:insert:binding[$pair[0]] = (-electric-insert-fn $pair)
   }
+  edit:insert:binding[Backspace] = $-electric-backspace~
+}
 #+end_src
 
 ** Functional programming utilities
@@ -561,42 +561,42 @@ The =electric-delimiters= function is the only user-facing function, and is the 
 =util:select= and =util:remove= filter those for which the provided closure is true/false.
 
 #+begin_src elvish
-  fn select [p @input]{
-    each [i]{ if ($p $i) { put $i} } (optional-input $@input)
-  }
+fn select [p @input]{
+  each [i]{ if ($p $i) { put $i} } (optional-input $@input)
+}
 #+end_src
 
 #+begin_src elvish
-  fn remove [p @input]{
-    each [i]{ if (not ($p $i)) { put $i} } (optional-input $@input)
-  }
+fn remove [p @input]{
+  each [i]{ if (not ($p $i)) { put $i} } (optional-input $@input)
+}
 #+end_src
 
 =util:partial=, build a partial function call.
 
 #+begin_src elvish
-  fn partial [f @p-args]{
-    put [@args]{
-      $f $@p-args $@args
-    }
+fn partial [f @p-args]{
+  put [@args]{
+    $f $@p-args $@args
   }
+}
 #+end_src
 
 *** Tests
 
 #+begin_src elvish :tangle no :noweb-ref tests
-  (test:set select-and-remove [
-      (test:is { put [(util:select [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [0]        Select zeros from a list)
-      (test:is { put [(util:remove [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [3 2 2 -1] Remove zeros from a list)
-  ])
+(test:set select-and-remove [
+    (test:is { put [(util:select [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [0]        Select zeros from a list)
+    (test:is { put [(util:remove [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [3 2 2 -1] Remove zeros from a list)
+])
 #+end_src
 
 #+begin_src elvish :tangle no :noweb-ref tests
-  (test:set partial [
-      (test:is { (util:partial $+~ 3) 5 }                       (float64 8)   Partial addition)
-      (test:is { (util:partial $eq~ 3) 3 }                      $true         Partial eq)
-      (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } (float64 120) Partial custom function with rest arg)
-  ])
+(test:set partial [
+    (test:is { (util:partial $+~ 3) 5 }                       (float64 8)   Partial addition)
+    (test:is { (util:partial $eq~ 3) 3 }                      $true         Partial eq)
+    (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } (float64 120) Partial custom function with rest arg)
+])
 #+end_src
 
 ** Fix deprecated functions
@@ -606,18 +606,18 @@ Takes a single file, and replaces all occurrences of deprecated functions by the
 *Note*: this does dumb string replacement. Please check the result to make sure there are no unintended replacements. Also, you still need to manually add =use str= at the top of the files where any of the =str:= functions are introduced.
 
 #+begin_src elvish
-  use str
+use str
 
-  fn fix-deprecated [f]{
-    deprecated = [
-      &all= all
-      &str:join= str:join
-      &str:split= str:split
-      &str:replace= str:replace
-    ]
-    sed-cmd = (str:join "; " [(keys $deprecated | each [d]{ put "s/"$d"/"$deprecated[$d]"/" })])
-    sed -i '' -e $sed-cmd $f
-  }
+fn fix-deprecated [f]{
+  deprecated = [
+    &all= all
+    &str:join= str:join
+    &str:split= str:split
+    &str:replace= str:replace
+  ]
+  sed-cmd = (str:join "; " [(keys $deprecated | each [d]{ put "s/"$d"/"$deprecated[$d]"/" })])
+  sed -i '' -e $sed-cmd $f
+}
 #+end_src
 
 * Test suite
@@ -625,14 +625,14 @@ Takes a single file, and replaces all occurrences of deprecated functions by the
 All the test cases above are collected by the =<<tests>>= stanza below, and stored in the file =util_test.elv=, which can be executed as follows:
 
 #+begin_src elvish
-  elvish util_test.elv
+elvish util_test.elv
 #+end_src
 
 #+begin_src elvish :tangle (concat (file-name-sans-extension (buffer-file-name)) "_test.elv") :mkdirp yes :comments no :noweb yes
-  use github.com/zzamboni/elvish-modules/test
-  use github.com/zzamboni/elvish-modules/util
+use github.com/zzamboni/elvish-modules/test
+use github.com/zzamboni/elvish-modules/util
 
-  (test:set github.com/zzamboni/elvish-modules/util [
-      <<tests>>
-  ])
+(test:set github.com/zzamboni/elvish-modules/util [
+    <<tests>>
+])
 #+end_src
