@@ -90,6 +90,7 @@ The escape sequences used by iTerm2 for shell integration are described in detai
 
 #+begin_src elvish
 use str
+use path
 #+end_src
 
 ** Base escape sequences
@@ -407,7 +408,7 @@ fn clear-screen {
 If the [[https://iterm2.com/documentation-utilities.html][iTerm2 utilities]] are installed in their default location of =~/.iterm2=, we detect them and add them automatically to the path. Note that some of the functionality provided by the utilities is also provided by functions in this module.
 
 #+begin_src elvish
-if (-is-dir ~/.iterm2) {
+if (path:is-dir ~/.iterm2) {
   paths = [ $@paths ~/.iterm2 ]
 }
 #+end_src

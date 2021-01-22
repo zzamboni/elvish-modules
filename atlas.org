@@ -17,10 +17,10 @@ fn push [@arg]{
   if (< 0 (count $arg)) {
     msg = (str:join " " $arg)
   }
-  BRANCH=(git symbolic-ref HEAD | sed -e 's|^refs/heads/||')
-  REPO=(git remote -v | head -1 | sed 's/^.*oreilly\.com\///; s/\.git.*$//')
+  BRANCH = (git symbolic-ref HEAD | sed -e 's|^refs/heads/||')
+  REPO = (git remote -v | head -1 | sed 's/^.*oreilly\.com\///; s/\.git.*$//')
   echo (styled "Committing and pushing changes to "$REPO", branch "$BRANCH"..." yellow) > /dev/tty
-  st=?(git ci -a -m $msg > /dev/tty)
+  st = ?(git ci -a -m $msg > /dev/tty)
   git push atlas $BRANCH > /dev/tty
   put $BRANCH $REPO
 }

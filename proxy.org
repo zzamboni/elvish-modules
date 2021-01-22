@@ -105,26 +105,11 @@ env-vars = [ http_proxy https_proxy ]
 
 ** Functions
 
-Elvish does not include an =eval= function, but we emulate one using the =-source= command. We use this to dynamically query and set the variables according to the contents of =$proxy:env-vars=.
-
-#+begin_src elvish
-fn eval [str]{
-  tmpf = (mktemp)
-  echo $str > $tmpf
-  -source $tmpf
-  rm -f $tmpf
-}
-#+end_src
-
-Check whether the proxy is set. We use the first variable in =$proxy:env-vars= for the check, with the assumption that the other variables follow. The need to dynamically determine which variable to check makes this function a bit tricky - basically we create a temporary file (using the =mktemp= command), and then evaluate code that removes the file if the proxy variable is unset - then the existence of the file indicates the setting of the variable.
+Check whether the proxy is set. We use the first variable in =$proxy:env-vars= for the check, with the assumption that the other variables follow.
 
 #+begin_src elvish
 fn is-set {
-  -tmp-file = (mktemp)
-  eval "if (eq $E:"(take 1 $env-vars)" '') { rm "$-tmp-file" }"
-  -res = (bool ?(test -f $-tmp-file))
-  rm -f $-tmp-file
-  put $-res
+  eval "not-eq $E:"(take 1 $env-vars)" ''"
 }
 #+end_src
 
@@ -137,7 +122,7 @@ fn set-proxy [@param]{
     proxyhost = $param[0]
   }
   if (not-eq $proxyhost "") {
-    eval (each [var]{ put "E:"$var" = "$host } $env-vars | str:join "; ")
+    each [var]{ set-env $var $host } $env-vars
   }
 }
 #+end_src
@@ -146,7 +131,7 @@ Unset the proxy variables.
 
 #+begin_src elvish
 fn unset-proxy {
-  eval (each [var]{ put "del E:"$var } $env-vars | str:join "; ")
+  each [var]{ unset-env $var } $env-vars
 }
 #+end_src
 

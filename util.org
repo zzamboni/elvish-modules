@@ -11,7 +11,6 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
 - [[#usage][Usage]]
   - [[#dotifying-strings][Dotifying strings]]
   - [[#parallel-redirection-of-stdoutstderr-to-different-commands][Parallel redirection of stdout/stderr to different commands]]
-  - [[#evaluating-code][Evaluating code]]
   - [[#reading-a-line-of-input][Reading a line of input]]
   - [[#yes-or-no-prompts][Yes-or-no prompts]]
   - [[#get-a-filename-from-the-macos-finder][Get a filename from the macOS Finder]]
@@ -23,21 +22,19 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
     - [[#tests][Tests]]
   - [[#parallel-redirection-of-stdoutstderr-to-different-commands-1][Parallel redirection of stdout/stderr to different commands]]
     - [[#tests-1][Tests]]
-  - [[#evaluating-code-1][Evaluating code]]
-    - [[#tests-2][Tests]]
   - [[#reading-a-line-of-input-1][Reading a line of input]]
-    - [[#tests-3][Tests]]
+    - [[#tests-2][Tests]]
   - [[#yes-or-no-prompts-1][Yes-or-no prompts]]
   - [[#get-a-filename-from-the-macos-finder-1][Get a filename from the macOS Finder]]
   - [[#maximumminimum-1][Maximum/minimum]]
-    - [[#tests-4][Tests]]
+    - [[#tests-3][Tests]]
   - [[#conditionals-1][Conditionals]]
-    - [[#tests-5][Tests]]
+    - [[#tests-4][Tests]]
   - [[#pipeline-or-argument-input][Pipeline-or-argument input]]
-    - [[#tests-6][Tests]]
+    - [[#tests-5][Tests]]
   - [[#electric-editing-in-command-line-1][Electric editing in command line]]
   - [[#functional-programming-utilities][Functional programming utilities]]
-    - [[#tests-7][Tests]]
+    - [[#tests-6][Tests]]
   - [[#fix-deprecated-functions][Fix deprecated functions]]
 - [[#test-suite][Test suite]]
 
@@ -80,17 +77,6 @@ util:pipesplit { echo stdout-test; echo stderr-test >&2 } { echo STDOUT: (cat) }
 #+results:
 : STDOUT: stdout-test
 : STDERR: stderr-test
-
-** Evaluating code
-
-=util:eval= does dynamic evaluation of code. Note that due to Elvish's scoping rules, statements are evaluated within the context of the =util= module, so variable assignments will not be persistent. Also, if you need to make use of any modules within the code, you need to explicitly load them with =use=.
-
-#+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
-util:eval "put foo"
-#+end_src
-
-#+results:
-: ▶ foo
 
 ** Reading a line of input
 
@@ -181,7 +167,7 @@ util:min a bc def ghijkl &with=$count~
 
 =util:cond= emulates [[https://clojuredocs.org/clojure.core/cond][Clojure's cond]] function. It receives a list of /expression value/ pairs. Puts the first /value/ whose /expression/ is a true value, if any.  /Expressions/ can be closures (in which case they are executed and their return value used) or other types, which are used as-is. /Values/ are always returned as-is, even if they are closures.
 
-In the example below, the values are scalars. Note that =:else= has no special significance - it's simply evaluated as a string, which represents a booleanly true value. Any other true value (e.g. =:default=, =$true=, etc.) could be used.
+In the example below, the values are scalars. Note that =:else= has no special significance - it's simply evaluated as a string, which represents a "booleanly true" value. Any other true value (e.g. =:default=, =$true=, etc.) could be used.
 
 #+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
 fn pos-neg-or-zero [n]{
@@ -275,27 +261,6 @@ We sort the output of =pipesplit= because the functions run in parallel, to ensu
 ])
 #+end_src
 
-** Evaluating code
-
-Elvish does not include an =eval= function, but we emulate one using the =-source= command.
-
-#+begin_src elvish
-fn eval [str]{
-  tmpf = (mktemp)
-  echo $str > $tmpf
-  -source $tmpf
-  rm -f $tmpf
-}
-#+end_src
-
-*** Tests
-
-#+begin_src elvish :tangle no :noweb-ref tests
-(test:set eval [
-    (test:is { util:eval "echo yes" } yes Evaluated code)
-])
-#+end_src
-
 ** Reading a line of input
 
 The base of reading a line of input is a low-level function which reads the actual text. We define a default version of the =-read-upto-eol= function which uses the external =head= command to read a line. Note that this version does not respect the value of =$eol=, since the end of line is always marked by a newline.
@@ -335,7 +300,7 @@ fn readline [&eol="\n" &nostrip=$false &prompt=$nil]{
 *** Tests
 
 #+begin_src elvish :tangle no :noweb-ref tests
-(test:set eval [
+(test:set readline [
     (test:is { echo "line1\nline2" | util:readline }                line1     Readline)
     (test:is { echo "line1\nline2" | util:readline &nostrip }       "line1\n" Readline with nostrip)
     (test:is { echo | util:readline }                               ''        Readline empty line)
@@ -526,7 +491,7 @@ fn -electric-backspace {
     # To get the previous character, loop through the indices in case
     # the previous character is multi-byte
     i = (- $edit:-dot 1)
-    while (not ?(char1=$edit:current-command[$i])) { i = (- $i 1) }
+    while (not ?(char1 = $edit:current-command[$i])) { i = (- $i 1) }
     if (< $edit:-dot (count $edit:current-command)) {
       char2 = $edit:current-command[$edit:-dot]
     }

@@ -10,10 +10,7 @@ use github.com/zzamboni/elvish-modules/util
     (test:set pipesplit [
         (test:is { put [(util:pipesplit { echo stdout; echo stderr >&2 } { echo STDOUT: (cat) } { echo STDERR: (cat) } | sort)] } ["STDERR: stderr" "STDOUT: stdout"] Parallel redirection)
     ])
-    (test:set eval [
-        (test:is { util:eval "echo yes" } yes Evaluated code)
-    ])
-    (test:set eval [
+    (test:set readline [
         (test:is { echo "line1\nline2" | util:readline }                line1     Readline)
         (test:is { echo "line1\nline2" | util:readline &nostrip }       "line1\n" Readline with nostrip)
         (test:is { echo | util:readline }                               ''        Readline empty line)

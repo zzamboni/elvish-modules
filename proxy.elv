@@ -16,19 +16,8 @@ disable-autoset = $false
 
 env-vars = [ http_proxy https_proxy ]
 
-fn eval [str]{
-  tmpf = (mktemp)
-  echo $str > $tmpf
-  -source $tmpf
-  rm -f $tmpf
-}
-
 fn is-set {
-  -tmp-file = (mktemp)
-  eval "if (eq $E:"(take 1 $env-vars)" '') { rm "$-tmp-file" }"
-  -res = (bool ?(test -f $-tmp-file))
-  rm -f $-tmp-file
-  put $-res
+  eval "not-eq $E:"(take 1 $env-vars)" ''"
 }
 
 fn set-proxy [@param]{
@@ -37,12 +26,12 @@ fn set-proxy [@param]{
     proxyhost = $param[0]
   }
   if (not-eq $proxyhost "") {
-    eval (each [var]{ put "E:"$var" = "$host } $env-vars | str:join "; ")
+    each [var]{ set-env $var $host } $env-vars
   }
 }
 
 fn unset-proxy {
-  eval (each [var]{ put "del E:"$var } $env-vars | str:join "; ")
+  each [var]{ unset-env $var } $env-vars
 }
 
 fn disable {

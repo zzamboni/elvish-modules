@@ -22,13 +22,6 @@ fn pipesplit [l1 l2 l3]{
   }
 }
 
-fn eval [str]{
-  tmpf = (mktemp)
-  echo $str > $tmpf
-  -source $tmpf
-  rm -f $tmpf
-}
-
 -read-upto-eol~ = [eol]{ put (head -n1) }
 
 use builtin
@@ -153,7 +146,7 @@ fn -electric-backspace {
     # To get the previous character, loop through the indices in case
     # the previous character is multi-byte
     i = (- $edit:-dot 1)
-    while (not ?(char1=$edit:current-command[$i])) { i = (- $i 1) }
+    while (not ?(char1 = $edit:current-command[$i])) { i = (- $i 1) }
     if (< $edit:-dot (count $edit:current-command)) {
       char2 = $edit:current-command[$edit:-dot]
     }

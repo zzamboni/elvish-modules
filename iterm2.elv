@@ -1,4 +1,5 @@
 use str
+use path
 
 fn mk-escape-str [xs]{ put "\e]"(str:join ';' $xs)"\a" }
 
@@ -154,6 +155,6 @@ fn clear-screen {
   edit:redraw &full=$true
 }
 
-if (-is-dir ~/.iterm2) {
+if (path:is-dir ~/.iterm2) {
   paths = [ $@paths ~/.iterm2 ]
 }

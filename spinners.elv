@@ -1,7 +1,8 @@
 use str
+use path
 use github.com/zzamboni/elvish-modules/tty
 
-spinners = (from-json < (path-dir (src)[name])/spinners.json)
+spinners = (from-json < (path:dir (src)[name])/spinners.json)
 
 default-spinner = 'dots'
 
@@ -13,7 +14,7 @@ fn -output [@s]{
 
 fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false &id=$nil]{
   # Determine ID to use
-  id = (or $id (e=?(uuidgen)) (randint 0 9999999))
+  id = (or $id (e = ?(uuidgen)) (randint 0 9999999))
   # Use default spinner if none is specified
   if (not $spinner) { spinner = $default-spinner }
   # Automatically convert non-list styles, so you can do e.g. &style=red

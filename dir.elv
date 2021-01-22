@@ -7,7 +7,7 @@ max-stack-size = 100
 -cursor = (- (count $-dirstack) 1)
 
 fn -trimstack {
-  -dirstack = $-dirstack[0:(+ $-cursor 1)]
+  -dirstack = $-dirstack[0..(+ $-cursor 1)]
 }
 
 print-message = [msg]{
@@ -38,9 +38,9 @@ fn curdir {
 
 fn push {
   if (or (== (stacksize) 0) (!=s $pwd (curdir))) {
-    -dirstack = [ (all $-dirstack[0:(+ $-cursor 1)]) $pwd ]
+    -dirstack = [ (all $-dirstack[0..(+ $-cursor 1)]) $pwd ]
     if (> (stacksize) $max-stack-size) {
-      -dirstack = $-dirstack[(- $max-stack-size):]
+      -dirstack = $-dirstack[(- $max-stack-size)..]
     }
     -cursor = (- (stacksize) 1)
   }

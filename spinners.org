@@ -179,6 +179,7 @@ During the execution of a spinner, the =spinners:persist= function can be used t
 
 #+begin_src elvish
 use str
+use path
 use github.com/zzamboni/elvish-modules/tty
 #+end_src
 
@@ -187,7 +188,7 @@ use github.com/zzamboni/elvish-modules/tty
 When the module is loaded, we read the spinner definitions from =spinners.json=.
 
 #+begin_src elvish
-spinners = (from-json < (path-dir (src)[name])/spinners.json)
+spinners = (from-json < (path:dir (src)[name])/spinners.json)
 #+end_src
 
 By default the =dots= spinner is used.
@@ -226,14 +227,14 @@ A /spinner object/ is a definition of a spinner, and is a map containing the fol
 - =cursor= - an optional boolean specifying whether the cursor should be shown while the spinner is running. Default is to hide it.
 - =persist= - an optional boolean specifying whether the spinner should be left in place and the cursor moved to the next line when the spinner finishes running. By default the spinner is cleared when it finishes running, and the cursor stays at the beginning of the line.
 - =current= - the current step of the spinner as it runs.
-- =id= - unique identifier for the spinner. By default generated as a random number, but can be specified using the =&id= option if desired.
+- =id= - unique identifier for the spinner. By default generated as a UUID (if the =uuidgen= command is present) or a random number, but can be specified using the =&id= option if desired.
 
 =spinners:new= creates a new spinner object containing the keys above, stores it in the registry, and returns its ID. The =&spinner= option can be used to initialize =&frames= and =&interval= from the default spinner definitions. If not given, =$spinners:default-spinner= is used. If =&frames= and =&interval= are given, they are used to override the default values. =&title=, =&prefix= and =&style= default to empty.
 
 #+begin_src elvish
 fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false &id=$nil]{
   # Determine ID to use
-  id = (or $id (e=?(uuidgen)) (randint 0 9999999))
+  id = (or $id (e = ?(uuidgen)) (randint 0 9999999))
   # Use default spinner if none is specified
   if (not $spinner) { spinner = $default-spinner }
   # Automatically convert non-list styles, so you can do e.g. &style=red

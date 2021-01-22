@@ -2,12 +2,12 @@ use re
 use str
 
 fn install {
-  opt=""
-  url="https://yihui.org/gh/tinytex/tools/install-unx.sh"
-  if ?(cmd=(which curl)) {
-    opt="-sL"
-  } elif ?(cmd=(which wget)) {
-    opt="-qO-"
+  opt = ""
+  url = "https://yihui.org/gh/tinytex/tools/install-unx.sh"
+  if ?(cmd = (which curl)) {
+    opt = "-sL"
+  } elif ?(cmd = (which wget)) {
+    opt = "-qO-"
   } else {
     echo "I couldn't find curl nor wget in your path."
     exit 1
