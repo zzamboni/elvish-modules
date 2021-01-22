@@ -13,7 +13,6 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
   - [[#loading-libraries][Loading libraries]]
   - [[#configuration][Configuration]]
   - [[#creating-aliases][Creating aliases]]
-  - [[#exporting-aliases][Exporting aliases]]
   - [[#listing-aliases][Listing aliases]]
   - [[#removing-aliases][Removing aliases]]
   - [[#load-time-initialization][Load-time initialization]]
@@ -27,11 +26,10 @@ use epm
 epm:install github.com/zzamboni/elvish-modules
 #+end_src
 
-In your =rc.elv=, load this module and assign the output of =alias:export= to the =$-exports-= variable to make existing aliases available as top-level commands:
+In your =rc.elv=, load this module:
 
 #+begin_src elvish
 use github.com/zzamboni/elvish-modules/alias
--exports- = (alias:export)
 #+end_src
 
 To define an alias:
@@ -68,13 +66,6 @@ alias:new fdirs find @@@ -name foo
 #+end_src
 
 You can also use =alias:bash-alias= to use the bash syntax =alias=command= for defining aliases.
-
-*Note: Once an alias is defined, it does not become immediately available* - it will be automatically loaded onto new sessions assuming you have added the corresponding code to your =rc.elv= file (see above). To load a new alias immediately, you can =-source= the corresponding file from within the =~/.elvish/aliases/= directory. For example:
-
-#+begin_src elvish
-> alias:new foo echo bar
-> source ~/.elvish/aliases/foo.elv
-#+end_src
 
 To list existing aliases:
 
@@ -141,6 +132,7 @@ fn -load-alias [name file]{
   body = $nil
   eval (slurp < $file)"; body = $"$name"~"
   aliases[$name] = $body
+  edit:add-var $name"~" $body
 }
 #+end_src
 
@@ -183,22 +175,6 @@ fn bash-alias [@args]{
   line = $@args
   name cmd = (str:split &max=2 '=' $line)
   def $name $cmd
-}
-#+end_src
-
-** Exporting aliases
-
-In order for aliases to be loaded from =rc.elv=, they need to be exported and assigned to the special =$-exports-= variable. The =alias:export= function returns a map that can be assigned or merged into =$-exports-=.
-
-We cannot simply export =$alias:aliases= because function variables need to have =~= appended at the end of the keys, for them to be usable as functions when exported.
-
-#+begin_src elvish
-fn export {
-  result = [&]
-  keys $aliases | each [k]{
-    result[$k"~"] = $aliases[$k]
-  }
-  put $result
 }
 #+end_src
 

@@ -16,6 +16,7 @@ fn -load-alias [name file]{
   body = $nil
   eval (slurp < $file)"; body = $"$name"~"
   aliases[$name] = $body
+  edit:add-var $name"~" $body
 }
 
 fn def [&verbose=$false &use=[] name @cmd]{
@@ -46,14 +47,6 @@ fn bash-alias [@args]{
   line = $@args
   name cmd = (str:split &max=2 '=' $line)
   def $name $cmd
-}
-
-fn export {
-  result = [&]
-  keys $aliases | each [k]{
-    result[$k"~"] = $aliases[$k]
-  }
-  put $result
 }
 
 fn list {
