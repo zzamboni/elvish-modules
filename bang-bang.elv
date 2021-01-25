@@ -20,7 +20,7 @@ fn lastcmd {
   filler = (repeat $indicator-width ' ' | str:join '')
   fn -display-text [ind text]{
     indcol = $filler$ind
-    put $indcol[(- $indicator-width):]" "$text
+    put $indcol[(- $indicator-width)..]" "$text
   }
   cmd = [
     &to-accept= $last[cmd]
@@ -35,7 +35,7 @@ fn lastcmd {
   all-args = []
   arg-text = ""
   if (> $nitems 1) {
-    arg-text = (str:join " " $parts[1:])
+    arg-text = (str:join " " $parts[1..])
     all-args = [
       &to-accept= $arg-text
       &to-show=   (-display-text "*" $arg-text)
