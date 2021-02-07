@@ -12,6 +12,7 @@ I have started using [[https://yihui.org/tinytex/][TinyTeX]] to avoid having a g
 - [[#implementation][Implementation]]
   - [[#install-tinytex][Install TinyTex]]
   - [[#install-missing-packages-by-file][Install missing packages by file]]
+  - [[#install-missing-packages-based-on-latex-output][Install missing packages based on LaTeX output]]
 
 * Usage
 
@@ -139,5 +140,27 @@ fn install-by-file [f]{
     echo (styled "Installing package "$pkg blue)
     tlmgr install $pkg
   } $pkgs
+}
+#+end_src
+
+** Install missing packages based on LaTeX output
+
+If you have a file that is missing a few packages, you can repeatedly pipe its output into =tinytex:install-missing-file= to automatically capture the missing file and call =tinytex:install-by-file= to install the corresponding package.
+
+This is to be used like this:
+#+begin_src shell :tangle no
+latex file.tex | tinytex:install-missing-file
+#+end_src
+
+#+begin_src elvish
+fn install-missing-file {
+  each [l]{
+    echo $l
+    if (re:match 'LaTeX Error:.*not found' $l) {
+      pkg = (re:find 'LaTeX Error: File `(.*)'' not found' $l)[groups][1][text]
+      echo (styled "Type 'x' and press Enter to install the missing file "$pkg yellow)
+      install-by-file $pkg
+    }
+  }
 }
 #+end_src

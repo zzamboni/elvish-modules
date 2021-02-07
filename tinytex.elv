@@ -42,3 +42,14 @@ fn install-by-file [f]{
     tlmgr install $pkg
   } $pkgs
 }
+
+fn install-missing-file {
+  each [l]{
+    echo $l
+    if (re:match 'LaTeX Error:.*not found' $l) {
+      pkg = (re:find 'LaTeX Error: File `(.*)'' not found' $l)[groups][1][text]
+      echo (styled "Type 'x' and press Enter to install the missing file "$pkg yellow)
+      install-by-file $pkg
+    }
+  }
+}
