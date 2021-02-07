@@ -125,7 +125,7 @@ The =$alias:aliases= map is where all the alias definitions are loaded, indexed 
 aliases = [&]
 #+end_src
 
-The =-load-alias= function receives the name of the alias and the file in which it is stored. It reads the file with =eval= and stores a pointer to the function in =$alias:aliases=. The alias files contain standalone function definitions and can also be =-source='d directly from the prompt to load the alias in the current interactive session.
+The =-load-alias= function receives the name of the alias and the file in which it is stored. It reads the file with =eval= and stores a pointer to the function in =$alias:aliases=. It also adds the alias function to the interactive namespace. The alias files contain standalone function definitions and can also be =-source='d directly from the prompt to load the alias in the current interactive session.
 
 #+begin_src elvish
 fn -load-alias [name file]{
@@ -136,7 +136,7 @@ fn -load-alias [name file]{
 }
 #+end_src
 
-The =alias:def= function creates a new alias. It stores the corresponding alias file, but does not load the alias in memory, since this is not possibe due to Elvish's scoping rules. The =&use= option can be used to specify a list of modules to load within the alias function (you can also specify the =use= command by hand as part of the alias). By default, an alias will add any arguments it receives to the end of its definition. But if the string =$arg-replacer= (default ={}=) appears in the definition (it has to appear as a space-separated word), then the arguments are inserted in its place, and NOT added at the end.
+The =alias:def= function creates a new alias. It stores the corresponding alias file and loads the alias into the interactive namespace. The =&use= option can be used to specify a list of modules to load within the alias function (you can also specify the =use= command by hand as part of the alias). By default, an alias will add any arguments it receives to the end of its definition. But if the string =$arg-replacer= (default ={}=) appears in the definition (it has to appear as a space-separated word), then the arguments are inserted in its place, and NOT added at the end.
 
 #+begin_src elvish
 fn def [&verbose=$false &use=[] name @cmd]{
