@@ -1,10 +1,14 @@
-# Created 2020-07-28 Tue 14:10
+# Created 2021-02-19 Fri 18:31
 #+TITLE: zzamboni's Elvish libraries
 #+AUTHOR: Diego Zamboni
 #+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
 #+export_file_name: README.org
 
 This Elvish package contains various modules I have written for the [[https://elv.sh/][Elvish shell]]. [[https://github.com/zzamboni/elvish-themes/][Themes]] and [[https://github.com/zzamboni/elvish-completions][completions]] are kept in separate packages.
+
+* Compatibility
+
+These modules are only guaranteed to be fully compatible with [[https://elv.sh/get/][Elvish HEAD]], which is what I use. This means that occasionally, they will not work even with the latest official release, when breaking changes are introduced. Since Elvish is in active development, I highly recommend you use the latest commit too.
 
 * Installation
 
@@ -27,70 +31,70 @@ See each module's page for detailed usage instructions.
 
 The following modules are included:
 
-- [[file:alias.org][alias]] ::
+- [[file:alias.org][alias]] :: 
      #+name: module-summary
      Implementation of aliases for [[http://elvish.io][Elvish]].
 
-- [[file:atlas.org][atlas]] ::
+- [[file:atlas.org][atlas]] :: 
      #+name: module-summary
      Elvish functions for interacting with O'Reilly's [[https://atlas.oreilly.com/][Atlas]] publishing system.
 
-- [[file:bang-bang.org][bang-bang]] ::
+- [[file:bang-bang.org][bang-bang]] :: 
      #+name: module-summary
-     Implement the =!!= (last command), =!$= (last argument of last command) and =!<n>= (nth argument of last command) shortcuts in Elvish.
+     Implement the =!!= (last command), =!$= (last argument of last command), ~!*~ (all arguments) and =!<n>= (nth argument of last command) shortcuts in Elvish.
 
-- [[file:dir.org][dir]] ::
+- [[file:dir.org][dir]] :: 
      #+name: module-summary
      Keep and move through the directory history, including a graphical chooser, similar to Elvish's Location mode, but showing a chronological directory history instead of a weighted one.
 
-- [[file:leanpub.org][leanpub]] ::
+- [[file:leanpub.org][leanpub]] :: 
      #+name: module-summary
      This module provides some interfaces to the [[https://leanpub.com/help/api][LeanPub API]].
 
-- [[file:long-running-notifications.org][long-running-notifications]] ::
+- [[file:long-running-notifications.org][long-running-notifications]] :: 
      #+name: module-summary
      Produce notifications for long-running commands in Elvish.
 
-- [[file:nix.org][nix]] ::
+- [[file:nix.org][nix]] :: 
      #+name: module-summary
      Functions to set up the Nix environment variables for Elvish.
 
-- [[file:opsgenie.org][opsgenie]] ::
+- [[file:opsgenie.org][opsgenie]] :: 
      #+name: module-summary
      This module implements a few common operations for the [[https://docs.opsgenie.com/docs/api-overview][OpsGenie API]] in Elvish.
 
-- [[file:prompt-hooks.org][prompt-hooks]] ::
+- [[file:prompt-hooks.org][prompt-hooks]] :: 
      #+name: module-summary
      Convenience functions to add hooks to the prompt hook lists.
 
-- [[file:proxy.org][proxy]] ::
+- [[file:proxy.org][proxy]] :: 
      #+name: module-summary
      Manipulation of proxy-related environment variables (including auto-setting/unsetting based on a user-defined test) for [[http://elvish.io][Elvish]].
 
-- [[file:semver.org][semver]] ::
+- [[file:semver.org][semver]] :: 
      #+name: module-summary
      Comparison of semantic version numbers, as described in [[https://semver.org/#spec-item-11][the Semantic Versioning specification]].
 
-- [[file:spinners.org][spinners]] ::
+- [[file:spinners.org][spinners]] :: 
      #+name: module-summary
      Functions to print different types of progress spinners for use in Elvish scripts.
 
-- [[file:terminal-title.org][terminal-title]] ::
+- [[file:terminal-title.org][terminal-title]] :: 
      #+name: module-summary
      Sets the terminal title dynamically using ANSI escape codes. By default the current directory is shown, and the name of the current command while one is executing.
 
-- [[file:test.org][test]] ::
+- [[file:test.org][test]] :: 
      #+name: module-summary
      A very simplistic test framework for Elvish.
 
-- [[file:tinytex.org][tinytex]] ::
+- [[file:tinytex.org][tinytex]] :: 
      #+name: module-summary
      Convenience functions for [[https://yihui.org/tinytex/][TinyTeX]].
 
-- [[file:tty.org][tty]] ::
+- [[file:tty.org][tty]] :: 
      #+name: module-summary
      Functions for terminal ANSI code manipulation/interaction in Elvish.
 
-- [[file:util.org][util]] ::
+- [[file:util.org][util]] :: 
      #+name: module-summary
      Various utility functions.

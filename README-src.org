@@ -7,6 +7,10 @@
 
 This Elvish package contains various modules I have written for the [[https://elv.sh/][Elvish shell]]. [[https://github.com/zzamboni/elvish-themes/][Themes]] and [[https://github.com/zzamboni/elvish-completions][completions]] are kept in separate packages.
 
+* Compatibility
+
+These modules are only guaranteed to be fully compatible with [[https://elv.sh/get/][Elvish HEAD]], which is what I use. This means that occasionally, they will not work even with the latest official release, when breaking changes are introduced. Since Elvish is in active development, I highly recommend you use the latest commit too.
+
 * Installation
 
 To install, use [[https://elvish.io/ref/epm.html][epm]]:
