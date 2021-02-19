@@ -148,7 +148,7 @@ after-lastcmd = []
 This function gets bound to the keys specified in =-plain-bang-insert=.
 
 #+begin_src elvish
-fn insert-plain-bang { edit:listing:close; edit:insert-at-dot "!" }
+fn insert-plain-bang { edit:close-mode; edit:insert-at-dot "!" }
 #+end_src
 
 ** bang-bang mode function
@@ -249,9 +249,9 @@ candidates = [$cmd $@items $all-args $bang]
 Now we create a list with the keybindings for the different elements of the menu. One-key bindings are only assigned for the first 9 elements and for the last one.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-fn insert-full-cmd { edit:listing:close; edit:insert-at-dot $last[cmd] }
-fn insert-part [n]{ edit:listing:close; edit:insert-at-dot $parts[$n] }
-fn insert-args { edit:listing:close; edit:insert-at-dot $arg-text }
+fn insert-full-cmd { edit:close-mode; edit:insert-at-dot $last[cmd] }
+fn insert-part [n]{ edit:close-mode; edit:insert-at-dot $parts[$n] }
+fn insert-args { edit:close-mode; edit:insert-at-dot $arg-text }
 bindings = [
   &"!"=                 $insert-full-cmd~
   &"$"=                 { insert-part -1 }

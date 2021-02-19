@@ -9,7 +9,7 @@ after-lastcmd = []
 
 -extra-trigger-keys = []
 
-fn insert-plain-bang { edit:listing:close; edit:insert-at-dot "!" }
+fn insert-plain-bang { edit:close-mode; edit:insert-at-dot "!" }
 
 fn lastcmd {
   for hook $before-lastcmd { $hook }
@@ -62,9 +62,9 @@ fn lastcmd {
     )
   ]
   candidates = [$cmd $@items $all-args $bang]
-  fn insert-full-cmd { edit:listing:close; edit:insert-at-dot $last[cmd] }
-  fn insert-part [n]{ edit:listing:close; edit:insert-at-dot $parts[$n] }
-  fn insert-args { edit:listing:close; edit:insert-at-dot $arg-text }
+  fn insert-full-cmd { edit:close-mode; edit:insert-at-dot $last[cmd] }
+  fn insert-part [n]{ edit:close-mode; edit:insert-at-dot $parts[$n] }
+  fn insert-args { edit:close-mode; edit:insert-at-dot $arg-text }
   bindings = [
     &"!"=                 $insert-full-cmd~
     &"$"=                 { insert-part -1 }
