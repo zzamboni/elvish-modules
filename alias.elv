@@ -20,9 +20,9 @@ fn -load-alias [name file]{
 }
 
 fn def [&verbose=$false &use=[] name @cmd]{
+  tmp-file = (mktemp $dir/tmp.XXXXXXXXXX)
   file = $dir/$name.elv
   use-statements = [(each [m]{ put "use "$m";" } $use)]
-  echo "#alias:new" $name (if (not-eq $use []) { put "&use="(to-string $use) }) $@cmd > $file
   args-at-end = '$@_args'
   new-cmd = [
     (each [e]{
@@ -34,7 +34,11 @@ fn def [&verbose=$false &use=[] name @cmd]{
         }
     } $cmd)
   ]
-  echo 'fn '$name' [@_args]{' $@use-statements $@new-cmd $args-at-end '}' >> $file
+  {
+    echo "#alias:new" $name (if (not-eq $use []) { put "&use="(to-string $use) }) $@cmd
+    echo 'fn '$name' [@_args]{' $@use-statements $@new-cmd $args-at-end '}'
+  } > $tmp-file
+  mv $tmp-file $file
   -load-alias $name $file
   if $verbose {
     echo (styled "Alias "$name" defined (will take effect on new sessions, or when you run '-source "$file"')." green)
