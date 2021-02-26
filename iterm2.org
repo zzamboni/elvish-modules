@@ -397,9 +397,8 @@ The =iterm2:clear-screen= function clears the screen and issues the correspondin
 
 #+begin_src elvish
 fn clear-screen {
-  clear > /dev/tty
+  edit:clear
   ftcs-prompt > /dev/tty
-  edit:redraw &full=$true
 }
 #+end_src
 

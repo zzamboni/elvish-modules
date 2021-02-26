@@ -150,9 +150,8 @@ fn init {
 }
 
 fn clear-screen {
-  clear > /dev/tty
+  edit:clear
   ftcs-prompt > /dev/tty
-  edit:redraw &full=$true
 }
 
 if (path:is-dir ~/.iterm2) {
