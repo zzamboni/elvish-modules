@@ -1,4 +1,4 @@
-# Created 2021-02-19 Fri 18:31
+# Created 2021-03-02 Tue 15:27
 #+TITLE: zzamboni's Elvish libraries
 #+AUTHOR: Diego Zamboni
 #+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
@@ -31,6 +31,8 @@ See each module's page for detailed usage instructions.
 
 The following modules are included:
 
+#+results: 
+:results:
 - [[file:alias.org][alias]] :: 
      #+name: module-summary
      Implementation of aliases for [[http://elvish.io][Elvish]].
@@ -46,6 +48,14 @@ The following modules are included:
 - [[file:dir.org][dir]] :: 
      #+name: module-summary
      Keep and move through the directory history, including a graphical chooser, similar to Elvish's Location mode, but showing a chronological directory history instead of a weighted one.
+
+- [[file:git-vcsh.org][git-vcsh]] :: 
+     #+name: module-summary
+     Simple wrapper to call =vcsh= when the current directory is managed by it. I don't use it anymore, so it may be broken.
+
+- [[file:iterm2.org][iterm2]] :: 
+     #+name: module-summary
+     This library implements iTerm2's [[https://iterm2.com/documentation-shell-integration.html][Shell Integration]] for the [[https://elv.sh/][Elvish]] shell.
 
 - [[file:leanpub.org][leanpub]] :: 
      #+name: module-summary
@@ -98,3 +108,4 @@ The following modules are included:
 - [[file:util.org][util]] :: 
      #+name: module-summary
      Various utility functions.
+:END:
