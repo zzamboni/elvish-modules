@@ -32,9 +32,8 @@ See each module's page for detailed usage instructions.
 
 The following modules are included:
 
-#+begin_src elvish :exports results :results drawer :eval export
-# The quote in the middle of the opening braces is to prevent Org from seeing that as an instance of the macro
-ls *.org | egrep -v 'README|_template' | each [m]{ echo "{{""{module-summary("(basename $m .org)")}}}" }
+#+begin_src elvish :exports results :results drawer :eval no-export
+ls *.org | egrep -v 'README|_template' | each [m]{ echo "{{{module-summary("(basename $m .org)")}}}" }
 #+end_src
 
 #+RESULTS:
