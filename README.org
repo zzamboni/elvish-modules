@@ -1,4 +1,4 @@
-# Created 2021-03-02 Tue 15:27
+# Created 2021-03-06 Sat 21:06
 #+TITLE: zzamboni's Elvish libraries
 #+AUTHOR: Diego Zamboni
 #+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
@@ -31,8 +31,6 @@ See each module's page for detailed usage instructions.
 
 The following modules are included:
 
-#+results: 
-:results:
 - [[file:alias.org][alias]] :: 
      #+name: module-summary
      Implementation of aliases for [[http://elvish.io][Elvish]].
@@ -108,4 +106,3 @@ The following modules are included:
 - [[file:util.org][util]] :: 
      #+name: module-summary
      Various utility functions.
-:END:
