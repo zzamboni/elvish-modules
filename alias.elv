@@ -12,16 +12,40 @@ arg-replacer = '{}'
 
 aliases = [&]
 
-fn -load-alias [name file]{
-  body = $nil
-  eval (slurp < $file)"; body = $"$name"~"
+fn -define-alias [name body]{
+  eval $body
   aliases[$name] = $body
-  edit:add-var $name"~" $body
 }
 
-fn def [&verbose=$false &use=[] name @cmd]{
-  tmp-file = (mktemp $dir/tmp.XXXXXXXXXX)
-  file = $dir/$name.elv
+fn -load-alias [name file]{
+  body = (slurp < $file)
+  -define-alias $name $body
+}
+
+fn -save [&verbose=$false name]{
+  if (has-key $aliases $name) {
+    tmp-file = (mktemp $dir/tmp.XXXXXXXXXX)
+    file = $dir/$name.elv
+    echo $aliases[$name] > $tmp-file
+    e:mv $tmp-file $file
+    if $verbose {
+      echo (styled "Alias "$name" saved to "$file"." green)
+    }
+  } else {
+    echo (styled "Alias "$name" is not defined." red)
+  }
+}
+
+fn save [&verbose=$false &all=$false @names]{
+  if $all {
+    names = [(keys $aliases)]
+  }
+  each [n]{
+    -save &verbose=$verbose $n
+  } $names
+}
+
+fn def [&verbose=$false &save=$false &use=[] name @cmd]{
   use-statements = [(each [m]{ put "use "$m";" } $use)]
   args-at-end = '$@_args'
   new-cmd = [
@@ -30,18 +54,20 @@ fn def [&verbose=$false &use=[] name @cmd]{
           put '$@_args'
           args-at-end = ''
         } else {
-          put $e
+          repr $e
         }
     } $cmd)
   ]
-  {
-    echo "#alias:new" $name (if (not-eq $use []) { put "&use="(to-string $use) }) $@cmd
-    echo 'fn '$name' [@_args]{' $@use-statements $@new-cmd $args-at-end '}'
-  } > $tmp-file
-  mv $tmp-file $file
-  -load-alias $name $file
+  var body = ({
+    echo "#alias:new" $name (if (not-eq $use []) { put "&use="(to-string $use) }) (each [w]{ repr $w } $cmd)
+    print "edit:add-var "$name'~ [@_args]{' $@use-statements $@new-cmd $args-at-end '}'
+  } | slurp)
+  -define-alias $name $body
+  if $save {
+    save $name
+  }
   if $verbose {
-    echo (styled "Alias "$name" defined (will take effect on new sessions, or when you run '-source "$file"')." green)
+    echo (styled "Alias "$name" defined"(if $save { echo " and saved" } else { echo "" })"." green)
   }
 }
 
@@ -54,17 +80,20 @@ fn bash-alias [@args]{
 }
 
 fn list {
-  _ = ?(grep -h '^#alias:new ' $dir/*.elv | sed 's/^#//')
+  keys $aliases | each [n]{
+    echo (re:find '^#(alias:new .*)\n' $aliases[$n])[groups][1][text]
+  }
 }
 
 ls~ = $list~ # ls is an alias for list
 
 fn undef [name]{
-  file = $dir/$name.elv
-  if ?(test -f $file) {
-    # Remove the definition file
-    rm $file
-    echo (styled "Alias "$name" removed (will take effect on new sessions, or when you run 'del "$name"~')." green)
+  if (has-key $aliases $name) {
+    file = $dir/$name.elv
+    e:rm -f $file
+    del aliases[$name]
+    edit:add-var $name"~" { eval (resolve $name) }
+    echo (styled "Alias "$name" removed." green)
   } else {
     echo (styled "Alias "$name" does not exist." red)
   }
@@ -80,8 +109,8 @@ fn init {
   for file [(_ = ?(put $dir/*.elv))] {
     content = (cat $file | slurp)
     if (re:match '^#alias:new ' $content) {
-      name = (re:find '^#alias:new (\S+)\s+(.*)\n' $content)[groups][1][text]
-      -load-alias $name $file
+      name cmd = (re:find '^#alias:new (\S+)\s+(.*)\n' $content)[groups][1 2][text]
+      def $name (edit:wordify $cmd)
     }
   }
 }
