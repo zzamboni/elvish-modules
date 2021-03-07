@@ -33,11 +33,13 @@ See each module's page for detailed usage instructions.
 The following modules are included:
 
 #+begin_src elvish :exports results :results drawer :eval no-export
+echo ""
 ls *.org | egrep -v 'README|_template' | each [m]{ echo "{{{module-summary("(basename $m .org)")}}}" }
 #+end_src
 
 #+RESULTS:
 :results:
+
 {{{module-summary(alias)}}}
 {{{module-summary(atlas)}}}
 {{{module-summary(bang-bang)}}}
