@@ -1,4 +1,4 @@
-# Created 2021-03-07 Sun 11:08
+# Created 2021-03-07 Sun 11:09
 #+TITLE: zzamboni's Elvish libraries
 #+AUTHOR: Diego Zamboni
 #+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
