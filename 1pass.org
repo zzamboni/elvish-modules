@@ -1,0 +1,119 @@
+#+title: 1Password CLI (op) integration for Elvish
+#+author: Diego Zamboni
+#+email: diego@zzamboni.org
+
+#+name: module-summary
+This module provides wrappers to use the 1Password =op= CLI tool with Elvish.
+
+This file is written in [[https://leanpub.com/lit-config][literate programming style]], to make it easy to explain. See [[file:1pass.elv][1pass.elv]] for the generated file.
+
+* Table of Contents                                          :TOC_3:noexport:
+- [[#usage][Usage]]
+- [[#implementation][Implementation]]
+  - [[#configuration][Configuration]]
+  - [[#authentication-and-token-manipulation][Authentication and token manipulation]]
+  - [[#getting-item-information][Getting item information]]
+
+* Usage
+
+Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]] (you can put these statements in your =rc.elv= file as well, to automatically install the package upon startup if needed):
+
+#+begin_src elvish
+  use epm
+  epm:install &silent-if-installed github.com/zzamboni/elvish-modules
+#+end_src
+
+In your =rc.elv=, load this module:
+
+#+begin_src elvish
+  use github.com/zzamboni/elvish-modules/1pass
+#+end_src
+
+* Implementation
+:PROPERTIES:
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
+:header-args: :mkdirp yes :comments no
+:END:
+
+Load some base modules.
+
+#+begin_src elvish
+use str
+#+end_src
+
+** Configuration
+
+The account to use, defaults to =my=.
+
+#+begin_src elvish
+account = my
+#+end_src
+
+The command to use, defaults to the =op= command.
+
+#+begin_src elvish
+op = (external op)
+#+end_src
+
+** Authentication and token manipulation
+
+Get the current session token. Returns =$nil= if not set.
+
+#+begin_src elvish
+fn session-token [&account=$account]{
+  if (has-env OP_SESSION_$account) {
+    get-env OP_SESSION_$account
+  } else {
+    put $nil
+  }
+}
+#+end_src
+
+Set the token environment variable
+
+#+begin_src elvish
+fn set-token [&account=$account token]{
+  set-env OP_SESSION_$account $token
+}
+#+end_src
+
+Refresh the current login token, reauthenticating if needed. Reauthentication can be forced by using the =&no-refresh= option.
+
+Note that this assumes you have logged in at least once with the full =op signin= syntax, to specify the account and your email address, as described in [[https://support.1password.com/command-line/#sign-in-or-out][the =op= documentation]].
+
+#+begin_src elvish
+fn signin [&account=$account &no-refresh=$false]{
+  var refresh-opts = [ --session (session-token) ]
+  if $no-refresh {
+    set refresh-opts = []
+  }
+  set-token &account=$account ($op signin --raw $@refresh-opts)
+}
+#+end_src
+
+** Getting item information
+
+Base function to get item information. This function returns the raw string output from the command.
+
+#+begin_src elvish
+fn get-item-raw [item &options=[] &fields=[]]{
+  signin
+  if (not-eq $fields []) {
+    options = [ $@options --fields (str:join , $fields) ]
+  }
+  $op get item $@options $item
+}
+#+end_src
+
+The main function is the same, but it parses the return value from JSON into an Elvish map.
+
+#+begin_src elvish
+fn get-item [item &options=[] &fields=[]]{
+  var item-str = (get-item-raw &options=$options &fields=$fields $item)
+  if (eq (count $fields) 1) {
+    put $item-str
+  } else {
+    echo $item-str | from-json
+  }
+}
+#+end_src

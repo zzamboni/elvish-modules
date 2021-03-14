@@ -1,0 +1,42 @@
+use str
+
+account = my
+
+op = (external op)
+
+fn session-token [&account=$account]{
+  if (has-env OP_SESSION_$account) {
+    get-env OP_SESSION_$account
+  } else {
+    put $nil
+  }
+}
+
+fn set-token [&account=$account token]{
+  set-env OP_SESSION_$account $token
+}
+
+fn signin [&account=$account &no-refresh=$false]{
+  var refresh-opts = [ --session (session-token) ]
+  if $no-refresh {
+    set refresh-opts = []
+  }
+  set-token &account=$account ($op signin --raw $@refresh-opts)
+}
+
+fn get-item-raw [item &options=[] &fields=[]]{
+  signin
+  if (not-eq $fields []) {
+    options = [ $@options --fields (str:join , $fields) ]
+  }
+  $op get item $@options $item
+}
+
+fn get-item [item &options=[] &fields=[]]{
+  var item-str = (get-item-raw &options=$options &fields=$fields $item)
+  if (eq (count $fields) 1) {
+    put $item-str
+  } else {
+    echo $item-str | from-json
+  }
+}
