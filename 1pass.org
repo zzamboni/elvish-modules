@@ -46,13 +46,19 @@ use str
 The account to use, defaults to =my=.
 
 #+begin_src elvish
-account = my
+var account = my
 #+end_src
 
 The command to use, defaults to the =op= command.
 
 #+begin_src elvish
-op = (external op)
+var op = (external op)
+#+end_src
+
+The field name where the passwords are usually stored - don't modify this unless you know what you are doing.
+
+#+begin_src elvish
+var password-field = "password"
 #+end_src
 
 ** Authentication and token manipulation
@@ -115,5 +121,13 @@ fn get-item [item &options=[] &fields=[]]{
   } else {
     echo $item-str | from-json
   }
+}
+#+end_src
+
+One of the most common use cases is to get the password stored in an item, so we have a special function for this.
+
+#+begin_src elvish
+fn get-password [item]{
+  get-item &fields=[$password-field] $item
 }
 #+end_src

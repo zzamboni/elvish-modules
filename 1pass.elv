@@ -1,8 +1,10 @@
 use str
 
-account = my
+var account = my
 
-op = (external op)
+var op = (external op)
+
+var password-field = "password"
 
 fn session-token [&account=$account]{
   if (has-env OP_SESSION_$account) {
@@ -39,4 +41,8 @@ fn get-item [item &options=[] &fields=[]]{
   } else {
     echo $item-str | from-json
   }
+}
+
+fn get-password [item]{
+  get-item &fields=[$password-field] $item
 }
