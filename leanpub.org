@@ -35,7 +35,23 @@ use github.com/zzamboni/elvish-modules/leanpub
 #+begin_src elvish
 use str
 
-api-key = ''
+api-key = $nil
+api-key-fn = $nil
+#+end_src
+
+This function returns the Leanpub API key to use. If =$leanpub:api-key= is set, it is returned. Else, if =$leanpub:api-key-fn= is defined, it is called and its return value used and stored in =$leanpub:api-key= for future use.
+
+#+begin_src elvish
+fn api-key {
+  if $api-key {
+    put $api-key
+  } elif $api-key-fn {
+    api-key = ($api-key-fn)
+    put $api-key
+  } else {
+    fail "Please set leanpub:api-key or leanpub:api-key-fn"
+  }
+}
 #+end_src
 
 #+begin_src elvish
@@ -51,28 +67,28 @@ fn get-slug [@args]{
 #+begin_src elvish
 fn preview [@args]{
   slug = (get-slug $@args)
-  pprint (curl -s -d "api_key="$api-key https://leanpub.com/$slug/preview.json | from-json)
+  pprint (curl -s -d "api_key="(api-key) https://leanpub.com/$slug/preview.json | from-json)
 }
 #+end_src
 
 #+begin_src elvish
 fn subset [@args]{
   slug = (get-slug $@args)
-  pprint (curl -s -d "api_key="$api-key https://leanpub.com/$slug/preview/subset.json | from-json)
+  pprint (curl -s -d "api_key="(api-key) https://leanpub.com/$slug/preview/subset.json | from-json)
 }
 #+end_src
 
 #+begin_src elvish
 fn publish [@args]{
   slug = (get-slug $@args)
-  pprint (curl -s -d "api_key="$api-key https://leanpub.com/$slug/publish.json | from-json)
+  pprint (curl -s -d "api_key="(api-key) https://leanpub.com/$slug/publish.json | from-json)
 }
 #+end_src
 
 #+begin_src elvish
 fn status [@args]{
   slug = (get-slug $@args)
-  status = (curl -s "https://leanpub.com/"$slug"/job_status?api_key="$api-key | from-json)
+  status = (curl -s "https://leanpub.com/"$slug"/job_status?api_key="(api-key) | from-json)
   if (has-key $status backtrace) {
     file = (mktemp)
     echo $status[backtrace] > $file
@@ -134,6 +150,6 @@ fn do-subset [@args]{
 #+begin_src elvish
 fn info [@args]{
   slug = (get-slug $@args)
-  pprint (curl -s "https://leanpub.com/"$slug".json?api_key="$api-key | from-json)
+  pprint (curl -s "https://leanpub.com/"$slug".json?api_key="(api-key) | from-json)
 }
 #+end_src

@@ -1,6 +1,18 @@
 use str
 
-api-key = ''
+api-key = $nil
+api-key-fn = $nil
+
+fn api-key {
+  if $api-key {
+    put $api-key
+  } elif $api-key-fn {
+    api-key = ($api-key-fn)
+    put $api-key
+  } else {
+    fail "Please set leanpub:api-key or leanpub:api-key-fn"
+  }
+}
 
 fn get-slug [@args]{
   if (eq $args []) {
@@ -12,22 +24,22 @@ fn get-slug [@args]{
 
 fn preview [@args]{
   slug = (get-slug $@args)
-  pprint (curl -s -d "api_key="$api-key https://leanpub.com/$slug/preview.json | from-json)
+  pprint (curl -s -d "api_key="(api-key) https://leanpub.com/$slug/preview.json | from-json)
 }
 
 fn subset [@args]{
   slug = (get-slug $@args)
-  pprint (curl -s -d "api_key="$api-key https://leanpub.com/$slug/preview/subset.json | from-json)
+  pprint (curl -s -d "api_key="(api-key) https://leanpub.com/$slug/preview/subset.json | from-json)
 }
 
 fn publish [@args]{
   slug = (get-slug $@args)
-  pprint (curl -s -d "api_key="$api-key https://leanpub.com/$slug/publish.json | from-json)
+  pprint (curl -s -d "api_key="(api-key) https://leanpub.com/$slug/publish.json | from-json)
 }
 
 fn status [@args]{
   slug = (get-slug $@args)
-  status = (curl -s "https://leanpub.com/"$slug"/job_status?api_key="$api-key | from-json)
+  status = (curl -s "https://leanpub.com/"$slug"/job_status?api_key="(api-key) | from-json)
   if (has-key $status backtrace) {
     file = (mktemp)
     echo $status[backtrace] > $file
@@ -77,5 +89,5 @@ fn do-subset [@args]{
 
 fn info [@args]{
   slug = (get-slug $@args)
-  pprint (curl -s "https://leanpub.com/"$slug".json?api_key="$api-key | from-json)
+  pprint (curl -s "https://leanpub.com/"$slug".json?api_key="(api-key) | from-json)
 }
