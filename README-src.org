@@ -40,12 +40,14 @@ ls *.org | egrep -v 'README|_template' | each [m]{ echo "{{{module-summary("(bas
 #+RESULTS:
 :results:
 
+{{{module-summary(1pass)}}}
 {{{module-summary(alias)}}}
 {{{module-summary(atlas)}}}
 {{{module-summary(bang-bang)}}}
 {{{module-summary(dir)}}}
 {{{module-summary(git-vcsh)}}}
 {{{module-summary(iterm2)}}}
+{{{module-summary(lazy-vars)}}}
 {{{module-summary(leanpub)}}}
 {{{module-summary(long-running-notifications)}}}
 {{{module-summary(nix)}}}

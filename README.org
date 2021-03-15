@@ -1,4 +1,4 @@
-# Created 2021-03-07 Sun 11:09
+# Created 2021-03-15 Mon 17:50
 #+TITLE: zzamboni's Elvish libraries
 #+AUTHOR: Diego Zamboni
 #+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
@@ -35,6 +35,10 @@ The following modules are included:
 :results:
 
 
+- [[file:1pass.org][1pass]] :: 
+     #+name: module-summary
+     This module provides wrappers to use the 1Password =op= CLI tool with Elvish.
+
 - [[file:alias.org][alias]] :: 
      #+name: module-summary
      Implementation of aliases for [[http://elvish.io][Elvish]].
@@ -58,6 +62,10 @@ The following modules are included:
 - [[file:iterm2.org][iterm2]] :: 
      #+name: module-summary
      This library implements iTerm2's [[https://iterm2.com/documentation-shell-integration.html][Shell Integration]] for the [[https://elv.sh/][Elvish]] shell.
+
+- [[file:lazy-vars.org][lazy-vars]] :: 
+     #+name: module-summary
+     A module that allows defining environment variables that are only evaluated when needed.
 
 - [[file:leanpub.org][leanpub]] :: 
      #+name: module-summary
