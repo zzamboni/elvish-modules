@@ -270,7 +270,7 @@ fn undef [name]{
     file = $dir/$name.elv
     e:rm -f $file
     del aliases[$name]
-    edit:add-var $name"~" { eval (resolve $name) }
+    edit:add-var $name"~" (external $name)
     echo (styled "Alias "$name" removed." green)
   } else {
     echo (styled "Alias "$name" does not exist." red)
