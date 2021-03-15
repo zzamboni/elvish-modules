@@ -1,0 +1,191 @@
+#+title: Lazy environment variables for Elvish
+#+author: Diego Zamboni
+#+email: diego@zzamboni.org
+
+#+name: module-summary
+A module that allows defining environment variables that are only evaluated when needed.
+
+This file is written in [[https://leanpub.com/lit-config][literate programming style]], to make it easy to explain. See [[file:lazy-vars.elv][lazy-vars.elv]] for the generated file.
+
+* Table of Contents                                          :TOC_3:noexport:
+- [[#usage][Usage]]
+  - [[#what-is-this-for][What is this for?]]
+  - [[#lazy-environment-variables][Lazy environment variables]]
+  - [[#lazy-variables-tied-to-commands][Lazy variables tied to commands]]
+- [[#implementation][Implementation]]
+
+* Usage
+
+Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]] (you can put these statements in your =rc.elv= file as well, to automatically install the package upon startup if needed):
+
+#+begin_src elvish
+  use epm
+  epm:install &silent-if-installed github.com/zzamboni/elvish-modules
+#+end_src
+
+In your =rc.elv=, load this module:
+
+#+begin_src elvish
+  use github.com/zzamboni/elvish-modules/<module>
+#+end_src
+
+** What is this for?
+
+This module came up from the need to have environment variables that get defined by either time-consuming or interactive actions, and which you only need to execute when needed. The original use case was to use the [[file:1pass.org][1pass]] module to fetch API tokens from 1Password. Since the 1Password =op= utility may ask for the user's passphrase when needed, the idea is to fetch those values only when they are going to be used. For example, for the =brew= command, I need the =HOMEBREW_GITHUB_API_TOKEN= environment variable, so I have the following in my config file:
+
+#+begin_src elvish
+use github.com/zzamboni/elvish-modules/lazy-vars
+
+lazy-vars:add-var HOMEBREW_GITHUB_API_TOKEN { 1pass:get-password "github api token for homebrew" }
+lazy-vars:add-alias brew [ HOMEBREW_GITHUB_API_TOKEN ]
+#+end_src
+
+This way, my Elvish session starts as normal, and I only get prompted for my passphrase when a token needs to be fetched. Because caching is done automatically, further executions do not trigger the variable evaluation:
+
+#+begin_src console
+[~]> brew search elvish
+Enter the password for xyz@zyx.com at my.1password.com:
+==> Formulae
+elvish
+[~]> brew search 1pass
+==> Casks
+1password ✔                         1password-beta                      1password-cli ✔                     1password6
+#+end_src
+
+** Lazy environment variables
+
+You can define a "lazy variable" using the =lazy-vars:add-var= function, which receives the name of the variable and a lambda which must return or output a single value, which will be assigned to the variable. You can later evaluate the variable using the =lazy-vars:eval-var= function, which receives the name of the variable:
+
+#+begin_src console
+[~]> use github.com/zzamboni/elvish-modules/lazy-vars
+[~]> lazy-vars:add-var DATE { date }
+[~]> put $E:DATE
+▶ ''
+[~]> lazy-vars:eval-var DATE
+[~]> put $E:DATE
+▶ 'Mon Mar 15 16:01:54 CET 2021'
+#+end_src
+
+By default the lambda is only evaluated the first time the variable is needed, but this can be changed by specifying the =&always= option, either when adding the variable (then the variable will always be reevaluated) or when calling =eval-var= (to force reevaluation only for a single instance).
+
+#+begin_src console
+# The DATE var is only reevaluated with the &always option
+[~]> lazy-vars:eval-var DATE
+[~]> put $E:DATE
+▶ 'Mon Mar 15 16:01:54 CET 2021'
+[~]> lazy-vars:eval-var &always DATE
+[~]> put $E:DATE
+▶ 'Mon Mar 15 16:02:14 CET 2021'
+
+# We create a new variable which is always reevaluated
+[~]> lazy-vars:add-var &always DATE2 { date }
+[~]> put $E:DATE2
+▶ ''
+[~]> lazy-vars:eval-var DATE2
+[~]> put $E:DATE2
+▶ 'Mon Mar 15 16:02:54 CET 2021'
+[~]> lazy-vars:eval-var DATE2
+[~]> put $E:DATE2
+▶ 'Mon Mar 15 16:02:58 CET 2021'
+#+end_src
+
+** Lazy variables tied to commands
+
+You can define commands that require certain environment variables to be evaluated before their execution by using the =lazy-vars:add-alias= function. This works by defining an Elvish function wrapper around the command, which evaluates the variables as needed. This function receives the name of the command, and a list of the variables which need to be evaluated before its execution.
+
+Note that this works only for external commands for now, Elvish functions cannot be wrapped yet (let me know if you would find this useful).
+
+#+begin_src console
+[~]> use github.com/zzamboni/elvish-modules/lazy-vars
+[~]> lazy-vars:add-var DATE { date }
+[~]> cat > ~/bin/testdate
+#!/usr/local/bin/elvish
+echo $E:DATE
+[~]> chmod a+rx ~/bin/testdate
+[~]> testdate
+
+[~]> lazy-vars:add-alias testdate [ DATE ]
+[~]> testdate
+Mon Mar 15 17:33:34 CET 2021
+#+end_src
+
+By default, the variables are only evaluted the first time the command is run - afterwards the alias is removed and the original command executed directly.
+
+#+begin_src console
+[~]> testdate
+Mon Mar 15 17:33:34 CET 2021
+[~]> testdate
+Mon Mar 15 17:33:34 CET 2021
+#+end_src
+
+You can override this by specifying the =&always-eval= option when defining the alias, then the variables will be reevaluated every time the command runs.
+
+#+begin_src console
+[~]> lazy-vars:add-alias &always-eval testdate [ DATE ]
+[~]> testdate
+Mon Mar 15 17:35:26 CET 2021
+[~]> testdate
+Mon Mar 15 17:35:28 CET 2021
+[~]> testdate
+Mon Mar 15 17:35:31 CET 2021
+#+end_src
+
+* Implementation
+:PROPERTIES:
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
+:header-args: :mkdirp yes :comments no
+:END:
+
+Map where we store variables, with the lambdas that provide their value.
+
+#+begin_src elvish
+var env-vars = [&]
+#+end_src
+
+Map where we store whether each variable should be always reevaluated or only the first time.
+
+#+begin_src elvish
+var always-vars = [&]
+#+end_src
+
+Function which adds a variable with its lambda. Normally each variable is only evaluated the first time it's needed, but if you specify the =&always= option when adding it, it will always be reevaluated.
+
+#+begin_src elvish
+fn add-var [var lambda &always=$false]{
+  env-vars[$var] = $lambda
+  always-vars[$var] = $always
+}
+#+end_src
+
+Evaluate a variable and store its value. By default the variable is only set if it doesn't has a value yet, but the =&always= option can be specified to always reevaluate it.
+
+#+begin_src elvish
+fn eval-var [var &always=$false]{
+  if (has-key $env-vars $var) {
+    if (or $always (not (has-env $var)) $always-vars[$var]) {
+      set-env $var ($env-vars[$var])
+    }
+  } else {
+    echo (styled "lazy-vars: Variable "$var" is not defined" red)
+  }
+}
+#+end_src
+
+Define an alias for a function, which will trigger the evaluation of a set of defined variables before calling the real command. Normally, the variables will only be evaluated the first time the alias is called (and then it will be undefined). If the =&always-eval= option is used, the variables are evaluated every time.
+
+#+begin_src elvish
+var orig-cmd = [&]
+
+fn add-alias [cmd vars &always-eval=$false]{
+  orig-cmd[$cmd] = (eval "put "(resolve $cmd))
+  edit:add-var $cmd"~" [@_args]{
+    each [v]{
+      eval-var &always=$always-eval $v
+    } $vars
+    $orig-cmd[$cmd] $@_args
+    if (not $always-eval) {
+      edit:add-var $cmd"~" $orig-cmd[$cmd]
+    }
+  }
+}
+#+end_src
