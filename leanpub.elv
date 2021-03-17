@@ -1,4 +1,5 @@
 use str
+use path
 
 api-key = $nil
 api-key-fn = $nil
@@ -41,10 +42,10 @@ fn status [@args]{
   slug = (get-slug $@args)
   status = (curl -s "https://leanpub.com/"$slug"/job_status?api_key="(api-key) | from-json)
   if (has-key $status backtrace) {
-    file = (mktemp)
+    file = (path:temp-file)
     echo $status[backtrace] > $file
     del status[backtrace]
-    status[error-log] = $file
+    status[error-log] = $file[name]
   }
   put $status
   if (has-key $status error-log) {

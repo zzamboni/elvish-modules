@@ -5,6 +5,7 @@
 
 use re
 use str
+use path
 
 dir = ~/.elvish/aliases
 
@@ -24,10 +25,10 @@ fn -load-alias [name file]{
 
 fn -save [&verbose=$false name]{
   if (has-key $aliases $name) {
-    tmp-file = (mktemp $dir/tmp.XXXXXXXXXX)
+    tmp-file = (path:temp-file &dir=$dir 'alias.tmp-*')
     file = $dir/$name.elv
     echo $aliases[$name] > $tmp-file
-    e:mv $tmp-file $file
+    e:mv $tmp-file[name] $file
     if $verbose {
       echo (styled "Alias "$name" saved to "$file"." green)
     }

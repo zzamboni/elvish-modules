@@ -116,6 +116,7 @@ alias:rm alias
 #+begin_src elvish
 use re
 use str
+use path
 #+end_src
 
 ** Configuration
@@ -172,10 +173,10 @@ The internal function =alias:-save= does the actual work of atomically writing a
 #+begin_src elvish
 fn -save [&verbose=$false name]{
   if (has-key $aliases $name) {
-    tmp-file = (mktemp $dir/tmp.XXXXXXXXXX)
+    tmp-file = (path:temp-file &dir=$dir 'alias.tmp-*')
     file = $dir/$name.elv
     echo $aliases[$name] > $tmp-file
-    e:mv $tmp-file $file
+    e:mv $tmp-file[name] $file
     if $verbose {
       echo (styled "Alias "$name" saved to "$file"." green)
     }
