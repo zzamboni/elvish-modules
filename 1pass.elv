@@ -36,7 +36,7 @@ fn get-item-raw [item &options=[] &fields=[]]{
 
 fn get-item [item &options=[] &fields=[]]{
   var item-str = (get-item-raw &options=$options &fields=$fields $item)
-  if (eq (count $fields) 1) {
+  if (== (count $fields) 1) {
     put $item-str
   } else {
     echo $item-str | from-json

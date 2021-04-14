@@ -116,7 +116,7 @@ The main function is the same, but it parses the return value from JSON into an 
 #+begin_src elvish
 fn get-item [item &options=[] &fields=[]]{
   var item-str = (get-item-raw &options=$options &fields=$fields $item)
-  if (eq (count $fields) 1) {
+  if (== (count $fields) 1) {
     put $item-str
   } else {
     echo $item-str | from-json
