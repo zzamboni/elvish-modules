@@ -178,7 +178,7 @@ We also get how wide the first column of the display should be, so that we can d
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
 nitems = (count $parts)
-indicator-width = (util:max (+ 2 (count $nitems)) (count $-plain-bang-insert))
+indicator-width = (util:max (+ 2 (count (to-string $nitems))) (count $-plain-bang-insert))
 filler = (repeat $indicator-width ' ' | str:join '')
 #+end_src
 
