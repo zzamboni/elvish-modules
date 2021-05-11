@@ -1,4 +1,4 @@
-# Created 2021-03-15 Mon 17:50
+# Created 2021-05-12 Wed 00:27
 #+TITLE: zzamboni's Elvish libraries
 #+AUTHOR: Diego Zamboni
 #+macro: module-summary (eval (org-export-string-as (concat "- [[file:" $1 ".org][" $1 "]] :: \n  #+include: " $1 ".org::module-summary\n") 'org t))
@@ -54,6 +54,10 @@ The following modules are included:
 - [[file:dir.org][dir]] :: 
      #+name: module-summary
      Keep and move through the directory history, including a graphical chooser, similar to Elvish's Location mode, but showing a chronological directory history instead of a weighted one.
+
+- [[file:git-summary.org][git-summary]] :: 
+     #+name: module-summary
+     Display a status summary of a user-defined list of git repositories.
 
 - [[file:git-vcsh.org][git-vcsh]] :: 
      #+name: module-summary
