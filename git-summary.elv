@@ -8,6 +8,7 @@ summary-repos = []
 find-all-user-repos-fn = {
   fd -H -I -t d '^.git$' ~ | each $path:dir~
 }
+
 repos-file = ~/.elvish/package-data/elvish-themes/git-summary-repos.json
 
 stop-gitstatusd-after-use = $false

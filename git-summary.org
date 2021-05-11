@@ -15,7 +15,7 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
 
 * Use
 
-This module allows displaying a status summary of a user-defined list of git repositories. I find it useful to see at a glance the status and how recently I have made changes to my currently active repositories.
+This module allows displaying a status summary of a user-defined list of git repositories. I find it useful to see at a glance the status and how recently I have made changes to my commonly used repositories.
 
 Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]] (you can put these statements in your =rc.elv= file as well, to automatically install the package upon startup if needed):
 
@@ -30,22 +30,44 @@ In your =rc.elv=, load this module:
 use github.com/zzamboni/elvish-modules/git-summary
 #+end_src
 
-=git-summary:status= provides a summarized list of the =git-combined= and =git-branch= indicators for a given set of repositories (I use this to check the status of repos on which I'm frequently working). The repositories to display can be provided in mutliple ways (if more than one is specified, the first one found is used):
+This module includes the =git-summary:summary-status= function, which provides a status summary of git repositories, using the =git-combined=, =git-branch= and =git-timestamp= segments of the [[https://github.com/zzamboni/elvish-themes/blob/master/chain.org][chain]] prompt theme. The list is presented in reverse chronological order according to their latest git commit. I use this to get a quick summary of the status of my most commonly used repositories. The repositories to display can be provided in multiple ways (if more than one is specified, the first one found is used):
 
-- As arguments to the function, e.g. =git-summary:status dir1 dir2=.
-- All the git repos inside your home directory: =git-summary:status &all=. Note: this uses the =fd= command by default, can be changed by storing the new function in =$git-summary:find-all-user-repos-fn=. Default value:
-  #+name: find-all-user-repos-fn-default-value
-  #+begin_src elvish
-find-all-user-repos-fn = {
+- Default behavior when no arguments nor options are given: read from a JSON file specified in =$git-summary:summary-repos-file= (default value: =~/.elvish/package-data/elvish-themes/git-summary-repos.json=). The contents of this file can be manipulated using the =git-summary:add-repo= and =git-summary:remove-repo= functions (see example below).
+- As arguments to the function, e.g. =git-summary:summary-status dir1 dir2=.
+- All the git repos inside your home directory: =git-summary:summary-status &all=. Note: this uses the =fd= command by default, can be changed by storing the new function in =$git-summary:find-all-user-repos=. Default value:
+  #+begin_src elvish :tangle no
+git-summary:find-all-user-repos = {
   fd -H -I -t d '^.git$' ~ | each $path:dir~
 }
   #+end_src
-- Read from a JSON file specified in =$git-summary:repos-file=. Default value:
-  #+name: repos-file-default-value
-  #+begin_src elvish
-repos-file = ~/.elvish/package-data/elvish-themes/git-summary-repos.json
-  #+end_src
-  The contents of this file can be manipulated using the =git-summary:add-repo= and =git-summary:remove-repo=.
+- In combination with any of the above, the =&only-dirty= option can be used to only display repositories which are not clean.
+
+You can add or remove directories to the list by using the =git-summary:add-repo= and =git-summary:remove-repo= functions. By default these functions add/remove the current directory, but you can also specify others. Example:
+
+#+begin_src elvish :tangle no
+[~]─> cd ~/.elvish
+[~/.elvish]─[⎇ master]─> git-summary:add-repo
+Repo /Users/taazadi1/.elvish added to the list
+
+[~/.elvish]─[⎇ master]─> git-summary:add-repo ~/.emacs.d ~/.hammerspoon
+Repo /Users/taazadi1/.emacs.d added to the list
+Repo /Users/taazadi1/.hammerspoon added to the list
+
+[~/.elvish]─[⎇ master]─> git-summary:summary-status
+[2020-05-25] [OK] [⎇ master] ~/.elvish
+[2020-05-27] [OK] [⎇ master] ~/.emacs.d
+[2020-05-22] [OK] [⎇ master] ~/.hammerspoon
+
+[~/.elvish]─[⎇ master]─> git-summary:summary-status ~/.elvish/lib/github.com/zzamboni/*
+[2020-05-09] [OK] [⎇ master] ~/.elvish/lib/github.com/zzamboni/elvish-completions
+[2020-05-08] [OK] [⎇ master] ~/.elvish/lib/github.com/zzamboni/elvish-modules
+[2020-05-22] [●] [⎇ master] ~/.elvish/lib/github.com/zzamboni/elvish-themes
+
+[~/.elvish]─[⎇ master]─> git-summary:summary-status &only-dirty ~/.elvish/lib/github.com/zzamboni/*
+[2020-05-22] [●] [⎇ master] ~/.elvish/lib/github.com/zzamboni/elvish-themes
+#+end_src
+
+Note that this module automatically starts =gitstatusd= in the background (courtesy of the [[https://github.com/href/elvish-gitstatus/][elvish-gitstatus]] module). By default, =gitstatusd= stays running and is reused the next time you call the =git-summary:summary-status= function. If you prefer to kill =gitstatusd= after every run, you can set =$git-summary:stop-gitstatusd-after-use= to =$true=.
 
 * Implementation
 :PROPERTIES:
@@ -72,11 +94,18 @@ The list of repositories read from the file is cached in =$git-summary:summary-r
 summary-repos = []
 #+end_src
 
-Define some default values.
+Default function used to find repositories for the =&all= option.
 
 #+begin_src elvish :noweb yes
-<<find-all-user-repos-fn-default-value>>
-<<repos-file-default-value>>
+find-all-user-repos-fn = {
+  fd -H -I -t d '^.git$' ~ | each $path:dir~
+}
+#+end_src
+
+Default location of the file where the list of repositories to show is stored.
+
+#+begin_src elvish :noweb yes
+repos-file = ~/.elvish/package-data/elvish-themes/git-summary-repos.json
 #+end_src
 
 Whether to stop =gitstatusd= after using it.
