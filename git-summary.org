@@ -1,0 +1,228 @@
+#+startup: indent
+
+#+title: git-summary - Git repository status summary
+#+author: Diego Zamboni
+#+email: diego@zzamboni.org
+
+#+name: module-summary
+Display a status summary of a user-defined list of git repositories.
+
+This file is written in [[https://leanpub.com/lit-config][literate programming style]], to make it easy to explain. See [[file:git-summary.elv][git-summary.elv]] for the generated file.
+
+* Table of Contents                                          :TOC_3:noexport:
+- [[#use][Use]]
+- [[#implementation][Implementation]]
+
+* Use
+
+This module allows displaying a status summary of a user-defined list of git repositories. I find it useful to see at a glance the status and how recently I have made changes to my currently active repositories.
+
+Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]] (you can put these statements in your =rc.elv= file as well, to automatically install the package upon startup if needed):
+
+#+begin_src elvish
+use epm
+epm:install &silent-if-installed github.com/zzamboni/elvish-modules
+#+end_src
+
+In your =rc.elv=, load this module:
+
+#+begin_src elvish
+use github.com/zzamboni/elvish-modules/git-summary
+#+end_src
+
+=git-summary:status= provides a summarized list of the =git-combined= and =git-branch= indicators for a given set of repositories (I use this to check the status of repos on which I'm frequently working). The repositories to display can be provided in mutliple ways (if more than one is specified, the first one found is used):
+
+- As arguments to the function, e.g. =git-summary:status dir1 dir2=.
+- All the git repos inside your home directory: =git-summary:status &all=. Note: this uses the =fd= command by default, can be changed by storing the new function in =$git-summary:find-all-user-repos-fn=. Default value:
+  #+name: find-all-user-repos-fn-default-value
+  #+begin_src elvish
+find-all-user-repos-fn = {
+  fd -H -I -t d '^.git$' ~ | each $path:dir~
+}
+  #+end_src
+- Read from a JSON file specified in =$git-summary:repos-file=. Default value:
+  #+name: repos-file-default-value
+  #+begin_src elvish
+repos-file = ~/.elvish/package-data/elvish-themes/git-summary-repos.json
+  #+end_src
+  The contents of this file can be manipulated using the =git-summary:add-repo= and =git-summary:remove-repo=.
+
+* Implementation
+:PROPERTIES:
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
+:header-args: :mkdirp yes :comments no
+:END:
+
+Load some libraries.
+
+#+begin_src elvish
+use path
+use github.com/zzamboni/elvish-modules/spinners
+#+end_src
+
+We use the segments from the [[file:~/.elvish/lib/github.com/zzamboni/elvish-themes/chain.org][Chain]] theme for the display, so we load that module.
+
+#+begin_src elvish
+use github.com/zzamboni/elvish-themes/chain
+#+end_src
+
+The list of repositories read from the file is cached in =$git-summary:summary-repos=.
+
+#+begin_src elvish
+summary-repos = []
+#+end_src
+
+Define some default values.
+
+#+begin_src elvish :noweb yes
+<<find-all-user-repos-fn-default-value>>
+<<repos-file-default-value>>
+#+end_src
+
+Whether to stop =gitstatusd= after using it.
+
+#+begin_src elvish
+stop-gitstatusd-after-use = $false
+#+end_src
+
+We define a couple of functions to read and write =$git-summary:summary-repos= from disk.
+
+#+begin_src elvish
+fn -write-summary-repos {
+  mkdir -p (path:dir $repos-file)
+  to-json [$summary-repos] > $repos-file
+}
+
+fn -read-summary-repos {
+  try {
+    summary-repos = (from-json < $repos-file)
+  } except {
+    summary-repos = []
+  }
+}
+#+end_src
+
+The =git-summary:gather-data= function collects the data from a given set of repositories.
+
+#+begin_src elvish
+fn gather-data [repos]{
+  each [r]{
+    try {
+      cd $r
+      chain:-parse-git &with-timestamp
+      status = [($chain:segment[git-combined])]
+      put [
+        &repo= (tilde-abbr $r)
+        &status= $status
+        &ts= $chain:last-status[timestamp]
+        &timestamp= ($chain:segment[git-timestamp])
+        &branch= ($chain:segment[git-branch])
+      ]
+    } except e {
+      put [
+        &repo= (tilde-abbr $r)
+        &status= [(styled '['(to-string $e)']' red)]
+        &ts= ""
+        &timestamp= ""
+        &branch= ""
+      ]
+    }
+  } $repos
+  if $stop-gitstatusd-after-use {
+    # Temporarily disable background job notifications
+    old-notify-bg-job-success = $notify-bg-job-success
+    notify-bg-job-success = $false
+    chain:gitstatus:stop
+    sleep 0.01
+    notify-bg-job-success = $old-notify-bg-job-success
+  }
+}
+#+end_src
+
+The =git-summary:summary-status= function is the main entry point to display the status of the configured repos.
+
+#+begin_src elvish
+fn summary-status [@repos &all=$false &only-dirty=$false]{
+  prev = $pwd
+
+  # Determine how to sort the output. This only happens in newer
+  # versions of Elvish (where the order function exists)
+  use builtin
+  order-cmd~ = $all~
+  if (has-key $builtin: order~) {
+    order-cmd~ = { order &less-than=[a b]{ <s $a[ts] $b[ts] } &reverse }
+  }
+
+  # Read repo list from disk, cache in $git-summary:summary-repos
+  -read-summary-repos
+
+  # Determine the list of repos to display:
+  # 1) If the &all option is given, find them
+  if $all {
+    spinners:run &title="Finding all git repos" &style=blue {
+      repos = [($find-all-user-repos-fn)]
+    }
+  }
+  # 2) If repos is not given nor defined through &all, use $git-summary:summary-repos
+  if (eq $repos []) {
+    repos = $summary-repos
+  }
+  # 3) If repos is specified, just use it
+
+  # Produce the output
+  spinners:run &title="Gathering repo data" &style=blue { gather-data $repos } | order-cmd | each [r]{
+    status-display = $r[status]
+    if (or (not $only-dirty) (not-eq $status-display [])) {
+      if (eq $status-display []) {
+        color = (chain:-segment-style git-combined)
+        status-display = [(chain:-colorized "[" $color) (styled OK green) (chain:-colorized "]" $color)]
+      }
+      @status = $r[timestamp] ' ' (all $status-display) ' ' $r[branch]
+      echo &sep="" $@status ' ' (chain:-colorized $r[repo] (chain:-segment-style git-repo))
+    }
+  }
+  cd $prev
+}
+#+end_src
+
+The =git-summary:add-repo= and =git-summary:remove-repo= functions can be used to add/remove directories from the summary list. If no directories are given as arguments, they operate on the current directory.
+
+#+begin_src elvish
+fn add-repo [@dirs]{
+  if (eq $dirs []) {
+    dirs = [ $pwd ]
+  }
+  -read-summary-repos
+  each [d]{
+    if (has-value $summary-repos $d) {
+      echo (styled "Repo "$d" is already in the list" yellow)
+    } else {
+      summary-repos = [ $@summary-repos $d ]
+      echo (styled "Repo "$d" added to the list" green)
+    }
+  } $dirs
+  -write-summary-repos
+}
+#+end_src
+
+#+begin_src elvish
+fn remove-repo [@dirs]{
+  if (eq $dirs []) {
+    dirs = [ $pwd ]
+  }
+  -read-summary-repos
+  @new-repos = (each [d]{
+      if (not (has-value $dirs $d)) { put $d }
+  } $summary-repos)
+  each [d]{
+    if (has-value $summary-repos $d) {
+      echo (styled "Repo "$d" removed from the list." green)
+    } else {
+      echo (styled "Repo "$d" was not on the list" yellow)
+    }
+  } $dirs
+
+  summary-repos = $new-repos
+  -write-summary-repos
+}
+#+end_src
