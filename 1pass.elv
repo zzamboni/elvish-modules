@@ -23,7 +23,7 @@ fn signin [&account=$account &no-refresh=$false]{
   if $no-refresh {
     set refresh-opts = []
   }
-  set-token &account=$account ($op signin --raw $@refresh-opts)
+  set-token &account=$account ($op signin --raw $@refresh-opts </dev/tty)
 }
 
 fn get-item-raw [item &options=[] &fields=[]]{
