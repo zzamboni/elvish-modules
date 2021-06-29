@@ -405,7 +405,7 @@ fn cond [clauses]{
 fn optional-input [@input]{
   if (eq $input []) {
     input = [(all)]
-  } elif (eq (count $input) 1) {
+  } elif (== (count $input) 1) {
     input = [ (all $input[0]) ]
   } else {
     fail "util:optional-input: want 0 or 1 arguments, got "(count $input)
@@ -461,9 +461,13 @@ fn partial [f @p-args]{
 
 #+begin_src elvish :tangle no :noweb-ref tests
 (test:set partial [
-    (test:is { (util:partial $+~ 3) 5 }                       (float64 8)   Partial addition)
+    (test:is { (util:partial $'+~' 3) 5 }                     (num 8)   Partial addition)
     (test:is { (util:partial $eq~ 3) 3 }                      $true         Partial eq)
     (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } (float64 120) Partial custom function with rest arg)
+    (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } (num 120) Partial custom function with rest arg)
+])
+#+end_src
+
 ])
 #+end_src
 

@@ -105,7 +105,7 @@ fn cond [clauses]{
 fn optional-input [@input]{
   if (eq $input []) {
     input = [(all)]
-  } elif (eq (count $input) 1) {
+  } elif (== (count $input) 1) {
     input = [ (all $input[0]) ]
   } else {
     fail "util:optional-input: want 0 or 1 arguments, got "(count $input)
