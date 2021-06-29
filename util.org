@@ -16,6 +16,7 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
   - [[#get-a-filename-from-the-macos-finder][Get a filename from the macOS Finder]]
   - [[#maximumminimum][Maximum/minimum]]
   - [[#conditionals][Conditionals]]
+  - [[#getting-nested-items-from-a-map-structure][Getting nested items from a map structure]]
 - [[#implementation][Implementation]]
   - [[#dotifying-strings-1][Dotifying strings]]
     - [[#tests][Tests]]
@@ -33,6 +34,8 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
     - [[#tests-5][Tests]]
   - [[#functional-programming-utilities][Functional programming utilities]]
     - [[#tests-6][Tests]]
+  - [[#getting-nested-items-from-a-map-structure-1][Getting nested items from a map structure]]
+    - [[#tests-7][Tests]]
   - [[#fix-deprecated-functions][Fix deprecated functions]]
 - [[#test-suite][Test suite]]
 
@@ -185,6 +188,23 @@ pos-neg-or-zero 0
 : ▶ positive
 : ▶ negative
 : ▶ zero
+
+** Getting nested items from a map structure
+
+=path-in= follows a "path" within a nested map structure and gives you the element at the end.
+
+#+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/util
+util:path-in [&a=[&b=[&c=foo]]] [a b]
+util:path-in [&a=[&b=[&c=foo]]] [a b c]
+util:path-in [&a=[&b=[&c=foo]]] [a b d]
+util:path-in [&a=[&b=[&c=foo]]] [a b d] &default="not found"
+#+end_src
+
+#+RESULTS:
+: ▶ [&c=foo]
+: ▶ foo
+: ▶ $nil
+: ▶ 'not found'
 
 * Implementation
 :PROPERTIES:
@@ -463,11 +483,36 @@ fn partial [f @p-args]{
 (test:set partial [
     (test:is { (util:partial $'+~' 3) 5 }                     (num 8)   Partial addition)
     (test:is { (util:partial $eq~ 3) 3 }                      $true         Partial eq)
-    (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } (float64 120) Partial custom function with rest arg)
     (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } (num 120) Partial custom function with rest arg)
 ])
 #+end_src
 
+** Getting nested items from a map structure
+
+=path-in= finds an element within nested map structure =$obj=, following the keys contained in the list =$path=. If not found, return =&default=.
+
+#+begin_src elvish
+fn path-in [obj path &default=$nil]{
+  each [k]{
+    try {
+      obj = $obj[$k]
+    } except {
+      obj = $default
+      break
+    }
+  } $path
+  put $obj
+}
+#+end_src
+
+*** Tests
+
+#+begin_src elvish :tangle no :noweb-ref tests
+(test:set select-and-remove [
+    (test:is { util:path-in [&a=[&b=[&c=foo]]] [a b]   } [&c=foo] Middle element from nested map)
+    (test:is { util:path-in [&a=[&b=[&c=foo]]] [a b c] } foo      Leaf element from nested map)
+    (test:is { util:path-in [&a=[&b=[&c=foo]]] [a b d] } $nil     Non-existing path in nested map) 
+    (test:is { util:path-in &default="not found" [&a=[&b=[&c=foo]]] [a b d] } 'not found' Non-existing element with custom default value)  
 ])
 #+end_src
 

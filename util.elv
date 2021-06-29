@@ -127,6 +127,18 @@ fn partial [f @p-args]{
   }
 }
 
+fn path-in [obj path &default=$nil]{
+  each [k]{
+    try {
+      obj = $obj[$k]
+    } except {
+      obj = $default
+      break
+    }
+  } $path
+  put $obj
+}
+
 use str
 
 fn fix-deprecated [f]{

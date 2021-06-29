@@ -45,5 +45,10 @@ use github.com/zzamboni/elvish-modules/util
         (test:is { (util:partial $eq~ 3) 3 }                      $true         Partial eq)
         (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } (num 120) Partial custom function with rest arg)
     ])
+    (test:set select-and-remove [
+        (test:is { util:path-in [&a=[&b=[&c=foo]]] [a b]   } [&c=foo] Middle element from nested map)
+        (test:is { util:path-in [&a=[&b=[&c=foo]]] [a b c] } foo      Leaf element from nested map)
+        (test:is { util:path-in [&a=[&b=[&c=foo]]] [a b d] } $nil     Non-existing path in nested map) 
+        (test:is { util:path-in &default="not found" [&a=[&b=[&c=foo]]] [a b d] } 'not found' Non-existing element with custom default value)  
     ])
 ])
