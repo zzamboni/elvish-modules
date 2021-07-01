@@ -11,6 +11,7 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
 - [[#usage][Usage]]
 - [[#implementation][Implementation]]
   - [[#support-functions][Support functions]]
+  - [[#parsing-and-validating-version-numbers][Parsing and validating version numbers]]
   - [[#main-comparison-function][Main comparison function]]
   - [[#comparing-lists-of-version-numbers][Comparing lists of version numbers]]
 
@@ -29,13 +30,13 @@ In your =rc.elv=, load this module:
 use github.com/zzamboni/elvish-modules/semver
 #+end_src
 
-The =semver:cmp= function receives two version numbers and returns -1, 0 or 1 depending on whether the first version number is older, the same or newer than the second. It uses the rules as described in [[https://semver.org/#spec-item-11][the Semantic Versioning specification]].
+The =semver:cmp= function receives two version numbers and returns -1, 0 or 1 depending on whether the first version number is older ("less"), the same or newer ("more") than the second. It uses the rules as described in [[https://semver.org/#spec-item-11][the Semantic Versioning specification]].
 
 #+begin_src elvish :exports both :use github.com/zzamboni/elvish-modules/semver
 vers = [
-  1.0.1 1.0 1.0.0 2.0.0 2.1.0 2.1.1 1.0.0-alpha
+  1.0.1 1.0.0 2.0.0 2.1.0 2.1.1 1.0.0-alpha
   1.0.0-alpha.beta 1.0.0-alpha.1 1.0.0-beta
-  1.0.0-beta.2 1.0.0-beta.11 1.0.0-rc.1 1.0.0 1.0 1
+  1.0.0-beta.2 1.0.0-beta.11 1.0.0-rc.1 1.0.0
 ]
 range (- (count $vers) 1) | each [i]{
   v1 v2 = $vers[$i (+ $i 1)]
@@ -46,10 +47,8 @@ range (- (count $vers) 1) | each [i]{
 
 #+RESULTS:
 #+begin_example
-semver:cmp 1.0.1 1.0
+semver:cmp 1.0.1 1.0.0
 ▶ -1
-semver:cmp 1.0 1.0.0
-▶ 0
 semver:cmp 1.0.0 2.0.0
 ▶ 1
 semver:cmp 2.0.0 2.1.0
@@ -67,15 +66,11 @@ semver:cmp 1.0.0-alpha.1 1.0.0-beta
 semver:cmp 1.0.0-beta 1.0.0-beta.2
 ▶ 1
 semver:cmp 1.0.0-beta.2 1.0.0-beta.11
-▶ 1
+▶ -1
 semver:cmp 1.0.0-beta.11 1.0.0-rc.1
 ▶ 1
 semver:cmp 1.0.0-rc.1 1.0.0
 ▶ 1
-semver:cmp 1.0.0 1.0
-▶ 0
-semver:cmp 1.0 1
-▶ 0
 #+end_example
 
 The =semver:eq=, =semver:not-eq=, =semver:<=, =semver:<==, =semver:>= and =semver:>== functions behave just like their [[https://elvish.io/ref/builtin.html#section-3][numeric or string versions]], but with version numbers. They all use =semver:cmp= to do the comparison.
@@ -86,8 +81,6 @@ semver:<      1.0.0-alpha 1.0.0 2.1.0
 semver:<=     1.0.0 1.0.0 2.1.0
 semver:>      1.0.0 1.0.0-rc1 0.9.0
 semver:>=     1.0.0-rc1 1.0.0-rc1 0.9.0
-semver:eq     1.0.0 1.0 1
-semver:not-eq 1.0.0 1.0 1
 semver:not-eq 1.0.0 1.0.1 2.0.0
 #+end_src
 
@@ -97,8 +90,6 @@ semver:not-eq 1.0.0 1.0.1 2.0.0
 : ▶ $true
 : ▶ $true
 : ▶ $true
-: ▶ $true
-: ▶ $false
 : ▶ $true
 
 * Implementation
@@ -118,7 +109,7 @@ use ./util
 
 ** Support functions
 
-The =-signed-compare= function compares two values using an arbitrary function which should return whether the first is "less than" the second, and return =$true= or =$false= accordingly. Based on this, it returns -1, 0 or -1 to represent the order of the two values.
+The =-signed-compare= function compares two values using a function which takes two values and returns -1, 0 or -1 to represent the order of the two values.
 
 #+begin_src elvish
 fn -signed-compare [ltfn v1 v2]{
@@ -130,58 +121,105 @@ fn -signed-compare [ltfn v1 v2]{
 }
 #+end_src
 
-The =-num-str-cmp= function compares two values numerically if they both are integers, and lexically (as strings) otherwise.
-
-#+begin_src elvish
-fn -num-str-cmp [e1 e2]{
-  lt = (util:cond [
-      { re:match '^\d+$' $e1$e2 } [@a]{ < $@a }
-      :else                       [@a]{ <s $@a }
-  ])
-  -signed-compare $lt $e1 $e2
-}
-#+end_src
-
-The =-part-compare= function receives two period-separated strings and returns their order according to the first component that differs (0 is both are equal).
+The =-part-compare= function receives two parsed values (as returned by =semver:parse= and returns their order according to the first component that differs (0 is both are equal).
 
 #+begin_src elvish
 fn -part-compare [v1 v2]{
-  v1s = [(str:split '.' $v1)]
-  v2s = [(str:split '.' $v2)]
-  num = (util:max (count $v1s) (count $v2s))
-  fill = [(repeat $num 0)]
-  range $num | each [i]{
-    comp = (-num-str-cmp [$@v1s $@fill][$i] [$@v2s $@fill][$i])
+  each [k]{
+    comp = (-signed-compare $'<~' $v1[$k] $v2[$k])
     if (!= $comp 0) {
       put $comp
       return
     }
-  }
+  } [major minor patch]
   put 0
 }
 #+end_src
 
-** Main comparison function
+** Parsing and validating version numbers
 
-The =semver:cmp= function receives two version numbers in the form MAJOR.MINOR.PATCH-LABEL (where all components except for MAJOR) are optional and returns their order as -1, 0 or 1. The [[https://semver.org/#spec-item-11][algorithm]] is as follows:
-
-- If the MAJOR.MINOR.PATCH parts of the two version numbers differ, return their order (missing MINOR or PATCH components are treated as 0)
-- Otherwise:
-  - If one of them has a LABEL part but the other not, the one without the label is higher.
-  - If both have a LABEL part, return the order of the labels.
-
+We use the [[https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string][regular expression provided in the SemVer specification]] to determine if a string is a valid version number. We have a "non-strict" variation which allows the string to start with a =v= or a =V=.
 
 #+begin_src elvish
-fn cmp [v1 v2]{
-  rel1 prerel1 @_ = (str:split '-' $v1) $false
-  rel2 prerel2 @_ = (str:split '-' $v2) $false
-  comp = (-part-compare $rel1 $rel2)
+var semver-regex = '^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+var semver-regex-nonstrict = '^[vV]?(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+#+end_src
+
+In one concession to common usage, the =&allow-v= option (which can be set as default by assigning =semver:allow-v-default = $true=) allows the string to start with a =v= or a =V=.
+
+#+begin_src elvish
+var allow-v-default = $false
+#+end_src
+
+The =get-regex= function returns the regex to use based on the =&allow-v= option and the =$allow-v-default= variable.
+
+#+begin_src elvish
+fn get-regex [&allow-v=$nil]{
+  allow-v = (if (not-eq $allow-v $nil) { put $allow-v } else { put $allow-v-default })
+  if $allow-v {
+    put $semver-regex-nonstrict
+  } else {
+    put $semver-regex
+  }
+}
+#+end_src
+
+The =semver:validate= function checks whether the string is a valid semantic version number. If it's invalid, an exception is thrown.
+
+#+begin_src elvish
+fn validate [string &allow-v=$nil]{
+  if (not (re:match (get-regex &allow-v=$allow-v) $string)) {
+    fail "Invalid SemVer string: "$string
+  }
+}
+#+end_src
+
+The =semver:parse= function returns a map containing the corresponding elements if the string is valid, or =$nil= otherwise. If the PRERELEASE or BUILDMETADATA parts are not present, those fields are set to =$nil=.
+
+#+begin_src elvish
+fn parse [string &allow-v=$nil]{
+  if (validate $string &allow-v=$allow-v) {
+    var parts = (re:find (get-regex &allow-v=$allow-v) $string)[groups]
+    put [
+      &major=  $parts[1][text]
+      &minor=  $parts[2][text]
+      &patch=  $parts[3][text]
+      &prerel= (if (!=s $parts[4][text] '') { put $parts[4][text] } else { put $nil })
+      &build=  (if (!=s $parts[5][text] '') { put $parts[5][text] } else { put $nil })
+    ]
+  } else {
+    put $nil
+  }
+}
+#+end_src
+** Main comparison function
+
+The =semver:cmp= function receives two version numbers in SemVer format and returns their order as -1, 0 or 1. The [[https://semver.org/#spec-item-11][algorithm]] as per the spec is as follows:
+
+- If the MAJOR.MINOR.PATCH parts of the two version numbers differ, return their order
+- Otherwise:
+  - If one of them has a PRERELEASE part but the other not, the one without the label is higher.
+  - If both have a PRERELEASE part, return the order of the labels.
+- The BUILDMETADATA part is ignored in any case.
+
+#+begin_src elvish
+fn cmp [v1 v2 &allow-v=$nil]{
+  validate $v1 &allow-v=$allow-v
+  validate $v2 &allow-v=$allow-v
+  var p1 = (parse $v1 &allow-v=$allow-v)
+  var p2 = (parse $v2 &allow-v=$allow-v)
+  var comp = (-part-compare $p1 $p2)
   if (!= $comp 0) {
+    # If there is a difference in the MAJOR.MINOR.PATCH part, that's the result
     put $comp
   } else {
+    # Otherwise, check the prerelease strings
+    var prerel1 prerel2 = $p1[prerel] $p2[prerel]
     if (and $prerel1 $prerel2) {
-      -part-compare $prerel1 $prerel2
+      # If both prerel strings are present, compare them
+      -signed-compare $'<s~' $prerel1 $prerel2
     } else {
+      # Otherwise, the one without a string is "more than" the other
       -signed-compare [v1 v2]{ and $v1 (not $v2) } $prerel1 $prerel2
     }
   }
@@ -193,12 +231,12 @@ fn cmp [v1 v2]{
 The =-seq-compare= function receives a list of version numbers, an operator and an expected value. All neighboring pairs in the list are compared using =semver:cmp=, and the result is compared against the expected using the operator. The function returns =$true= if the list is empty, or if all the pairs satisfy the condition. This allows us to implement all the list-comparison functions below just by modifying the operator and the expected value.
 
 #+begin_src elvish
-fn -seq-compare [op expected @vers]{
+fn -seq-compare [op expected @vers &allow-v=$nil]{
   res = $true
   last = $false
   each [v]{
     if $last {
-      res = (and $res ($op (cmp $last $v) $expected))
+      res = (and $res ($op (cmp $last $v &allow-v=$allow-v) $expected))
     }
     last = $v
   } $vers
@@ -209,10 +247,10 @@ fn -seq-compare [op expected @vers]{
 All of the user-facing functions are implemented by passing the corresponding functions and values to =-seq-compare=.
 
 #+begin_src elvish
-fn '<'    [@vers]{ -seq-compare $builtin:eq~      1 $@vers }
-fn '>'    [@vers]{ -seq-compare $builtin:eq~     -1 $@vers }
-fn eq     [@vers]{ -seq-compare $builtin:eq~      0 $@vers }
-fn not-eq [@vers]{ -seq-compare $builtin:not-eq~  0 $@vers }
-fn '<='   [@vers]{ -seq-compare $builtin:not-eq~ -1 $@vers }
-fn '>='   [@vers]{ -seq-compare $builtin:not-eq~  1 $@vers }
+fn '<'    [@vers &allow-v=$nil]{ -seq-compare $builtin:eq~      1 $@vers &allow-v=$allow-v }
+fn '>'    [@vers &allow-v=$nil]{ -seq-compare $builtin:eq~     -1 $@vers &allow-v=$allow-v }
+fn eq     [@vers &allow-v=$nil]{ -seq-compare $builtin:eq~      0 $@vers &allow-v=$allow-v }
+fn not-eq [@vers &allow-v=$nil]{ -seq-compare $builtin:not-eq~  0 $@vers &allow-v=$allow-v }
+fn '<='   [@vers &allow-v=$nil]{ -seq-compare $builtin:not-eq~ -1 $@vers &allow-v=$allow-v }
+fn '>='   [@vers &allow-v=$nil]{ -seq-compare $builtin:not-eq~  1 $@vers &allow-v=$allow-v }
 #+end_src
