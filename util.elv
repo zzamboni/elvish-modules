@@ -1,3 +1,5 @@
+use file
+
 fn dotify-string [str dotify-length]{
   if (or (<= $dotify-length 0) (<= (count $str) $dotify-length)) {
     put $str
@@ -7,18 +9,18 @@ fn dotify-string [str dotify-length]{
 }
 
 fn pipesplit [l1 l2 l3]{
-  pout = (pipe)
-  perr = (pipe)
+  pout = (file:pipe)
+  perr = (file:pipe)
   run-parallel {
     $l1 > $pout 2> $perr
-    pwclose $pout
-    pwclose $perr
+    file:close $pout[w]
+    file:close $perr[w]
   } {
     $l2 < $pout
-    prclose $pout
+    file:close $pout[r]
   } {
     $l3 < $perr
-    prclose $perr
+    file:close $perr[r]
   }
 }
 
