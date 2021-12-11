@@ -2,25 +2,25 @@ use str
 use path
 use github.com/zzamboni/elvish-modules/tty
 
-spinners = (from-json < (path:dir (src)[name])/spinners.json)
+var spinners = (from-json < (path:dir (src)[name])/spinners.json)
 
-default-spinner = 'dots'
+var default-spinner = 'dots'
 
--sr = [&]
+var -sr = [&]
 
-fn -output [@s]{
+fn -output {|@s|
   print $@s >/dev/tty
 }
 
-fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false &id=$nil]{
+fn new {|&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false &id=$nil|
   # Determine ID to use
-  id = (or $id (e = ?(uuidgen)) (randint 0 9999999))
+  set id = (or $id (var e = ?(uuidgen)) (randint 0 9999999))
   # Use default spinner if none is specified
-  if (not $spinner) { spinner = $default-spinner }
+  if (not $spinner) { set spinner = $default-spinner }
   # Automatically convert non-list styles, so you can do e.g. &style=red
-  if (not-eq (kind-of $style) list) { style = [$style] }
+  if (not-eq (kind-of $style) list) { set style = [$style] }
   # Create and store the new spinner object
-  -sr[$id] = [
+  set -sr[$id] = [
     &id=             $id
     &spinner=        $spinner
     &frames=         (or $frames $spinners[$spinner][frames])
@@ -40,39 +40,39 @@ fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix=""
   put $id
 }
 
-fn step [spinner]{
-  steps = $-sr[$spinner][frames]
-  indentation = (str:join '' [(repeat $-sr[$spinner][indent] ' ')])
-  pre-string = (if (not-eq $-sr[$spinner][prefix] '') { put $-sr[$spinner][prefix]' ' } else { put '' })
-  post-string = (if (not-eq $-sr[$spinner][title] '') { put ' '$-sr[$spinner][title] } else { put '' })
+fn step {|spinner|
+  var steps = $-sr[$spinner][frames]
+  var indentation = (str:join '' [(repeat $-sr[$spinner][indent] ' ')])
+  var pre-string = (if (not-eq $-sr[$spinner][prefix] '') { put $-sr[$spinner][prefix]' ' } else { put '' })
+  var post-string = (if (not-eq $-sr[$spinner][title] '') { put ' '$-sr[$spinner][title] } else { put '' })
   tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
   -output $indentation$pre-string(styled $steps[$-sr[$spinner][current]] (all $-sr[$spinner][style]))$post-string
   tty:clear-line
-  inc = 1
+  var inc = 1
   if (eq (kind-of $steps string)) {
-    inc = (count $steps[$-sr[$spinner][current]])
+    set inc = (count $steps[$-sr[$spinner][current]])
   }
-  -sr[$spinner][current] = (% (+ $-sr[$spinner][current] $inc) (count $steps))
+  set -sr[$spinner][current] = (% (+ $-sr[$spinner][current] $inc) (count $steps))
 }
 
-persist-symbols = [
+var persist-symbols = [
   &success= [ &symbol="✔" &color=green ]
   &error=   [ &symbol="✖" &color=red ]
   &warning= [ &symbol="⚠" &color=yellow ]
   &info=    [ &symbol="ℹ" &color=blue ]
 ]
 
-fn set-symbol [spinner symbol]{
-  -sr[$spinner][frames] = [ $persist-symbols[$symbol][symbol] ]
-  -sr[$spinner][style] = [ $persist-symbols[$symbol][color] ]
-  -sr[$spinner][current] = 0
+fn set-symbol {|spinner symbol|
+  set -sr[$spinner][frames] = [ $persist-symbols[$symbol][symbol] ]
+  set -sr[$spinner][style] = [ $persist-symbols[$symbol][color] ]
+  set -sr[$spinner][current] = 0
 }
 
-fn spinner-sleep [s]{
+fn spinner-sleep {|s|
   sleep (to-string (/ $-sr[$s][interval] 1000))
 }
 
-fn persist [spinner]{
+fn persist {|spinner|
   if (eq $-sr[$spinner][persist] status) {
     if $-sr[$spinner][status] {
       set-symbol $spinner success
@@ -84,28 +84,28 @@ fn persist [spinner]{
   }
   step $spinner
   -output "\n"
-  -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
+  set -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
 }
 
-fn attr [id attr @val]{
+fn attr {|id attr @val|
   if (has-key $-sr $id) {
     if (eq $val []) {
       put $-sr[$id][$attr]
     } else {
       if (eq $attr spinner) {
         # Automatically populate frames and interval based on spinner
-        name = $val[0]
-        -sr[$id][spinner]  = $name
-        -sr[$id][frames]   = $spinners[$name][frames]
-        -sr[$id][interval] = $spinners[$name][interval]
-        -sr[$id][current]  = 0
+        var name = $val[0]
+        set -sr[$id][spinner]  = $name
+        set -sr[$id][frames]   = $spinners[$name][frames]
+        set -sr[$id][interval] = $spinners[$name][interval]
+        set -sr[$id][current]  = 0
       } elif (eq $attr style) {
         # Automatically convert non-list styles, so you can do e.g. &style=red
-        style = $val[0]
-        if (not-eq (kind-of $style) list) { style = [$style] }
-        -sr[$id][style] = $style
+        var style = $val[0]
+        if (not-eq (kind-of $style) list) { set style = [$style] }
+        set -sr[$id][style] = $style
       } else {
-        -sr[$id][$attr] = $val[0]
+        set -sr[$id][$attr] = $val[0]
       }
     }
   } else {
@@ -113,21 +113,21 @@ fn attr [id attr @val]{
   }
 }
 
-fn do-spinner [spinner]{
+fn do-spinner {|spinner|
   if (not $-sr[$spinner][cursor]) {
     tty:hide-cursor
   }
-  -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
+  set -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
   while (not $-sr[$spinner][stop]) {
     step $spinner
     spinner-sleep $spinner
     if (has-key $-sr[$spinner] next-spinner-id) {
-      next-spinner-id = $-sr[$spinner][next-spinner-id]
+      var next-spinner-id = $-sr[$spinner][next-spinner-id]
       # Indicator to persist the current spinner and continue with a new definition
       persist $spinner
-      -sr[$spinner] = $-sr[$next-spinner-id]
-      -sr[$spinner][id] = $spinner
-      -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
+      set -sr[$spinner] = $-sr[$next-spinner-id]
+      set -sr[$spinner][id] = $spinner
+      set -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
       del -sr[$next-spinner-id]
     }
   }
@@ -144,31 +144,31 @@ fn do-spinner [spinner]{
   del -sr[$spinner]
 }
 
-fn start [spinner]{
+fn start {|spinner|
   do-spinner $spinner &
 }
 
-fn stop [spinner &status=$ok]{
-  -sr[$spinner][status] = $status
-  -sr[$spinner][stop] = $true
+fn stop {|spinner &status=$ok|
+  set -sr[$spinner][status] = $status
+  set -sr[$spinner][stop] = $true
 }
 
-fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false f]{
+fn run {|&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false f|
   # Create spinner
-  s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
+  var s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
   # Determine whether to pass the spinner ID to the function
-  f-args = [$s]
-  if (eq $f[arg-names] []) { f-args = [] }
+  var f-args = [$s]
+  if (eq $f[arg-names] []) { set f-args = [] }
   # Run spinner in parallel with the function
-  status = $ok
+  var status = $ok
   run-parallel {
     do-spinner $s
   } {
-    status = $ok
+    set status = $ok
     try {
       $f $@f-args
     } except e {
-      status = $e
+      set status = $e
     } finally {
       # Short pause to avoid a potential race condition when the
       # function finishes too quickly
@@ -178,17 +178,17 @@ fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix=""
   }
 }
 
-fn persist-and-new [old-spinner &spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false]{
-  new-spinner = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
-  -sr[$old-spinner][next-spinner-id] = $new-spinner
+fn persist-and-new {|old-spinner &spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false|
+  var new-spinner = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
+  set -sr[$old-spinner][next-spinner-id] = $new-spinner
 }
 
 fn list {
   keys $spinners | order
 }
 
-fn demo [&time=2 &style=blue &persist=$false]{
-  list | each [s]{
+fn demo {|&time=2 &style=blue &persist=$false|
+  list | each {|s|
     run &spinner=$s &title=$s &style=$style &persist=$persist { sleep $time }
   }
 }

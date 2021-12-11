@@ -178,9 +178,9 @@ During the execution of a spinner, the =spinners:persist= function can be used t
 ** Modules
 
 #+begin_src elvish
-use str
-use path
-use github.com/zzamboni/elvish-modules/tty
+  use str
+  use path
+  use github.com/zzamboni/elvish-modules/tty
 #+end_src
 
 ** Initialization
@@ -188,19 +188,19 @@ use github.com/zzamboni/elvish-modules/tty
 When the module is loaded, we read the spinner definitions from =spinners.json=.
 
 #+begin_src elvish
-spinners = (from-json < (path:dir (src)[name])/spinners.json)
+  var spinners = (from-json < (path:dir (src)[name])/spinners.json)
 #+end_src
 
 By default the =dots= spinner is used.
 
 #+begin_src elvish
-default-spinner = 'dots'
+  var default-spinner = 'dots'
 #+end_src
 
 We store spinners in the =$spinners:-sr= variable, indexed by ID.
 
 #+begin_src elvish
--sr = [&]
+  var -sr = [&]
 #+end_src
 
 ** Utility functions
@@ -208,9 +208,9 @@ We store spinners in the =$spinners:-sr= variable, indexed by ID.
 All output is produced through this function.
 
 #+begin_src elvish
-fn -output [@s]{
-  print $@s >/dev/tty
-}
+  fn -output {|@s|
+    print $@s >/dev/tty
+  }
 #+end_src
 
 ** Spinner creation, advancing and status
@@ -232,128 +232,128 @@ A /spinner object/ is a definition of a spinner, and is a map containing the fol
 =spinners:new= creates a new spinner object containing the keys above, stores it in the registry, and returns its ID. The =&spinner= option can be used to initialize =&frames= and =&interval= from the default spinner definitions. If not given, =$spinners:default-spinner= is used. If =&frames= and =&interval= are given, they are used to override the default values. =&title=, =&prefix= and =&style= default to empty.
 
 #+begin_src elvish
-fn new [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false &id=$nil]{
-  # Determine ID to use
-  id = (or $id (e = ?(uuidgen)) (randint 0 9999999))
-  # Use default spinner if none is specified
-  if (not $spinner) { spinner = $default-spinner }
-  # Automatically convert non-list styles, so you can do e.g. &style=red
-  if (not-eq (kind-of $style) list) { style = [$style] }
-  # Create and store the new spinner object
-  -sr[$id] = [
-    &id=             $id
-    &spinner=        $spinner
-    &frames=         (or $frames $spinners[$spinner][frames])
-    &interval=       (or $interval $spinners[$spinner][interval])
-    &title=          $title
-    &prefix=         $prefix
-    &indent=         $indent
-    &style=          $style
-    &cursor=         $cursor
-    &persist=        $persist
-    &hide-exception= $hide-exception
-    &current=        0
-    &status=         $ok
-    &stop=           $false
-  ]
-  # Return ID of the new spinner
-  put $id
-}
+  fn new {|&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false &id=$nil|
+    # Determine ID to use
+    set id = (or $id (var e = ?(uuidgen)) (randint 0 9999999))
+    # Use default spinner if none is specified
+    if (not $spinner) { set spinner = $default-spinner }
+    # Automatically convert non-list styles, so you can do e.g. &style=red
+    if (not-eq (kind-of $style) list) { set style = [$style] }
+    # Create and store the new spinner object
+    set -sr[$id] = [
+      &id=             $id
+      &spinner=        $spinner
+      &frames=         (or $frames $spinners[$spinner][frames])
+      &interval=       (or $interval $spinners[$spinner][interval])
+      &title=          $title
+      &prefix=         $prefix
+      &indent=         $indent
+      &style=          $style
+      &cursor=         $cursor
+      &persist=        $persist
+      &hide-exception= $hide-exception
+      &current=        0
+      &status=         $ok
+      &stop=           $false
+    ]
+    # Return ID of the new spinner
+    put $id
+  }
 #+end_src
 
 Once a spinner object is created, =spinners:step= can be used to display and advance the spinner. This function returns an updated spinner object, which needs to be stored by the caller (Elvish does not support modifying arguments by reference).
 
 #+begin_src elvish
-fn step [spinner]{
-  steps = $-sr[$spinner][frames]
-  indentation = (str:join '' [(repeat $-sr[$spinner][indent] ' ')])
-  pre-string = (if (not-eq $-sr[$spinner][prefix] '') { put $-sr[$spinner][prefix]' ' } else { put '' })
-  post-string = (if (not-eq $-sr[$spinner][title] '') { put ' '$-sr[$spinner][title] } else { put '' })
-  tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
-  -output $indentation$pre-string(styled $steps[$-sr[$spinner][current]] (all $-sr[$spinner][style]))$post-string
-  tty:clear-line
-  inc = 1
-  if (eq (kind-of $steps string)) {
-    inc = (count $steps[$-sr[$spinner][current]])
+  fn step {|spinner|
+    var steps = $-sr[$spinner][frames]
+    var indentation = (str:join '' [(repeat $-sr[$spinner][indent] ' ')])
+    var pre-string = (if (not-eq $-sr[$spinner][prefix] '') { put $-sr[$spinner][prefix]' ' } else { put '' })
+    var post-string = (if (not-eq $-sr[$spinner][title] '') { put ' '$-sr[$spinner][title] } else { put '' })
+    tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
+    -output $indentation$pre-string(styled $steps[$-sr[$spinner][current]] (all $-sr[$spinner][style]))$post-string
+    tty:clear-line
+    var inc = 1
+    if (eq (kind-of $steps string)) {
+      set inc = (count $steps[$-sr[$spinner][current]])
+    }
+    set -sr[$spinner][current] = (% (+ $-sr[$spinner][current] $inc) (count $steps))
   }
-  -sr[$spinner][current] = (% (+ $-sr[$spinner][current] $inc) (count $steps))
-}
 #+end_src
 
 Set the status of the spinner to different outcomes, will be displayed the next time the =step= function is called. The definition of the symbols to display can be customized by adding or changing elements in =$spinners:persist-symbols=.
 
 #+begin_src elvish
-persist-symbols = [
-  &success= [ &symbol="✔" &color=green ]
-  &error=   [ &symbol="✖" &color=red ]
-  &warning= [ &symbol="⚠" &color=yellow ]
-  &info=    [ &symbol="ℹ" &color=blue ]
-]
+  var persist-symbols = [
+    &success= [ &symbol="✔" &color=green ]
+    &error=   [ &symbol="✖" &color=red ]
+    &warning= [ &symbol="⚠" &color=yellow ]
+    &info=    [ &symbol="ℹ" &color=blue ]
+  ]
 #+end_src
 
 #+begin_src elvish
-fn set-symbol [spinner symbol]{
-  -sr[$spinner][frames] = [ $persist-symbols[$symbol][symbol] ]
-  -sr[$spinner][style] = [ $persist-symbols[$symbol][color] ]
-  -sr[$spinner][current] = 0
-}
+  fn set-symbol {|spinner symbol|
+    set -sr[$spinner][frames] = [ $persist-symbols[$symbol][symbol] ]
+    set -sr[$spinner][style] = [ $persist-symbols[$symbol][color] ]
+    set -sr[$spinner][current] = 0
+  }
 #+end_src
 
 Wait an amount of time as defined by the spinner's =interval= field.
 
 #+begin_src elvish
-fn spinner-sleep [s]{
-  sleep (to-string (/ $-sr[$s][interval] 1000))
-}
+  fn spinner-sleep {|s|
+    sleep (to-string (/ $-sr[$s][interval] 1000))
+  }
 #+end_src
 
 Persist a spinner by setting its symbol to the one corresponding to its =persist= field (if any, otherwise just leave it as-is), and then moving the cursor to the next line and storing the new position as the spinner's =initial-pos= field.
 
 #+begin_src elvish
-fn persist [spinner]{
-  if (eq $-sr[$spinner][persist] status) {
-    if $-sr[$spinner][status] {
-      set-symbol $spinner success
-    } else {
-      set-symbol $spinner error
+  fn persist {|spinner|
+    if (eq $-sr[$spinner][persist] status) {
+      if $-sr[$spinner][status] {
+        set-symbol $spinner success
+      } else {
+        set-symbol $spinner error
+      }
+    } elif (eq (kind-of $-sr[$spinner][persist]) string) {
+      set-symbol $spinner $-sr[$spinner][persist]
     }
-  } elif (eq (kind-of $-sr[$spinner][persist]) string) {
-    set-symbol $spinner $-sr[$spinner][persist]
+    step $spinner
+    -output "\n"
+    set -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
   }
-  step $spinner
-  -output "\n"
-  -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
-}
 #+end_src
 
 Individual fields of a spinner can be queried or modified using the =spinners:attr= function. If no value is given, returns the value of the attribute, otherwise just sets it (no return value). The =spinner= field is treated specially by fetching the corresponding =frames= and =interval= attributes from the default spinner definitions, instead of just storing its value. It also resets the =current= counter to zero, since different spinners have different number of frames.
 
 #+begin_src elvish
-fn attr [id attr @val]{
-  if (has-key $-sr $id) {
-    if (eq $val []) {
-      put $-sr[$id][$attr]
-    } else {
-      if (eq $attr spinner) {
-        # Automatically populate frames and interval based on spinner
-        name = $val[0]
-        -sr[$id][spinner]  = $name
-        -sr[$id][frames]   = $spinners[$name][frames]
-        -sr[$id][interval] = $spinners[$name][interval]
-        -sr[$id][current]  = 0
-      } elif (eq $attr style) {
-        # Automatically convert non-list styles, so you can do e.g. &style=red
-        style = $val[0]
-        if (not-eq (kind-of $style) list) { style = [$style] }
-        -sr[$id][style] = $style
+  fn attr {|id attr @val|
+    if (has-key $-sr $id) {
+      if (eq $val []) {
+        put $-sr[$id][$attr]
       } else {
-        -sr[$id][$attr] = $val[0]
+        if (eq $attr spinner) {
+          # Automatically populate frames and interval based on spinner
+          var name = $val[0]
+          set -sr[$id][spinner]  = $name
+          set -sr[$id][frames]   = $spinners[$name][frames]
+          set -sr[$id][interval] = $spinners[$name][interval]
+          set -sr[$id][current]  = 0
+        } elif (eq $attr style) {
+          # Automatically convert non-list styles, so you can do e.g. &style=red
+          var style = $val[0]
+          if (not-eq (kind-of $style) list) { set style = [$style] }
+          set -sr[$id][style] = $style
+        } else {
+          set -sr[$id][$attr] = $val[0]
+        }
       }
+    } else {
+      fail "Nonexisting spinner with ID "$id
     }
-  } else {
-    fail "Nonexisting spinner with ID "$id
   }
-}
 #+end_src
 
 ** Starting and stopping a spinner
@@ -371,53 +371,53 @@ The =spinners:do-spinner= function is the one that actually does the work of:
 - Deleting the spinner definition from the internal registry.
 
 #+begin_src elvish
-fn do-spinner [spinner]{
-  if (not $-sr[$spinner][cursor]) {
-    tty:hide-cursor
-  }
-  -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
-  while (not $-sr[$spinner][stop]) {
-    step $spinner
-    spinner-sleep $spinner
-    if (has-key $-sr[$spinner] next-spinner-id) {
-      next-spinner-id = $-sr[$spinner][next-spinner-id]
-      # Indicator to persist the current spinner and continue with a new definition
-      persist $spinner
-      -sr[$spinner] = $-sr[$next-spinner-id]
-      -sr[$spinner][id] = $spinner
-      -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
-      del -sr[$next-spinner-id]
+  fn do-spinner {|spinner|
+    if (not $-sr[$spinner][cursor]) {
+      tty:hide-cursor
     }
+    set -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
+    while (not $-sr[$spinner][stop]) {
+      step $spinner
+      spinner-sleep $spinner
+      if (has-key $-sr[$spinner] next-spinner-id) {
+        var next-spinner-id = $-sr[$spinner][next-spinner-id]
+        # Indicator to persist the current spinner and continue with a new definition
+        persist $spinner
+        set -sr[$spinner] = $-sr[$next-spinner-id]
+        set -sr[$spinner][id] = $spinner
+        set -sr[$spinner][initial-pos] = [(tty:cursor-pos)]
+        del -sr[$next-spinner-id]
+      }
+    }
+    if $-sr[$spinner][persist] {
+      persist $spinner
+    } else {
+      tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
+      tty:clear-line
+    }
+    if (not $-sr[$spinner][cursor]) { tty:show-cursor }
+    if (and (not $-sr[$spinner][status]) (not $-sr[$spinner][hide-exception])) {
+      show $-sr[$spinner][status]
+    }
+    del -sr[$spinner]
   }
-  if $-sr[$spinner][persist] {
-    persist $spinner
-  } else {
-    tty:set-cursor-pos (all $-sr[$spinner][initial-pos])
-    tty:clear-line
-  }
-  if (not $-sr[$spinner][cursor]) { tty:show-cursor }
-  if (and (not $-sr[$spinner][status]) (not $-sr[$spinner][hide-exception])) {
-    show $-sr[$spinner][status]
-  }
-  del -sr[$spinner]
-}
 #+end_src
 
 The =spinners:start= function simply calls =do-spinner= in the background.
 
 #+begin_src elvish
-fn start [spinner]{
-  do-spinner $spinner &
-}
+  fn start {|spinner|
+    do-spinner $spinner &
+  }
 #+end_src
 
 Stop execution of a spinner by setting its =stop= flag. This will be caught by the spinner process in the background, which does the work of stopping, persisting and removing the spinner. The =&status= option should be used to pass an exception object used to set the status of the spinner.
 
 #+begin_src elvish
-fn stop [spinner &status=$ok]{
-  -sr[$spinner][status] = $status
-  -sr[$spinner][stop] = $true
-}
+  fn stop {|spinner &status=$ok|
+    set -sr[$spinner][status] = $status
+    set -sr[$spinner][stop] = $true
+  }
 #+end_src
 
 ** Running a function with a spinner
@@ -425,58 +425,58 @@ fn stop [spinner &status=$ok]{
 Simplest point of entry for displaying a spinner while a function is running. Takes a lambda as the only mandatory argument. A spinner will be automatically created and displayed until the lambda finishes. It takes the same options as =spinners:new=, which can be used to specify the details of the spinner to use.
 
 #+begin_src elvish
-fn run [&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false f]{
-  # Create spinner
-  s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
-  # Determine whether to pass the spinner ID to the function
-  f-args = [$s]
-  if (eq $f[arg-names] []) { f-args = [] }
-  # Run spinner in parallel with the function
-  status = $ok
-  run-parallel {
-    do-spinner $s
-  } {
-    status = $ok
-    try {
-      $f $@f-args
-    } except e {
-      status = $e
-    } finally {
-      # Short pause to avoid a potential race condition when the
-      # function finishes too quickly
-      sleep 0.05
-      stop &status=$status $s
+  fn run {|&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false f|
+    # Create spinner
+    var s = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
+    # Determine whether to pass the spinner ID to the function
+    var f-args = [$s]
+    if (eq $f[arg-names] []) { set f-args = [] }
+    # Run spinner in parallel with the function
+    var status = $ok
+    run-parallel {
+      do-spinner $s
+    } {
+      set status = $ok
+      try {
+        $f $@f-args
+      } except e {
+        set status = $e
+      } finally {
+        # Short pause to avoid a potential race condition when the
+        # function finishes too quickly
+        sleep 0.05
+        stop &status=$status $s
+      }
     }
   }
-}
 #+end_src
 
 During the execution of a spinner, the =spinners:persist-and-new= function can be used to persist the current spinner (according to its settings), move the cursor to the next line, and then continue with a new spinner. This function accepts the same arguments as =spinners:run=, settings from the old spinner are *not* inherited.
 
 #+begin_src elvish
-fn persist-and-new [old-spinner &spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false]{
-  new-spinner = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
-  -sr[$old-spinner][next-spinner-id] = $new-spinner
-}
+  fn persist-and-new {|old-spinner &spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="" &indent=0 &cursor=$false &persist=$false &hide-exception=$false|
+    var new-spinner = (new &spinner=$spinner &frames=$frames &interval=$interval &title=$title &style=$style &prefix=$prefix &indent=$indent &cursor=$cursor &persist=$persist &hide-exception=$hide-exception)
+    set -sr[$old-spinner][next-spinner-id] = $new-spinner
+  }
 #+end_src
 ** List and demo mode
 
 Return the list of available spinners
 
 #+begin_src elvish
-fn list {
-  keys $spinners | order
-}
+  fn list {
+    keys $spinners | order
+  }
 #+end_src
 
 Produce all the spinners in sequence.
 
 #+begin_src elvish
-fn demo [&time=2 &style=blue &persist=$false]{
-  list | each [s]{
-    run &spinner=$s &title=$s &style=$style &persist=$persist { sleep $time }
+  fn demo {|&time=2 &style=blue &persist=$false|
+    list | each {|s|
+      run &spinner=$s &title=$s &style=$style &persist=$persist { sleep $time }
+    }
   }
-}
 #+end_src
 
 ** Spinner definitions

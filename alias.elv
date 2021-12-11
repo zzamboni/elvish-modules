@@ -6,26 +6,26 @@
 use re
 use str
 
-dir = ~/.elvish/aliases
+var dir = ~/.elvish/aliases
 
-arg-replacer = '{}'
+var arg-replacer = '{}'
 
-aliases = [&]
+var aliases = [&]
 
-fn -define-alias [name body]{
+fn -define-alias {|name body|
   eval $body
-  aliases[$name] = $body
+  set aliases[$name] = $body
 }
 
-fn -load-alias [name file]{
-  body = (slurp < $file)
+fn -load-alias {|name file|
+  var body = (slurp < $file)
   -define-alias $name $body
 }
 
-fn -save [&verbose=$false name]{
+fn -save {|&verbose=$false name|
   if (has-key $aliases $name) {
-    tmp-file = (mktemp $dir/tmp.XXXXXXXXXX)
-    file = $dir/$name.elv
+    var tmp-file = (mktemp $dir/tmp.XXXXXXXXXX)
+    var file = $dir/$name.elv
     echo $aliases[$name] > $tmp-file
     e:mv $tmp-file $file
     if $verbose {
@@ -36,31 +36,31 @@ fn -save [&verbose=$false name]{
   }
 }
 
-fn save [&verbose=$false &all=$false @names]{
+fn save {|&verbose=$false &all=$false @names|
   if $all {
-    names = [(keys $aliases)]
+    set names = [(keys $aliases)]
   }
-  each [n]{
+  each {|n|
     -save &verbose=$verbose $n
   } $names
 }
 
-fn def [&verbose=$false &save=$false &use=[] name @cmd]{
-  use-statements = [(each [m]{ put "use "$m";" } $use)]
-  args-at-end = '$@_args'
-  new-cmd = [
-    (each [e]{
+fn def {|&verbose=$false &save=$false &use=[] name @cmd|
+  var use-statements = [(each {|m| put "use "$m";" } $use)]
+  var args-at-end = '$@_args'
+  var new-cmd = [
+    (each {|e|
         if (eq $e $arg-replacer) {
           put '$@_args'
-          args-at-end = ''
+          set args-at-end = ''
         } else {
           repr $e
         }
     } $cmd)
   ]
   var body = ({
-    echo "#alias:new" $name (if (not-eq $use []) { put "&use="(to-string $use) }) (each [w]{ repr $w } $cmd)
-    print "edit:add-var "$name'~ [@_args]{' $@use-statements $@new-cmd $args-at-end '}'
+    echo "#alias:new" $name (if (not-eq $use []) { put "&use="(to-string $use) }) (each {|w| repr $w } $cmd)
+    print "edit:add-var "$name'~ {|@_args| ' $@use-statements $@new-cmd $args-at-end '}'
   } | slurp)
   -define-alias $name $body
   if $save {
@@ -71,25 +71,25 @@ fn def [&verbose=$false &save=$false &use=[] name @cmd]{
   }
 }
 
-new~ = $def~
+var new~ = $def~
 
-fn bash-alias [@args]{
-  line = $@args
-  name cmd = (str:split &max=2 '=' $line)
+fn bash-alias {|@args|
+  var line = $@args
+  var name cmd = (str:split &max=2 '=' $line)
   def $name $cmd
 }
 
 fn list {
-  keys $aliases | each [n]{
+  keys $aliases | each {|n|
     echo (re:find '^#(alias:new .*)\n' $aliases[$n])[groups][1][text]
   }
 }
 
-ls~ = $list~ # ls is an alias for list
+var ls~ = $list~ # ls is an alias for list
 
-fn undef [name]{
+fn undef {|name|
   if (has-key $aliases $name) {
-    file = $dir/$name.elv
+    var file = $dir/$name.elv
     e:rm -f $file
     del aliases[$name]
     edit:add-var $name"~" (external $name)
@@ -99,17 +99,17 @@ fn undef [name]{
   }
 }
 
-rm~ = $undef~ # rm is an alias for undef
+var rm~ = $undef~ # rm is an alias for undef
 
 fn init {
   if (not ?(test -d $dir)) {
     mkdir -p $dir
   }
 
-  for file [(_ = ?(put $dir/*.elv))] {
-    content = (cat $file | slurp)
+  for file [(set _ = ?(put $dir/*.elv))] {
+    var content = (cat $file | slurp)
     if (re:match '^#alias:new ' $content) {
-      name cmd = (re:find '^#alias:new (\S+)\s+(.*)\n' $content)[groups][1 2][text]
+      var name cmd = (re:find '^#alias:new (\S+)\s+(.*)\n' $content)[groups][1 2][text]
       def $name (edit:wordify $cmd)
     }
   }

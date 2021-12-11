@@ -33,123 +33,123 @@ use github.com/zzamboni/elvish-modules/leanpub
 :END:
 
 #+begin_src elvish
-use str
+  use str
 
-api-key = $nil
-api-key-fn = $nil
+  var api-key = $nil
+  var api-key-fn = $nil
 #+end_src
 
 This function returns the Leanpub API key to use. If =$leanpub:api-key= is set, it is returned. Else, if =$leanpub:api-key-fn= is defined, it is called and its return value used and stored in =$leanpub:api-key= for future use.
 
 #+begin_src elvish
-fn api-key {
-  if $api-key {
-    put $api-key
-  } elif $api-key-fn {
-    api-key = ($api-key-fn)
-    put $api-key
-  } else {
-    fail "Please set leanpub:api-key or leanpub:api-key-fn"
+  fn api-key {
+    if $api-key {
+      put $api-key
+    } elif $api-key-fn {
+      set api-key = ($api-key-fn)
+      put $api-key
+    } else {
+      fail "Please set leanpub:api-key or leanpub:api-key-fn"
+    }
   }
-}
 #+end_src
 
 #+begin_src elvish
-fn get-slug [@args]{
-  if (eq $args []) {
-    put [(str:split / $pwd)][-1]
-  } else {
-    put $args[0]
+  fn get-slug {|@args|
+    if (eq $args []) {
+      put [(str:split / $pwd)][-1]
+    } else {
+      put $args[0]
+    }
   }
-}
 #+end_src
 
 #+begin_src elvish
-fn preview [@args]{
-  slug = (get-slug $@args)
-  pprint (curl -s -d "api_key="(api-key) https://leanpub.com/$slug/preview.json | from-json)
-}
-#+end_src
-
-#+begin_src elvish
-fn subset [@args]{
-  slug = (get-slug $@args)
-  pprint (curl -s -d "api_key="(api-key) https://leanpub.com/$slug/preview/subset.json | from-json)
-}
-#+end_src
-
-#+begin_src elvish
-fn publish [@args]{
-  slug = (get-slug $@args)
-  pprint (curl -s -d "api_key="(api-key) https://leanpub.com/$slug/publish.json | from-json)
-}
-#+end_src
-
-#+begin_src elvish
-fn status [@args]{
-  slug = (get-slug $@args)
-  status = (curl -s "https://leanpub.com/"$slug"/job_status?api_key="(api-key) | from-json)
-  if (has-key $status backtrace) {
-    file = (mktemp)
-    echo $status[backtrace] > $file
-    del status[backtrace]
-    status[error-log] = $file
+  fn preview {|@args|
+    var slug = (get-slug $@args)
+    pprint (curl -s -d "api_key="(api-key) https://leanpub.com/$slug/preview.json | from-json)
   }
-  put $status
-  if (has-key $status error-log) {
-    fail "An error occurred. The backtrace is at "$status[error-log]
+#+end_src
+
+#+begin_src elvish
+  fn subset {|@args|
+    var slug = (get-slug $@args)
+    pprint (curl -s -d "api_key="(api-key) https://leanpub.com/$slug/preview/subset.json | from-json)
   }
-}
 #+end_src
 
 #+begin_src elvish
-fn watch [@args]{
-  slug = (get-slug $@args)
-  s = (status $slug)
-  while (not-eq $s [&]) {
-    pprint $s
-    sleep 5
-    s = (status $slug)
+  fn publish {|@args|
+    var slug = (get-slug $@args)
+    pprint (curl -s -d "api_key="(api-key) https://leanpub.com/$slug/publish.json | from-json)
   }
-}
 #+end_src
 
 #+begin_src elvish
-fn preview-and-watch [@args]{
-  slug = (get-slug $@args)
-  preview $slug
-  watch $slug
-}
+  fn status {|@args|
+    var slug = (get-slug $@args)
+    var status = (curl -s "https://leanpub.com/"$slug"/job_status?api_key="(api-key) | from-json)
+    if (has-key $status backtrace) {
+      var file = (mktemp)
+      echo $status[backtrace] > $file
+      del status[backtrace]
+      set status[error-log] = $file
+    }
+    put $status
+    if (has-key $status error-log) {
+      fail "An error occurred. The backtrace is at "$status[error-log]
+    }
+  }
 #+end_src
 
 #+begin_src elvish
-fn subset-and-watch [@args]{
-  slug = (get-slug $@args)
-  subset $slug
-  watch $slug
-}
+  fn watch {|@args|
+    var slug = (get-slug $@args)
+    var s = (status $slug)
+    while (not-eq $s [&]) {
+      pprint $s
+      sleep 5
+      set s = (status $slug)
+    }
+  }
 #+end_src
 
 #+begin_src elvish
-fn publish-and-watch [@args]{
-  slug = (get-slug $@args)
-  publish $slug
-  watch $slug
-}
+  fn preview-and-watch {|@args|
+    var slug = (get-slug $@args)
+    preview $slug
+    watch $slug
+  }
 #+end_src
 
 #+begin_src elvish
-fn do-subset [@args]{
-  msg = (echo $@args)
-  git ci -a -m $msg
-  git push
-  subset-and-watch
-}
+  fn subset-and-watch {|@args|
+    var slug = (get-slug $@args)
+    subset $slug
+    watch $slug
+  }
 #+end_src
 
 #+begin_src elvish
-fn info [@args]{
-  slug = (get-slug $@args)
-  pprint (curl -s "https://leanpub.com/"$slug".json?api_key="(api-key) | from-json)
-}
+  fn publish-and-watch {|@args|
+    var slug = (get-slug $@args)
+    publish $slug
+    watch $slug
+  }
+#+end_src
+
+#+begin_src elvish
+  fn do-subset {|@args|
+    var msg = (echo $@args)
+    git ci -a -m $msg
+    git push
+    subset-and-watch
+  }
+#+end_src
+
+#+begin_src elvish
+  fn info {|@args|
+    var slug = (get-slug $@args)
+    pprint (curl -s "https://leanpub.com/"$slug".json?api_key="(api-key) | from-json)
+  }
 #+end_src

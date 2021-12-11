@@ -3,15 +3,15 @@ use github.com/zzamboni/elvish-modules/spinners
 
 use github.com/zzamboni/elvish-themes/chain
 
-summary-repos = []
+var summary-repos = []
 
-find-all-user-repos-fn = {
+var find-all-user-repos-fn = {
   fd -H -I -t d '^.git$' ~ | each $path:dir~
 }
 
-repos-file = ~/.elvish/package-data/elvish-themes/git-summary-repos.json
+var repos-file = ~/.elvish/package-data/elvish-themes/git-summary-repos.json
 
-stop-gitstatusd-after-use = $false
+var stop-gitstatusd-after-use = $false
 
 fn -write-summary-repos {
   mkdir -p (path:dir $repos-file)
@@ -20,18 +20,18 @@ fn -write-summary-repos {
 
 fn -read-summary-repos {
   try {
-    summary-repos = (from-json < $repos-file)
+    set summary-repos = (from-json < $repos-file)
   } except {
-    summary-repos = []
+    set summary-repos = []
   }
 }
 
-fn gather-data [repos]{
-  each [r]{
+fn gather-data {|repos|
+  each {|r|
     try {
       cd $r
       chain:-parse-git &with-timestamp
-      status = [($chain:segment[git-combined])]
+      var status = [($chain:segment[git-combined])]
       put [
         &repo= (tilde-abbr $r)
         &status= $status
@@ -51,23 +51,23 @@ fn gather-data [repos]{
   } $repos
   if $stop-gitstatusd-after-use {
     # Temporarily disable background job notifications
-    old-notify-bg-job-success = $notify-bg-job-success
-    notify-bg-job-success = $false
+    var old-notify-bg-job-success = $notify-bg-job-success
+    set notify-bg-job-success = $false
     chain:gitstatus:stop
     sleep 0.01
-    notify-bg-job-success = $old-notify-bg-job-success
+    set notify-bg-job-success = $old-notify-bg-job-success
   }
 }
 
-fn summary-status [@repos &all=$false &only-dirty=$false]{
-  prev = $pwd
+fn summary-status {|@repos &all=$false &only-dirty=$false|
+  var prev = $pwd
 
   # Determine how to sort the output. This only happens in newer
   # versions of Elvish (where the order function exists)
   use builtin
-  order-cmd~ = $all~
+  var order-cmd~ = $all~
   if (has-key $builtin: order~) {
-    order-cmd~ = { order &less-than=[a b]{ <s $a[ts] $b[ts] } &reverse }
+    set order-cmd~ = { order &less-than={|a b| <s $a[ts] $b[ts] } &reverse }
   }
 
   # Read repo list from disk, cache in $git-summary:summary-repos
@@ -77,55 +77,55 @@ fn summary-status [@repos &all=$false &only-dirty=$false]{
   # 1) If the &all option is given, find them
   if $all {
     spinners:run &title="Finding all git repos" &style=blue {
-      repos = [($find-all-user-repos-fn)]
+      set repos = [($find-all-user-repos-fn)]
     }
   }
   # 2) If repos is not given nor defined through &all, use $git-summary:summary-repos
   if (eq $repos []) {
-    repos = $summary-repos
+    set repos = $summary-repos
   }
   # 3) If repos is specified, just use it
 
   # Produce the output
-  spinners:run &title="Gathering repo data" &style=blue { gather-data $repos } | order-cmd | each [r]{
-    status-display = $r[status]
+  spinners:run &title="Gathering repo data" &style=blue { gather-data $repos } | order-cmd | each {|r|
+    var status-display = $r[status]
     if (or (not $only-dirty) (not-eq $status-display [])) {
       if (eq $status-display []) {
-        color = (chain:-segment-style git-combined)
-        status-display = [(chain:-colorized "[" $color) (styled OK green) (chain:-colorized "]" $color)]
+        var color = (chain:-segment-style git-combined)
+        set status-display = [(chain:-colorized "[" $color) (styled OK green) (chain:-colorized "]" $color)]
       }
-      @status = $r[timestamp] ' ' (all $status-display) ' ' $r[branch]
+      var @status = $r[timestamp] ' ' (all $status-display) ' ' $r[branch]
       echo &sep="" $@status ' ' (chain:-colorized $r[repo] (chain:-segment-style git-repo))
     }
   }
   cd $prev
 }
 
-fn add-repo [@dirs]{
+fn add-repo {|@dirs|
   if (eq $dirs []) {
-    dirs = [ $pwd ]
+    set dirs = [ $pwd ]
   }
   -read-summary-repos
-  each [d]{
+  each {|d|
     if (has-value $summary-repos $d) {
       echo (styled "Repo "$d" is already in the list" yellow)
     } else {
-      summary-repos = [ $@summary-repos $d ]
+      set summary-repos = [ $@summary-repos $d ]
       echo (styled "Repo "$d" added to the list" green)
     }
   } $dirs
   -write-summary-repos
 }
 
-fn remove-repo [@dirs]{
+fn remove-repo {|@dirs|
   if (eq $dirs []) {
-    dirs = [ $pwd ]
+    set dirs = [ $pwd ]
   }
   -read-summary-repos
-  @new-repos = (each [d]{
+  var @new-repos = (each {|d|
       if (not (has-value $dirs $d)) { put $d }
   } $summary-repos)
-  each [d]{
+  each {|d|
     if (has-value $summary-repos $d) {
       echo (styled "Repo "$d" removed from the list." green)
     } else {
@@ -133,6 +133,6 @@ fn remove-repo [@dirs]{
     }
   } $dirs
 
-  summary-repos = $new-repos
+  set summary-repos = $new-repos
   -write-summary-repos
 }

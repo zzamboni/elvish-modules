@@ -38,7 +38,7 @@ In your =rc.elv=, load this module:
 Load some base modules.
 
 #+begin_src elvish
-use str
+  use str
 #+end_src
 
 ** Configuration
@@ -46,19 +46,19 @@ use str
 The account to use, defaults to =my=.
 
 #+begin_src elvish
-var account = my
+  var account = my
 #+end_src
 
 The command to use, defaults to the =op= command.
 
 #+begin_src elvish
-var op = (external op)
+  var op = (external op)
 #+end_src
 
 The field name where the passwords are usually stored - don't modify this unless you know what you are doing.
 
 #+begin_src elvish
-var password-field = "password"
+  var password-field = "password"
 #+end_src
 
 ** Authentication and token manipulation
@@ -66,21 +66,21 @@ var password-field = "password"
 Get the current session token. Returns =$nil= if not set.
 
 #+begin_src elvish
-fn session-token [&account=$account]{
-  if (has-env OP_SESSION_$account) {
-    get-env OP_SESSION_$account
-  } else {
-    put $nil
+  fn session-token {|&account=$account|
+    if (has-env OP_SESSION_$account) {
+      get-env OP_SESSION_$account
+    } else {
+      put $nil
+    }
   }
-}
 #+end_src
 
 Set the token environment variable
 
 #+begin_src elvish
-fn set-token [&account=$account token]{
-  set-env OP_SESSION_$account $token
-}
+  fn set-token {|&account=$account token|
+    set-env OP_SESSION_$account $token
+  }
 #+end_src
 
 Refresh the current login token, reauthenticating if needed. Reauthentication can be forced by using the =&no-refresh= option.
@@ -88,13 +88,13 @@ Refresh the current login token, reauthenticating if needed. Reauthentication ca
 Note that this assumes you have logged in at least once with the full =op signin= syntax, to specify the account and your email address, as described in [[https://support.1password.com/command-line/#sign-in-or-out][the =op= documentation]].
 
 #+begin_src elvish
-fn signin [&account=$account &no-refresh=$false]{
-  var refresh-opts = [ --session (session-token) ]
-  if $no-refresh {
-    set refresh-opts = []
+  fn signin {|&account=$account &no-refresh=$false|
+    var refresh-opts = [ --session (session-token) ]
+    if $no-refresh {
+      set refresh-opts = []
+    }
+    set-token &account=$account ($op signin --raw $@refresh-opts </dev/tty)
   }
-  set-token &account=$account ($op signin --raw $@refresh-opts </dev/tty)
-}
 #+end_src
 
 ** Getting item information
@@ -102,32 +102,32 @@ fn signin [&account=$account &no-refresh=$false]{
 Base function to get item information. This function returns the raw string output from the command.
 
 #+begin_src elvish
-fn get-item-raw [item &options=[] &fields=[]]{
-  signin
-  if (not-eq $fields []) {
-    options = [ $@options --fields (str:join , $fields) ]
+  fn get-item-raw {|item &options=[] &fields=[]|
+    signin
+    if (not-eq $fields []) {
+      set options = [ $@options --fields (str:join , $fields) ]
+    }
+    $op get item $@options $item
   }
-  $op get item $@options $item
-}
 #+end_src
 
 The main function is the same, but it parses the return value from JSON into an Elvish map.
 
 #+begin_src elvish
-fn get-item [item &options=[] &fields=[]]{
-  var item-str = (get-item-raw &options=$options &fields=$fields $item)
-  if (== (count $fields) 1) {
-    put $item-str
-  } else {
-    echo $item-str | from-json
+  fn get-item {|item &options=[] &fields=[]|
+    var item-str = (get-item-raw &options=$options &fields=$fields $item)
+    if (== (count $fields) 1) {
+      put $item-str
+    } else {
+      echo $item-str | from-json
+    }
   }
-}
 #+end_src
 
 One of the most common use cases is to get the password stored in an item, so we have a special function for this.
 
 #+begin_src elvish
-fn get-password [item]{
-  get-item &fields=[$password-field] $item
-}
+  fn get-password {|item|
+    get-item &fields=[$password-field] $item
+  }
 #+end_src

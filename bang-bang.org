@@ -117,9 +117,9 @@ bang-bang:init &plain-bang="Alt-3"
 We load some necessary libraries.
 
 #+begin_src elvish
-use ./util
-use re
-use str
+  use ./util
+  use re
+  use str
 #+end_src
 
 ** Configuration
@@ -127,20 +127,20 @@ use str
 If you want hooks to be run either before or after entering bang-bang mode, you can add them as lambdas to these variables.
 
 #+begin_src elvish
-before-lastcmd = []
-after-lastcmd = []
+  var before-lastcmd = []
+  var after-lastcmd = []
 #+end_src
 
 =$-plain-bang-insert= contains the key that is used to insert a plain =!=, also after entering lastcmd.  *Do not set directly*, instead pass the =&plain-bang= option to =init=.
 
 #+begin_src elvish
--plain-bang-insert = ""
+  var -plain-bang-insert = ""
 #+end_src
 
 =$-extra-trigger-keys= is an array containing the additional keys that will trigger bang-bang mode. These keys will also be bound, when pressed twice, to insert the full last command. *Do not set directly*, instead pass the =&-extra-triggers= option to =init=.
 
 #+begin_src elvish
--extra-trigger-keys = []
+  var -extra-trigger-keys = []
 #+end_src
 
 ** Inserting a plain exclamation mark
@@ -148,7 +148,7 @@ after-lastcmd = []
 This function gets bound to the keys specified in =-plain-bang-insert=.
 
 #+begin_src elvish
-fn insert-plain-bang { edit:close-mode; edit:insert-at-dot "!" }
+  fn insert-plain-bang { edit:close-mode; edit:insert-at-dot "!" }
 #+end_src
 
 ** bang-bang mode function
@@ -170,23 +170,23 @@ for hook $before-lastcmd { $hook }
 We get the last command and split it in words for later use.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-last = [(edit:command-history)][-1]
-parts = [(edit:wordify $last[cmd])]
+var last = [(edit:command-history)][-1]
+var parts = [(edit:wordify $last[cmd])]
 #+end_src
 
 We also get how wide the first column of the display should be, so that we can draw the selector keys right-aligned.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-nitems = (count $parts)
-indicator-width = (util:max (+ 2 (count (to-string $nitems))) (count $-plain-bang-insert))
-filler = (repeat $indicator-width ' ' | str:join '')
+var nitems = (count $parts)
+var indicator-width = (util:max (+ 2 (count (to-string $nitems))) (count $-plain-bang-insert))
+var filler = (repeat $indicator-width ' ' | str:join '')
 #+end_src
 
 The =-display-text= function returns the string to display in the menu, with the indicator right-aligned to =$indicator-width= spaces.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-fn -display-text [ind text]{
-  indcol = $filler$ind
+fn -display-text {|ind text|
+  var indcol = $filler$ind
   put $indcol[(- $indicator-width)..]" "$text
 }
 #+end_src
@@ -194,21 +194,21 @@ fn -display-text [ind text]{
 We create the three "fixed" items of the bang-bang menu: the full command and the plain exclamation mark. Additionally, if the command has arguments, we create the "all arguments" item. Each menu item is a map with three keys: =to-accept= is the text to insert when the option is selected, =to-show= is the text to show in the menu, and =to-filter= is the text which can be used by the user to filter/select options.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-cmd = [
+var cmd = [
   &to-accept= $last[cmd]
   &to-show=   (-display-text "!" $last[cmd])
   &to-filter= "! "$last[cmd]
 ]
-bang = [
+var bang = [
   &to-accept= "!"
   &to-show=   (-display-text $-plain-bang-insert "!")
   &to-filter= $-plain-bang-insert" !"
 ]
-all-args = []
-arg-text = ""
+var all-args = []
+var arg-text = ""
 if (> $nitems 1) {
-  arg-text = (str:join " " $parts[1..])
-  all-args = [
+  set arg-text = (str:join " " $parts[1..])
+  set all-args = [
     &to-accept= $arg-text
     &to-show=   (-display-text "*" $arg-text)
     &to-filter= "* "$arg-text
@@ -219,16 +219,16 @@ if (> $nitems 1) {
 We now populate the menu items for each word of the command. For the last one, we also indicate that it can be selected with =$=.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-items = [
+var items = [
   (range $nitems |
-    each [i]{
-      text = $parts[$i]
-      ind = (to-string $i)
+    each {|i|
+      var text = $parts[$i]
+      var ind = (to-string $i)
       if (> $i 9) {
-        ind = ""
+        set ind = ""
       }
       if (eq $i (- $nitems 1)) {
-        ind = $ind" $"
+        set ind = $ind" $"
       }
       put [
         &to-accept= $text
@@ -243,34 +243,34 @@ items = [
 Finally, we put the whole list together.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-candidates = [$cmd $@items $all-args $bang]
+var candidates = [$cmd $@items $all-args $bang]
 #+end_src
 
 Now we create a list with the keybindings for the different elements of the menu. One-key bindings are only assigned for the first 9 elements and for the last one.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
 fn insert-full-cmd { edit:close-mode; edit:insert-at-dot $last[cmd] }
-fn insert-part [n]{ edit:close-mode; edit:insert-at-dot $parts[$n] }
+fn insert-part {|n| edit:close-mode; edit:insert-at-dot $parts[$n] }
 fn insert-args { edit:close-mode; edit:insert-at-dot $arg-text }
-bindings = [
+var bindings = [
   &"!"=                 $insert-full-cmd~
   &"$"=                 { insert-part -1 }
   &$-plain-bang-insert= $insert-plain-bang~
   &"*"=                 $insert-args~
 ]
 for k $-extra-trigger-keys {
-  bindings[$k] = $insert-full-cmd~
+  set bindings[$k] = $insert-full-cmd~
 }
-range (util:min (count $parts) 10) | each [i]{
-  bindings[(to-string $i)] = { insert-part $i }
+range (util:min (count $parts) 10) | each {|i|
+  set bindings[(to-string $i)] = { insert-part $i }
 }
-bindings = (edit:binding-table $bindings)
+set bindings = (edit:binding-table $bindings)
 #+end_src
 
 Finally, we invoke custom-listing mode with all the information we have put together, to display the menu and act on the corresponding choice.
 
 #+begin_src elvish :tangle no :noweb-ref "lastcmd code below"
-edit:listing:start-custom $candidates &caption="bang-bang " &binding=$bindings &accept=[arg]{
+edit:listing:start-custom $candidates &caption="bang-bang " &binding=$bindings &accept={|arg|
   edit:insert-at-dot $arg
   for hook $after-lastcmd { $hook }
 }
@@ -284,19 +284,19 @@ The =init= function gets called to set up the keybindings. This function can rec
 - =&extra-triggers= (array of strings) to specify additional keys (other than =!=) to trigger bang-bang mode. All of these keys will also be bound, when pressed twice, to insert the full last command (just like =!!=). Defaults to =["Alt-1"]=, which emulates the default last-command keybinding in Elvish.
 
 #+begin_src elvish
-fn init [&plain-bang="Alt-!" &extra-triggers=["Alt-1"]]{
-  -plain-bang-insert = $plain-bang
-  -extra-trigger-keys = $extra-triggers
-  edit:insert:binding[!] = $lastcmd~
-  for k $extra-triggers {
-    edit:insert:binding[$k] = $lastcmd~
+  fn init {|&plain-bang="Alt-!" &extra-triggers=["Alt-1"]|
+    set -plain-bang-insert = $plain-bang
+    set -extra-trigger-keys = $extra-triggers
+    set edit:insert:binding[!] = $lastcmd~
+    for k $extra-triggers {
+      set edit:insert:binding[$k] = $lastcmd~
+    }
+    set edit:insert:binding[$-plain-bang-insert] = $insert-plain-bang~
   }
-  edit:insert:binding[$-plain-bang-insert] = $insert-plain-bang~
-}
 #+end_src
 
 We call =init= automatically on module load, although you can call it manually if you want to change the defaults for =plain-bang= or =extra-triggers=.
 
 #+begin_src elvish
-init
+  init
 #+end_src

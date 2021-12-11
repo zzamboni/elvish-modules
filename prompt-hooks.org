@@ -44,19 +44,19 @@ Multiple hooks can be added, they execute in sequence.
 Each function adds the given hooks to the corresponding variable, if it's not there already.
 
 #+begin_src elvish
-fn add-before-readline [@hooks]{
-  each [hook]{
-    if (not (has-value $edit:before-readline $hook)) {
-      edit:before-readline = [ $@edit:before-readline $hook ]
-    }
-  } $hooks
-}
+  fn add-before-readline {|@hooks|
+    each {|hook|
+      if (not (has-value $edit:before-readline $hook)) {
+        set edit:before-readline = [ $@edit:before-readline $hook ]
+      }
+    } $hooks
+  }
 
-fn add-after-readline [@hooks]{
-  each [hook]{
-    if (not (has-value $edit:after-readline $hook)) {
-      edit:after-readline = [ $@edit:after-readline $hook ]
-    }
-  } $hooks
-}
+  fn add-after-readline {|@hooks|
+    each {|hook|
+      if (not (has-value $edit:after-readline $hook)) {
+        set edit:after-readline = [ $@edit:after-readline $hook ]
+      }
+    } $hooks
+  }
 #+end_src

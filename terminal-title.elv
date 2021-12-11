@@ -7,19 +7,19 @@ use ./prompt-hooks
 use re
 use str
 
-start = "\e]0;"
-end = "\007"
+var start = "\e]0;"
+var end = "\007"
 
-fn set-title [@title]{
-  title-str = (str:join ' ' $title)
+fn set-title {|@title|
+  var title-str = (str:join ' ' $title)
   print $start$title-str$end
 }
 
-title-during-prompt = {
+var title-during-prompt = {
   put "elvish "(tilde-abbr $pwd)
 }
 
-title-during-command = [cmd]{
+var title-during-command = {|cmd|
   put (edit:wordify $cmd | take 1)" "(tilde-abbr $pwd)
 }
 
@@ -27,7 +27,7 @@ fn init {
   prompt-hooks:add-before-readline {
     set-title ($title-during-prompt)
   }
-  prompt-hooks:add-after-readline [cmd]{
+  prompt-hooks:add-after-readline {|cmd|
     set-title ($title-during-command $cmd)
   }
 }

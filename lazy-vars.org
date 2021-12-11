@@ -139,53 +139,53 @@ Mon Mar 15 17:35:31 CET 2021
 Map where we store variables, with the lambdas that provide their value.
 
 #+begin_src elvish
-var env-vars = [&]
+  var env-vars = [&]
 #+end_src
 
 Map where we store whether each variable should be always reevaluated or only the first time.
 
 #+begin_src elvish
-var always-vars = [&]
+  var always-vars = [&]
 #+end_src
 
 Function which adds a variable with its lambda. Normally each variable is only evaluated the first time it's needed, but if you specify the =&always= option when adding it, it will always be reevaluated.
 
 #+begin_src elvish
-fn add-var [var lambda &always=$false]{
-  env-vars[$var] = $lambda
-  always-vars[$var] = $always
-}
+  fn add-var {|var lambda &always=$false|
+    set env-vars[$var] = $lambda
+    set always-vars[$var] = $always
+  }
 #+end_src
 
 Evaluate a variable and store its value. By default the variable is only set if it doesn't has a value yet, but the =&always= option can be specified to always reevaluate it.
 
 #+begin_src elvish
-fn eval-var [var &always=$false]{
-  if (has-key $env-vars $var) {
-    if (or $always (not (has-env $var)) $always-vars[$var]) {
-      set-env $var ($env-vars[$var])
+  fn eval-var {|var &always=$false|
+    if (has-key $env-vars $var) {
+      if (or $always (not (has-env $var)) $always-vars[$var]) {
+        set-env $var ($env-vars[$var])
+      }
+    } else {
+      echo (styled "lazy-vars: Variable "$var" is not defined" red)
     }
-  } else {
-    echo (styled "lazy-vars: Variable "$var" is not defined" red)
   }
-}
 #+end_src
 
 Define an alias for a function, which will trigger the evaluation of a set of defined variables before calling the real command. Normally, the variables will only be evaluated the first time the alias is called (and then it will be undefined). If the =&always-eval= option is used, the variables are evaluated every time.
 
 #+begin_src elvish
-var orig-cmd = [&]
+  var orig-cmd = [&]
 
-fn add-alias [cmd vars &always-eval=$false]{
-  orig-cmd[$cmd] = (eval "put "(resolve $cmd))
-  edit:add-var $cmd"~" [@_args]{
-    each [v]{
-      eval-var &always=$always-eval $v
-    } $vars
-    $orig-cmd[$cmd] $@_args
-    if (not $always-eval) {
-      edit:add-var $cmd"~" $orig-cmd[$cmd]
+  fn add-alias {|cmd vars &always-eval=$false|
+    set orig-cmd[$cmd] = (eval "put "(resolve $cmd))
+    edit:add-var $cmd"~" {|@_args|
+      each {|v|
+        eval-var &always=$always-eval $v
+      } $vars
+      $orig-cmd[$cmd] $@_args
+      if (not $always-eval) {
+        edit:add-var $cmd"~" $orig-cmd[$cmd]
+      }
     }
   }
-}
 #+end_src
