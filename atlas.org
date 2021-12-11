@@ -1,12 +1,15 @@
-#+property: header-args:elvish :tangle atlas.elv
-#+property: header-args :mkdirp yes :comments no
-
 #+title: O'Reilly Atlas functions for Elvish
 #+author: Diego Zamboni
 #+email: diego@zzamboni.org
 
 #+name: module-summary
 Elvish functions for interacting with O'Reilly's [[https://atlas.oreilly.com/][Atlas]] publishing system.
+
+* Implementation
+:PROPERTIES:
+:header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
+:header-args: :mkdirp yes :comments no
+:END:
 
 #+begin_src elvish
 use re
