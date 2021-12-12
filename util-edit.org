@@ -34,24 +34,13 @@ The following functions are included:
 The =util-edit:electric-delimiters= function sets up the necessary bindings to automatically insert and delete matching pairs of delimiters. By default the following pairs are recognized, but the list can be augmented by adding the corresponding delimiters to the =util-edit:electric-pairs= variable:
 
 #+begin_src elvish
-  var electric-pairs = ['()' '{}' '[]' '""' "''"]
+util-edit:electric-pairs = ['()' '{}' '[]' '""' "''"]
 #+end_src
 
 By default, electric pairs are inserted only when the cursor is at the end of the line, or at a space character (i.e. do not insert the full pair when the cursor is on another character). The variable =$util-edit:electric-pair-always= can be set to =$true= to always insert the electric pair.
 
 #+begin_src elvish
-  var electric-pair-always = $false
-
-  fn -should-insert-pair {
-    var at-end = (== $edit:-dot (count $edit:current-command))
-    var at-space = $false
-    var at-closing = $false
-    if (not $at-end) {
-      set at-space = (eq $edit:current-command[$edit:-dot] ' ')
-      set at-closing = (or (each {|p| eq $edit:current-command[$edit:-dot] $p[1] } $electric-pairs))
-    }
-    or $electric-pair-always $at-end $at-space $at-closing
-  }
+util-edit:electric-pair-always = $false
 #+end_src
 * Implementation
 :PROPERTIES:
@@ -66,56 +55,39 @@ The =util:electric-delimiters= function sets up the necessary bindings to automa
 We first define the characters (and their corresponding pairs) that should trigger electric insertion.
 
 #+begin_src elvish
-  fn -electric-insert-fn {|pair|
-    put {
-      if (-should-insert-pair) {
-        edit:insert-at-dot $pair
-        edit:move-dot-left
-      } else {
-        edit:insert-at-dot $pair[0]
-      }
-    }
-  }
+electric-pairs = ['()' '{}' '[]' '""' "''"]
 #+end_src
 
 By default, electric pairs are inserted only when the cursor is at the end of the line, at a space character (i.e. do not insert the full pair when the cursor is on another character), or at the closing character of a delimiter pair (which allows inserting nested elimiter pairs). The variable =$util:electric-pair-always= can be set to =$true= to always insert the electric pair. The =-should-insert-pair= function returns whether, depending on the cursor position and on the configuration variable, the full pair should be inserted at the moment.
 
 #+begin_src elvish
-  fn -electric-backspace {
-    if (> $edit:-dot 0) {
-      var char1 = ''
-      var char2 = ''
-      # To get the previous character, loop through the indices in case
-      # the previous character is multi-byte
-      var i = (- $edit:-dot 1)
-      while (not ?(set char1 = $edit:current-command[$i])) { set i = (- $i 1) }
-      if (< $edit:-dot (count $edit:current-command)) {
-        set char2 = $edit:current-command[$edit:-dot]
-      }
-      var pending-delete = $true
-      for pair $electric-pairs {
-        if (and (==s $char1 $pair[0]) (==s $char2 $pair[1])) {
-          edit:kill-rune-left
-          edit:kill-rune-right
-          set pending-delete = $false
-        }
-      }
-      if $pending-delete {
-        edit:kill-rune-left
-      }
-    }
+electric-pair-always = $false
+
+fn -should-insert-pair {
+  at-end = (== $edit:-dot (count $edit:current-command))
+  at-space = $false
+  at-closing = $false
+  if (not $at-end) {
+    at-space = (eq $edit:current-command[$edit:-dot] ' ')
+    at-closing = (or (each [p]{ eq $edit:current-command[$edit:-dot] $p[1] } $electric-pairs))
   }
+  or $electric-pair-always $at-end $at-space $at-closing
+}
 #+end_src
 
 The =-electric-insert-fn= function returns a lambda which inserts either the full electric pair, or only the first character, depending on the configuration and cursor position as checked by =-should-insert-pair=. The lambda returned by =-electric-insert-fn= is the one that should be bound to the first character of all electric pairs of characters.
 
 #+begin_src elvish
-  fn electric-delimiters {
-    for pair $electric-pairs {
-      set edit:insert:binding[$pair[0]] = (-electric-insert-fn $pair)
+fn -electric-insert-fn [pair]{
+  put {
+    if (-should-insert-pair) {
+      edit:insert-at-dot $pair
+      edit:move-dot-left
+    } else {
+      edit:insert-at-dot $pair[0]
     }
-    set edit:insert:binding[Backspace] = $-electric-backspace~
   }
+}
 #+end_src
 
 The =-electric-backspace= function is bound to the Backspace key, and performs an electric delete of both characters in the pair only if the character to be deleted is the first of an electric pair, and if the corresponding pair is right next to it. Otherwise, the normal behavior (delete character to the left of the cursor) takes place.
