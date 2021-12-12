@@ -76,7 +76,7 @@ If you write a new notification mechanism which you think might be useful to oth
 * Implementation
 :PROPERTIES:
 :header-args:elvish: :tangle (concat (file-name-sans-extension (buffer-file-name)) ".elv")
-:header-args: :mkdirp yes :comments link
+:header-args: :mkdirp yes :comments no
 :END:
 
 ** Configuration and user-accessible variables
