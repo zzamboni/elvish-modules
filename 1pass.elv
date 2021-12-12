@@ -6,7 +6,7 @@ var op = (external op)
 
 var password-field = "password"
 
-fn session-token [&account=$account]{
+fn session-token {|&account=$account|
   if (has-env OP_SESSION_$account) {
     get-env OP_SESSION_$account
   } else {
@@ -14,11 +14,11 @@ fn session-token [&account=$account]{
   }
 }
 
-fn set-token [&account=$account token]{
+fn set-token {|&account=$account token|
   set-env OP_SESSION_$account $token
 }
 
-fn signin [&account=$account &no-refresh=$false]{
+fn signin {|&account=$account &no-refresh=$false|
   var refresh-opts = [ --session (session-token) ]
   if $no-refresh {
     set refresh-opts = []
@@ -26,15 +26,15 @@ fn signin [&account=$account &no-refresh=$false]{
   set-token &account=$account ($op signin --raw $@refresh-opts </dev/tty)
 }
 
-fn get-item-raw [item &options=[] &fields=[]]{
+fn get-item-raw {|item &options=[] &fields=[]|
   signin
   if (not-eq $fields []) {
-    options = [ $@options --fields (str:join , $fields) ]
+    set options = [ $@options --fields (str:join , $fields) ]
   }
   $op get item $@options $item
 }
 
-fn get-item [item &options=[] &fields=[]]{
+fn get-item {|item &options=[] &fields=[]|
   var item-str = (get-item-raw &options=$options &fields=$fields $item)
   if (== (count $fields) 1) {
     put $item-str
@@ -43,6 +43,6 @@ fn get-item [item &options=[] &fields=[]]{
   }
 }
 
-fn get-password [item]{
+fn get-password {|item|
   get-item &fields=[$password-field] $item
 }

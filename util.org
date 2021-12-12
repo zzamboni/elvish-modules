@@ -9,32 +9,32 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
 
 * Table of Contents                                          :TOC_3:noexport:
 - [[#usage][Usage]]
+  - [[#usage-dotifying-strings][Usage: Dotifying strings]]
+  - [[#usage-parallel-redirection-of-stdoutstderr-to-different-commands][Usage: Parallel redirection of stdout/stderr to different commands]]
+  - [[#usage-reading-a-line-of-input][Usage: Reading a line of input]]
+  - [[#usage-yes-or-no-prompts][Usage: Yes-or-no prompts]]
+  - [[#usage-get-a-filename-from-the-macos-finder][Usage: Get a filename from the macOS Finder]]
+  - [[#usage-maximumminimum][Usage: Maximum/minimum]]
+  - [[#usage-conditionals][Usage: Conditionals]]
+  - [[#usage-getting-nested-items-from-a-map-structure][Usage: Getting nested items from a map structure]]
+- [[#implementation][Implementation]]
   - [[#dotifying-strings][Dotifying strings]]
+    - [[#tests][Tests]]
   - [[#parallel-redirection-of-stdoutstderr-to-different-commands][Parallel redirection of stdout/stderr to different commands]]
+    - [[#tests-1][Tests]]
   - [[#reading-a-line-of-input][Reading a line of input]]
+    - [[#tests-2][Tests]]
   - [[#yes-or-no-prompts][Yes-or-no prompts]]
   - [[#get-a-filename-from-the-macos-finder][Get a filename from the macOS Finder]]
   - [[#maximumminimum][Maximum/minimum]]
-  - [[#conditionals][Conditionals]]
-  - [[#getting-nested-items-from-a-map-structure][Getting nested items from a map structure]]
-- [[#implementation][Implementation]]
-  - [[#dotifying-strings-1][Dotifying strings]]
-    - [[#tests][Tests]]
-  - [[#parallel-redirection-of-stdoutstderr-to-different-commands-1][Parallel redirection of stdout/stderr to different commands]]
-    - [[#tests-1][Tests]]
-  - [[#reading-a-line-of-input-1][Reading a line of input]]
-    - [[#tests-2][Tests]]
-  - [[#yes-or-no-prompts-1][Yes-or-no prompts]]
-  - [[#get-a-filename-from-the-macos-finder-1][Get a filename from the macOS Finder]]
-  - [[#maximumminimum-1][Maximum/minimum]]
     - [[#tests-3][Tests]]
-  - [[#conditionals-1][Conditionals]]
+  - [[#conditionals][Conditionals]]
     - [[#tests-4][Tests]]
   - [[#pipeline-or-argument-input][Pipeline-or-argument input]]
     - [[#tests-5][Tests]]
   - [[#functional-programming-utilities][Functional programming utilities]]
     - [[#tests-6][Tests]]
-  - [[#getting-nested-items-from-a-map-structure-1][Getting nested items from a map structure]]
+  - [[#getting-nested-items-from-a-map-structure][Getting nested items from a map structure]]
     - [[#tests-7][Tests]]
   - [[#fix-deprecated-functions][Fix deprecated functions]]
 - [[#test-suite][Test suite]]
@@ -56,7 +56,7 @@ use github.com/zzamboni/elvish-modules/util
 
 The following functions are included:
 
-** Dotifying strings
+** Usage: Dotifying strings
 
 =util:dotify-string= shortens a string to a maximum length, followed by dots.
 
@@ -67,7 +67,7 @@ util:dotify-string somelongstring 5
 #+results:
 : ▶ somel…
 
-** Parallel redirection of stdout/stderr to different commands
+** Usage: Parallel redirection of stdout/stderr to different commands
 
 =util:pipesplit= does parallel redirection of stdout and stderr to different commands. It takes three lambdas: The first one is executed, its stdout is redirected to the second one, and its stderr to the third one.
 
@@ -79,7 +79,7 @@ util:pipesplit { echo stdout-test; echo stderr-test >&2 } { echo STDOUT: (cat) }
 : STDOUT: stdout-test
 : STDERR: stderr-test
 
-** Reading a line of input
+** Usage: Reading a line of input
 
 =util:readline= reads a line from the current input pipe, until the first end of line. Depending on the version of Elvish you have, it either uses an external command, or an internal function, but the result is the same.
 
@@ -107,7 +107,7 @@ echo "hi there.how are you" | util:readline &eol=. &nostrip
 : ▶ 'hi there'
 : ▶ 'hi there.'
 
-** Yes-or-no prompts
+** Usage: Yes-or-no prompts
 
 =y-or-n= receives a prompt string, shows the prompt to the user and accepts =y= or =n= as an answer. Returns =$true= if the user responds with =y=. The =&style= option can be used to specify the style for the prompt, as accepted by [[https://elvish.io/ref/edit.html#editstyled][styled]].
 
@@ -128,7 +128,7 @@ Are you OK? [y/n] y
 Great!
 #+end_src
 
-** Get a filename from the macOS Finder
+** Usage: Get a filename from the macOS Finder
 
 On macOS, dragging a file from the Finder into a Terminal window results in its path being pasted. Unfortunately it gets pasted with escape characters which Elvish does not always interpret correctly, and also with an extra space at the end. The =util:getfile= function can be used instead of the filename, and when you drag the file it captures and fixes the filename.
 
@@ -147,7 +147,7 @@ Drop a file here: /System/Library/Address\ Book\ Plug-Ins
 drwxr-xr-x 8 root wheel 256 Oct 25 18:16 '/System/Library/Address Book Plug-Ins'
 #+end_src
 
-** Maximum/minimum
+** Usage: Maximum/minimum
 
 Return the maximum/minimum in a list of numbers. If the =&with= option is provided, it must be a function which receives on argument and returns a number, which is used for the comparison instead of the actual values. In this case, the list elements can be anything, as long as the =&with= function returns a numeric value.
 
@@ -164,7 +164,7 @@ util:min a bc def ghijkl &with=$count~
 : ▶ ghijkl
 : ▶ a
 
-** Conditionals
+** Usage: Conditionals
 
 =util:cond= emulates [[https://clojuredocs.org/clojure.core/cond][Clojure's cond]] function. It receives a list of /expression value/ pairs. Puts the first /value/ whose /expression/ is a true value, if any.  /Expressions/ can be closures (in which case they are executed and their return value used) or other types, which are used as-is. /Values/ are always returned as-is, even if they are closures.
 
@@ -189,7 +189,7 @@ pos-neg-or-zero 0
 : ▶ negative
 : ▶ zero
 
-** Getting nested items from a map structure
+** Usage: Getting nested items from a map structure
 
 =path-in= follows a "path" within a nested map structure and gives you the element at the end.
 
@@ -215,13 +215,13 @@ util:path-in [&a=[&b=[&c=foo]]] [a b d] &default="not found"
 ** Dotifying strings
 
 #+begin_src elvish
-fn dotify-string [str dotify-length]{
-  if (or (<= $dotify-length 0) (<= (count $str) $dotify-length)) {
-    put $str
-  } else {
-    put $str[..$dotify-length]'…'
+  fn dotify-string {|str dotify-length|
+    if (or (<= $dotify-length 0) (<= (count $str) $dotify-length)) {
+      put $str
+    } else {
+      put $str[..$dotify-length]'…'
+    }
   }
-}
 #+end_src
 
 *** Tests
@@ -239,21 +239,23 @@ fn dotify-string [str dotify-length]{
 The implementation of this function was inspired by the discussion [[https://github.com/elves/elvish/issues/500][in this issue]].
 
 #+begin_src elvish
-fn pipesplit [l1 l2 l3]{
-  pout = (pipe)
-  perr = (pipe)
-  run-parallel {
-    $l1 > $pout 2> $perr
-    pwclose $pout
-    pwclose $perr
-  } {
-    $l2 < $pout
-    prclose $pout
-  } {
-    $l3 < $perr
-    prclose $perr
+  use file
+
+  fn pipesplit {|l1 l2 l3|
+    var pout = (file:pipe)
+    var perr = (file:pipe)
+    run-parallel {
+      $l1 > $pout 2> $perr
+      file:close $pout[w]
+      file:close $perr[w]
+    } {
+      $l2 < $pout
+      file:close $pout[r]
+    } {
+      $l3 < $perr
+      file:close $perr[r]
+    }
   }
-}
 #+end_src
 
 *** Tests
@@ -271,36 +273,36 @@ We sort the output of =pipesplit= because the functions run in parallel, to ensu
 The base of reading a line of input is a low-level function which reads the actual text. We define a default version of the =-read-upto-eol= function which uses the external =head= command to read a line. Note that this version does not respect the value of =$eol=, since the end of line is always marked by a newline.
 
 #+begin_src elvish
--read-upto-eol~ = [eol]{ put (head -n1) }
+  var -read-upto-eol~ = {|eol| put (head -n1) }
 #+end_src
 
 However, in recent versions of Elvish, the =read-upto= function can be used to read a line of text without invoking an external command, and can make proper use of different =$eol= values (default is still newline).
 
 #+begin_src elvish
-use builtin
-if (has-key $builtin: read-upto~) {
-  -read-upto-eol~ = [eol]{ read-upto $eol }
-}
+  use builtin
+  if (has-key $builtin: read-upto~) {
+    set -read-upto-eol~ = {|eol| read-upto $eol }
+  }
 #+end_src
 
 Finally, we build the =util:readline= function on top of =-read-upto-eol=. This function was written by and is included here with the kind permission of [[https://folk.ntnu.no/hanche/en/][Harald Hanche-Olsen]]. Note that if =&prompt= is specified, all input/output is forced to =/dev/tty=, as the existence of a prompt implies interactive use. Otherwise input is read from stdin.
 
 #+begin_src elvish
-fn readline [&eol="\n" &nostrip=$false &prompt=$nil]{
-  if $prompt {
-    print $prompt > /dev/tty
-  }
-  local:line = (if $prompt {
-      -read-upto-eol $eol < /dev/tty
+  fn readline {|&eol="\n" &nostrip=$false &prompt=$nil|
+    if $prompt {
+      print $prompt > /dev/tty
+    }
+    var line = (if $prompt {
+        -read-upto-eol $eol < /dev/tty
+      } else {
+        -read-upto-eol $eol
+    })
+    if (and (not $nostrip) (!=s $line '') (==s $line[-1..] $eol)) {
+      put $line[..-1]
     } else {
-      -read-upto-eol $eol
-  })
-  if (and (not $nostrip) (!=s $line '') (==s $line[-1..] $eol)) {
-    put $line[..-1]
-  } else {
-    put $line
+      put $line
+    }
   }
-}
 #+end_src
 *** Tests
 
@@ -317,15 +319,15 @@ fn readline [&eol="\n" &nostrip=$false &prompt=$nil]{
 ** Yes-or-no prompts
 
 #+begin_src elvish
-fn y-or-n [&style=default prompt]{
-  prompt = $prompt" [y/n] "
-  if (not-eq $style default) {
-    prompt = (styled $prompt $style)
+  fn y-or-n {|&style=default prompt|
+    set prompt = $prompt" [y/n] "
+    if (not-eq $style default) {
+      set prompt = (styled $prompt $style)
+    }
+    print $prompt > /dev/tty
+    var resp = (readline)
+    eq $resp y
   }
-  print $prompt > /dev/tty
-  resp = (readline)
-  eq $resp y
-}
 #+end_src
 
 ** Get a filename from the macOS Finder
@@ -333,15 +335,15 @@ fn y-or-n [&style=default prompt]{
 Thanks to @hanche in the Elvish channel, a short utility to convert a filename as dragged-and-dropped from the Finder into a usable filename.
 
 #+begin_src elvish
-fn getfile {
-  use re
-  print 'Drop a file here: ' >/dev/tty
-  fname = (read-line)
-  each [p]{
-    fname = (re:replace $p[0] $p[1] $fname)
-  } [['\\(.)' '$1'] ['^''' ''] ['\s*$' ''] ['''$' '']]
-  put $fname
-}
+  fn getfile {
+    use re
+    print 'Drop a file here: ' >/dev/tty
+    var fname = (read-line)
+    each {|p|
+      set fname = (re:replace $p[0] $p[1] $fname)
+    } [['\\(.)' '$1'] ['^''' ''] ['\s*$' ''] ['''$' '']]
+    put $fname
+  }
 #+end_src
 
 ** Maximum/minimum
@@ -349,31 +351,31 @@ fn getfile {
 Choose the maximum and minimum numbers from the given list.
 
 #+begin_src elvish
-fn max [a @rest &with=[v]{put $v}]{
-  res = $a
-  val = ($with $a)
-  each [n]{
-    nval = ($with $n)
-    if (> $nval $val) {
-      res = $n
-      val = $nval
-    }
-  } $rest
-  put $res
-}
+  fn max {|a @rest &with={|v|put $v}|
+    var res = $a
+    var val = ($with $a)
+    each {|n|
+      var nval = ($with $n)
+      if (> $nval $val) {
+        set res = $n
+        set val = $nval
+      }
+    } $rest
+    put $res
+  }
 
-fn min [a @rest &with=[v]{put $v}]{
-  res = $a
-  val = ($with $a)
-  each [n]{
-    nval = ($with $n)
-    if (< $nval $val) {
-      res = $n
-      val = $nval
-    }
-  } $rest
-  put $res
-}
+  fn min {|a @rest &with={|v|put $v}|
+    var res = $a
+    var val = ($with $a)
+    each {|n|
+      var nval = ($with $n)
+      if (< $nval $val) {
+        set res = $n
+        set val = $nval
+      }
+    } $rest
+    put $res
+  }
 #+end_src
 
 *** Tests
@@ -392,16 +394,16 @@ fn min [a @rest &with=[v]{put $v}]{
 We simply step through the /expression value/ pairs, and =put= the first value whose expression (or its result, if it's a closure) returns true.
 
 #+begin_src elvish
-fn cond [clauses]{
-  range &step=2 (count $clauses) | each [i]{
-    exp = $clauses[$i]
-    if (eq (kind-of $exp) fn) { exp = ($exp) }
-    if $exp {
-      put $clauses[(+ $i 1)]
-      return
+  fn cond {|clauses|
+    range &step=2 (count $clauses) | each {|i|
+      var exp = $clauses[$i]
+      if (eq (kind-of $exp) fn) { set exp = ($exp) }
+      if $exp {
+        put $clauses[(+ $i 1)]
+        return
+      }
     }
   }
-}
 #+end_src
 
 *** Tests
@@ -422,16 +424,16 @@ fn cond [clauses]{
 =util:optional-input= gets optional pipeline input for any function, mimicking the behavior of =each=. If an argument is given, it is interpreted as an array and its contents is used as the input. Otherwise, it reads the input from the pipeline using =all=. Returns the data as an array
 
 #+begin_src elvish
-fn optional-input [@input]{
-  if (eq $input []) {
-    input = [(all)]
-  } elif (== (count $input) 1) {
-    input = [ (all $input[0]) ]
-  } else {
-    fail "util:optional-input: want 0 or 1 arguments, got "(count $input)
+  fn optional-input {|@input|
+    if (eq $input []) {
+      set input = [(all)]
+    } elif (== (count $input) 1) {
+      set input = [ (all $input[0]) ]
+    } else {
+      fail "util:optional-input: want 0 or 1 arguments, got "(count $input)
+    }
+    put $input
   }
-  put $input
-}
 #+end_src
 
 *** Tests
@@ -449,33 +451,33 @@ fn optional-input [@input]{
 =util:select= and =util:remove= filter those for which the provided closure is true/false.
 
 #+begin_src elvish
-fn select [p @input]{
-  each [i]{ if ($p $i) { put $i} } (optional-input $@input)
-}
+  fn select {|p @input|
+    each {|i| if ($p $i) { put $i} } (optional-input $@input)
+  }
 #+end_src
 
 #+begin_src elvish
-fn remove [p @input]{
-  each [i]{ if (not ($p $i)) { put $i} } (optional-input $@input)
-}
+  fn remove {|p @input|
+    each {|i| if (not ($p $i)) { put $i} } (optional-input $@input)
+  }
 #+end_src
 
 =util:partial=, build a partial function call.
 
 #+begin_src elvish
-fn partial [f @p-args]{
-  put [@args]{
-    $f $@p-args $@args
+  fn partial {|f @p-args|
+    put {|@args|
+      $f $@p-args $@args
+    }
   }
-}
 #+end_src
 
 *** Tests
 
 #+begin_src elvish :tangle no :noweb-ref tests
 (test:set select-and-remove [
-    (test:is { put [(util:select [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [0]        Select zeros from a list)
-    (test:is { put [(util:remove [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [3 2 2 -1] Remove zeros from a list)
+    (test:is { put [(util:select {|n| eq $n 0 } [ 3 2 0 2 -1 ])] } [0]        Select zeros from a list)
+    (test:is { put [(util:remove {|n| eq $n 0 } [ 3 2 0 2 -1 ])] } [3 2 2 -1] Remove zeros from a list)
 ])
 #+end_src
 
@@ -483,7 +485,7 @@ fn partial [f @p-args]{
 (test:set partial [
     (test:is { (util:partial $'+~' 3) 5 }                     (num 8)   Partial addition)
     (test:is { (util:partial $eq~ 3) 3 }                      $true         Partial eq)
-    (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } (num 120) Partial custom function with rest arg)
+    (test:is { (util:partial {|@args| * $@args } 1 2) 3 4 5 } (num 120) Partial custom function with rest arg)
 ])
 #+end_src
 
@@ -492,17 +494,17 @@ fn partial [f @p-args]{
 =path-in= finds an element within nested map structure =$obj=, following the keys contained in the list =$path=. If not found, return =&default=.
 
 #+begin_src elvish
-fn path-in [obj path &default=$nil]{
-  each [k]{
-    try {
-      obj = $obj[$k]
-    } except {
-      obj = $default
-      break
-    }
-  } $path
-  put $obj
-}
+  fn path-in {|obj path &default=$nil|
+    each {|k|
+      try {
+        set obj = $obj[$k]
+      } except {
+        set obj = $default
+        break
+      }
+    } $path
+    put $obj
+  }
 #+end_src
 
 *** Tests
@@ -523,18 +525,18 @@ Takes a single file, and replaces all occurrences of deprecated functions by the
 *Note*: this does dumb string replacement. Please check the result to make sure there are no unintended replacements. Also, you still need to manually add =use str= at the top of the files where any of the =str:= functions are introduced.
 
 #+begin_src elvish
-use str
+  use str
 
-fn fix-deprecated [f]{
-  deprecated = [
-    &all= all
-    &str:join= str:join
-    &str:split= str:split
-    &str:replace= str:replace
-  ]
-  sed-cmd = (str:join "; " [(keys $deprecated | each [d]{ put "s/"$d"/"$deprecated[$d]"/" })])
-  sed -i '' -e $sed-cmd $f
-}
+  fn fix-deprecated {|f|
+    var deprecated = [
+      &all= all
+      &str:join= str:join
+      &str:split= str:split
+      &str:replace= str:replace
+    ]
+    var sed-cmd = (str:join "; " [(keys $deprecated | each {|d| put "s/"$d"/"$deprecated[$d]"/" })])
+    sed -i '' -e $sed-cmd $f
+  }
 #+end_src
 
 * Test suite

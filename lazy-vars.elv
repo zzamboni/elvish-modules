@@ -2,12 +2,12 @@ var env-vars = [&]
 
 var always-vars = [&]
 
-fn add-var [var lambda &always=$false]{
-  env-vars[$var] = $lambda
-  always-vars[$var] = $always
+fn add-var {|var lambda &always=$false|
+  set env-vars[$var] = $lambda
+  set always-vars[$var] = $always
 }
 
-fn eval-var [var &always=$false]{
+fn eval-var {|var &always=$false|
   if (has-key $env-vars $var) {
     if (or $always (not (has-env $var)) $always-vars[$var]) {
       set-env $var ($env-vars[$var])
@@ -19,10 +19,10 @@ fn eval-var [var &always=$false]{
 
 var orig-cmd = [&]
 
-fn add-alias [cmd vars &always-eval=$false]{
-  orig-cmd[$cmd] = (eval "put "(resolve $cmd))
-  edit:add-var $cmd"~" [@_args]{
-    each [v]{
+fn add-alias {|cmd vars &always-eval=$false|
+  set orig-cmd[$cmd] = (eval "put "(resolve $cmd))
+  edit:add-var $cmd"~" {|@_args|
+    each {|v|
       eval-var &always=$always-eval $v
     } $vars
     $orig-cmd[$cmd] $@_args

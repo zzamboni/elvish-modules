@@ -1,45 +1,45 @@
 use re
 use str
 
-fn push [@arg]{
-  msg = "Markup fixes"
+fn push {|@arg|
+  var msg = "Markup fixes"
   if (< 0 (count $arg)) {
-    msg = (str:join " " $arg)
+    set msg = (str:join " " $arg)
   }
-  BRANCH = (git symbolic-ref HEAD | sed -e 's|^refs/heads/||')
-  REPO = (git remote -v | head -1 | sed 's/^.*oreilly\.com\///; s/\.git.*$//')
+  var BRANCH = (git symbolic-ref HEAD | sed -e 's|^refs/heads/||')
+  var REPO = (git remote -v | head -1 | sed 's/^.*oreilly\.com\///; s/\.git.*$//')
   echo (styled "Committing and pushing changes to "$REPO", branch "$BRANCH"..." yellow) > /dev/tty
-  st = ?(git ci -a -m $msg > /dev/tty)
+  var st = ?(git ci -a -m $msg > /dev/tty)
   git push atlas $BRANCH > /dev/tty
   put $BRANCH $REPO
 }
 
-fn buildonly [type branch repo]{
+fn buildonly {|type branch repo|
   echo (styled "Building "$type" on "$repo", branch "$branch"..." yellow) > /dev/tty
   atlas build $E:ATLAS_TOKEN $repo $type $branch | tee build/build.out > /dev/tty
-  URL EXT = (cat build/build.out | eawk [line @f]{
-      m = (or (re:find '(?i)'$type':\s+(.*\.([a-z]+))$' $line) $false)
+  var URL EXT = (cat build/build.out | eawk {|line @f|
+      var m = (or (re:find '(?i)'$type':\s+(.*\.([a-z]+))$' $line) $false)
       if $m {
         put $m[groups][1 2][text]
       }
   })
   echo (styled "Fetching and opening build "$URL green) > /dev/tty
-  OUTFILE = "../atlas-builds/plain-format/atlas-plain."$EXT
+  var OUTFILE = "../atlas-builds/plain-format/atlas-plain."$EXT
   curl -o $OUTFILE $URL > /dev/tty 2>&1
   put $OUTFILE
 }
 
-fn build [type @arg]{
-  BRANCH REPO = (push $@arg)
-  OUTFILE = (buildonly $type $BRANCH $REPO)
+fn build {|type @arg|
+  var BRANCH REPO = (push $@arg)
+  var OUTFILE = (buildonly $type $BRANCH $REPO)
   open $OUTFILE
 }
 
-fn all [@arg]{
-  BRANCH REPO = (push $@arg)
-  FILES = []
+fn all {|@arg|
+  var BRANCH REPO = (push $@arg)
+  var FILES = []
   for ext [pdf epub mobi html] {
-    FILES = [ $@FILES (buildonly $ext $BRANCH $REPO) ]
+    set FILES = [ $@FILES (buildonly $ext $BRANCH $REPO) ]
   }
   pprint $FILES
 }

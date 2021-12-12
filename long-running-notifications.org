@@ -9,10 +9,10 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
 
 * Table of Contents                                            :TOC:noexport:
 - [[#usage][Usage]]
-  - [[#notification-mechanisms][Notification mechanisms]]
+  - [[#configuration-of-notification-mechanisms][Configuration of notification mechanisms]]
 - [[#implementation][Implementation]]
   - [[#configuration-and-user-accessible-variables][Configuration and user-accessible variables]]
-  - [[#notification-mechanisms-1][Notification mechanisms]]
+  - [[#notification-mechanisms][Notification mechanisms]]
   - [[#time-tracking-functions][Time tracking functions]]
   - [[#initialization][Initialization]]
 
@@ -54,7 +54,7 @@ If you want to know how long the last command took (for example, for displaying 
 
 *Note*: this module measures command execution time with a granularity of seconds, so anything that takes less than one second will be reported as zero.
 
-** Notification mechanisms
+** Configuration of notification mechanisms
 
 By default, the module tries to determine the best notification method to use based on available commands. The method can be specified manually by assigning one of the following values directly to =$long-running-notifications:notifier=:
 
@@ -84,15 +84,15 @@ If you write a new notification mechanism which you think might be useful to oth
 Threshold in seconds for producing notifications (default 10).
 
 #+begin_src elvish
-  threshold = 10
+  var threshold = 10
 #+end_src
 
 Variables which can be used to extract information about the last command executed.
 
 #+begin_src elvish
-  last-cmd-start-time = 0
-  last-cmd = ""
-  last-cmd-duration = 0
+  var last-cmd-start-time = 0
+  var last-cmd = ""
+  var last-cmd-duration = 0
 #+end_src
 
 The =$notifier= variable determines which notification mechanism to use. By default it starts with the value ="auto"= which chooses which one to use automatically, based on the value of =$notifications-to-try= (see below). But you can also hand-choose the method by assigning one of the following:
@@ -101,20 +101,20 @@ The =$notifier= variable determines which notification mechanism to use. By defa
 - A lambda, which must take three arguments and produce the corresponding notification. The arguments contain the last command (string), its duration (in seconds) and its start time (as seconds in Unix epoch format).
 
 #+begin_src elvish
-  notifier = auto
+  var notifier = auto
 #+end_src
 
 The =$notifications-to-try= variable contains the order in which notification mechanisms should be attempted. For each one, their =check= function is executed, and the first one for which it returns =$true= is used.
 
 #+begin_src elvish
-  notifications-to-try = [ macos libnotify text ]
+  var notifications-to-try = [ macos libnotify text ]
 #+end_src
 
 Commands for which notifications should never or always be produced, regardless of how long they take
 
 #+begin_src  elvish
-  never-notify = [ vi vim emacs nano less more bat ]
-  always-notify = [ ]
+  var never-notify = [ vi vim emacs nano less more bat ]
+  var always-notify = [ ]
 #+end_src
 
 ** Notification mechanisms
@@ -124,22 +124,22 @@ Each notification mechanism is defined as a map with two elements: =check= shoul
 All notification mechanisms are stored in the =notification-fns= map, by their user-visible name.
 
 #+begin_src elvish
-  notification-fns = [
+  var notification-fns = [
     &text= [
       &check= { put $true }
-      &notify= [cmd dur start]{
+      &notify= {|cmd dur start|
         echo (styled "Command lasted "$dur"s" magenta) > /dev/tty
       }
     ]
     &libnotify= [
       &check= { put ?(which notify-send >/dev/null 2>&1) }
-      &notify= [cmd duration start]{
+      &notify= {|cmd duration start|
         notify-send "Finished: "$cmd "Running time: "$duration"s"
       }
     ]
     &macos= [
       &check= { put ?(which terminal-notifier >/dev/null 2>&1) }
-      &notify= [cmd duration start]{
+      &notify= {|cmd duration start|
         terminal-notifier -title "Finished: "$cmd -message "Running time: "$duration"s"
       }
     ]
@@ -150,8 +150,8 @@ The =-choose-notification-fn= goes through the notification mechanisms in the or
 
 #+begin_src elvish
   fn -choose-notification-fn {
-    each [method-name]{
-      method = $notification-fns[$method-name]
+    each {|method-name|
+      var method = $notification-fns[$method-name]
       if ($method[check]) {
         put $method[notify]
         return
@@ -167,9 +167,9 @@ The =-produce-notification= function chooses (if needed) a notification function
   fn -produce-notification {
     if (not-eq (kind-of $notifier) fn) {
       if (eq $notifier auto) {
-        notifier = (-choose-notification-fn)
+        set notifier = (-choose-notification-fn)
       } elif (has-key $notification-fns $notifier) {
-        notifier = $notification-fns[$notifier][notify]
+        set notifier = $notification-fns[$notifier][notify]
       } else {
         fail "Invalid value for $long-running-notifications:notifier: "$notifier", please double check"
       }
@@ -193,8 +193,8 @@ Return the current time in Unix epoch value.
 Check if  the last command is in the given list, so that we can check the =never-notify= and =always-notify= lists.
 
 #+begin_src elvish
-  fn -last-cmd-in-list [list]{
-    cmd = (take 1 [(edit:wordify $last-cmd) ""])
+  fn -last-cmd-in-list {|list|
+    var cmd = (take 1 [(edit:wordify $last-cmd) ""])
     has-value $list $cmd
   }
 #+end_src
@@ -210,8 +210,8 @@ Check the duration of the last command and produce a notification if it exceeds 
 
 #+begin_src elvish
   fn before-readline-hook {
-    -end-time = (now)
-    last-cmd-duration = (- $-end-time $last-cmd-start-time)
+    var -end-time = (now)
+    set last-cmd-duration = (- $-end-time $last-cmd-start-time)
     if (or (-always-notify) (and (not (-never-notify)) (> $last-cmd-duration $threshold))) {
       -produce-notification
     }
@@ -221,9 +221,9 @@ Check the duration of the last command and produce a notification if it exceeds 
 Record the command and its start time.
 
 #+begin_src elvish
-  fn after-readline-hook [cmd]{
-    last-cmd = $cmd
-    last-cmd-start-time = (now)
+  fn after-readline-hook {|cmd|
+    set last-cmd = $cmd
+    set last-cmd-start-time = (now)
   }
 #+end_src
 
@@ -238,7 +238,7 @@ The =init= function sets up the prompt hooks to compute times and produce notifi
     prompt-hooks:add-before-readline $before-readline-hook~
     prompt-hooks:add-after-readline $after-readline-hook~
     # Initialize to avoid spurious notification when the module is loaded
-    last-cmd-start-time = (now)
+    set last-cmd-start-time = (now)
   }
 #+end_src
 

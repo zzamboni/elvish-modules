@@ -37,13 +37,13 @@ use github.com/zzamboni/elvish-modules/util
         (test:is { put | util:optional-input }             []            Empty input)
     ])
     (test:set select-and-remove [
-        (test:is { put [(util:select [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [0]        Select zeros from a list)
-        (test:is { put [(util:remove [n]{ eq $n 0 } [ 3 2 0 2 -1 ])] } [3 2 2 -1] Remove zeros from a list)
+        (test:is { put [(util:select {|n| eq $n 0 } [ 3 2 0 2 -1 ])] } [0]        Select zeros from a list)
+        (test:is { put [(util:remove {|n| eq $n 0 } [ 3 2 0 2 -1 ])] } [3 2 2 -1] Remove zeros from a list)
     ])
     (test:set partial [
         (test:is { (util:partial $'+~' 3) 5 }                     (num 8)   Partial addition)
         (test:is { (util:partial $eq~ 3) 3 }                      $true         Partial eq)
-        (test:is { (util:partial [@args]{ * $@args } 1 2) 3 4 5 } (num 120) Partial custom function with rest arg)
+        (test:is { (util:partial {|@args| * $@args } 1 2) 3 4 5 } (num 120) Partial custom function with rest arg)
     ])
     (test:set select-and-remove [
         (test:is { util:path-in [&a=[&b=[&c=foo]]] [a b]   } [&c=foo] Middle element from nested map)

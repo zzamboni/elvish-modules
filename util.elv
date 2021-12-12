@@ -1,6 +1,4 @@
-use file
-
-fn dotify-string [str dotify-length]{
+fn dotify-string {|str dotify-length|
   if (or (<= $dotify-length 0) (<= (count $str) $dotify-length)) {
     put $str
   } else {
@@ -8,9 +6,11 @@ fn dotify-string [str dotify-length]{
   }
 }
 
-fn pipesplit [l1 l2 l3]{
-  pout = (file:pipe)
-  perr = (file:pipe)
+use file
+
+fn pipesplit {|l1 l2 l3|
+  var pout = (file:pipe)
+  var perr = (file:pipe)
   run-parallel {
     $l1 > $pout 2> $perr
     file:close $pout[w]
@@ -24,18 +24,18 @@ fn pipesplit [l1 l2 l3]{
   }
 }
 
--read-upto-eol~ = [eol]{ put (head -n1) }
+var -read-upto-eol~ = {|eol| put (head -n1) }
 
 use builtin
 if (has-key $builtin: read-upto~) {
-  -read-upto-eol~ = [eol]{ read-upto $eol }
+  set -read-upto-eol~ = {|eol| read-upto $eol }
 }
 
-fn readline [&eol="\n" &nostrip=$false &prompt=$nil]{
+fn readline {|&eol="\n" &nostrip=$false &prompt=$nil|
   if $prompt {
     print $prompt > /dev/tty
   }
-  local:line = (if $prompt {
+  var line = (if $prompt {
       -read-upto-eol $eol < /dev/tty
     } else {
       -read-upto-eol $eol
@@ -47,56 +47,56 @@ fn readline [&eol="\n" &nostrip=$false &prompt=$nil]{
   }
 }
 
-fn y-or-n [&style=default prompt]{
-  prompt = $prompt" [y/n] "
+fn y-or-n {|&style=default prompt|
+  set prompt = $prompt" [y/n] "
   if (not-eq $style default) {
-    prompt = (styled $prompt $style)
+    set prompt = (styled $prompt $style)
   }
   print $prompt > /dev/tty
-  resp = (readline)
+  var resp = (readline)
   eq $resp y
 }
 
 fn getfile {
   use re
   print 'Drop a file here: ' >/dev/tty
-  fname = (read-line)
-  each [p]{
-    fname = (re:replace $p[0] $p[1] $fname)
+  var fname = (read-line)
+  each {|p|
+    set fname = (re:replace $p[0] $p[1] $fname)
   } [['\\(.)' '$1'] ['^''' ''] ['\s*$' ''] ['''$' '']]
   put $fname
 }
 
-fn max [a @rest &with=[v]{put $v}]{
-  res = $a
-  val = ($with $a)
-  each [n]{
-    nval = ($with $n)
+fn max {|a @rest &with={|v|put $v}|
+  var res = $a
+  var val = ($with $a)
+  each {|n|
+    var nval = ($with $n)
     if (> $nval $val) {
-      res = $n
-      val = $nval
+      set res = $n
+      set val = $nval
     }
   } $rest
   put $res
 }
 
-fn min [a @rest &with=[v]{put $v}]{
-  res = $a
-  val = ($with $a)
-  each [n]{
-    nval = ($with $n)
+fn min {|a @rest &with={|v|put $v}|
+  var res = $a
+  var val = ($with $a)
+  each {|n|
+    var nval = ($with $n)
     if (< $nval $val) {
-      res = $n
-      val = $nval
+      set res = $n
+      set val = $nval
     }
   } $rest
   put $res
 }
 
-fn cond [clauses]{
-  range &step=2 (count $clauses) | each [i]{
-    exp = $clauses[$i]
-    if (eq (kind-of $exp) fn) { exp = ($exp) }
+fn cond {|clauses|
+  range &step=2 (count $clauses) | each {|i|
+    var exp = $clauses[$i]
+    if (eq (kind-of $exp) fn) { set exp = ($exp) }
     if $exp {
       put $clauses[(+ $i 1)]
       return
@@ -104,37 +104,37 @@ fn cond [clauses]{
   }
 }
 
-fn optional-input [@input]{
+fn optional-input {|@input|
   if (eq $input []) {
-    input = [(all)]
+    set input = [(all)]
   } elif (== (count $input) 1) {
-    input = [ (all $input[0]) ]
+    set input = [ (all $input[0]) ]
   } else {
     fail "util:optional-input: want 0 or 1 arguments, got "(count $input)
   }
   put $input
 }
 
-fn select [p @input]{
-  each [i]{ if ($p $i) { put $i} } (optional-input $@input)
+fn select {|p @input|
+  each {|i| if ($p $i) { put $i} } (optional-input $@input)
 }
 
-fn remove [p @input]{
-  each [i]{ if (not ($p $i)) { put $i} } (optional-input $@input)
+fn remove {|p @input|
+  each {|i| if (not ($p $i)) { put $i} } (optional-input $@input)
 }
 
-fn partial [f @p-args]{
-  put [@args]{
+fn partial {|f @p-args|
+  put {|@args|
     $f $@p-args $@args
   }
 }
 
-fn path-in [obj path &default=$nil]{
-  each [k]{
+fn path-in {|obj path &default=$nil|
+  each {|k|
     try {
-      obj = $obj[$k]
+      set obj = $obj[$k]
     } except {
-      obj = $default
+      set obj = $default
       break
     }
   } $path
@@ -143,13 +143,13 @@ fn path-in [obj path &default=$nil]{
 
 use str
 
-fn fix-deprecated [f]{
-  deprecated = [
+fn fix-deprecated {|f|
+  var deprecated = [
     &all= all
     &str:join= str:join
     &str:split= str:split
     &str:replace= str:replace
   ]
-  sed-cmd = (str:join "; " [(keys $deprecated | each [d]{ put "s/"$d"/"$deprecated[$d]"/" })])
+  var sed-cmd = (str:join "; " [(keys $deprecated | each {|d| put "s/"$d"/"$deprecated[$d]"/" })])
   sed -i '' -e $sed-cmd $f
 }

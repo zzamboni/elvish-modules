@@ -96,15 +96,15 @@ Load libraries.
 Style to use for success/failure messages, and for other informational strings.
 
 #+begin_src elvish
-  pass-style = green
-  fail-style = red
-  info-style = blue
+  var pass-style = green
+  var fail-style = red
+  var info-style = blue
 #+end_src
 
 Indentation to use for each level of nested =test:set=.
 
 #+begin_src elvish
-  set-indent = '  '
+  var set-indent = '  '
 #+end_src
 
 ** Utility functions
@@ -112,13 +112,13 @@ Indentation to use for each level of nested =test:set=.
 Return the given text in the corresponding style according to the test result. Takes a value which will be converted to boolean using =bool=, and two strings, the first one for success and the second one for failure (when =$result= is a true or false, respectively). If the second string is empty, the first one is used in both cases, with only the style changing.
 
 #+begin_src elvish
-  fn status [result text-pass text-fail]{
+  fn status {|result text-pass text-fail|
     if (eq $text-fail '') {
-      text-fail = $text-pass
+      set text-fail = $text-pass
     }
-    style = [&$true=$pass-style &$false=$fail-style]
-    texts = [&$true=$text-pass  &$false=$text-fail]
-    index = (bool $result)
+    var style = [&$true=$pass-style &$false=$fail-style]
+    var texts = [&$true=$text-pass  &$false=$text-fail]
+    var index = (bool $result)
     styled $texts[$index] $style[$index]
   }
 #+end_src
@@ -126,11 +126,11 @@ Return the given text in the corresponding style according to the test result. T
 Some utility functions to produce the test output.
 
 #+begin_src elvish
-  fn -level-indent [level]{
+  fn -level-indent {|level|
     repeat $level $set-indent
   }
 
-  fn -output [@msg &level=0]{
+  fn -output {|@msg &level=0|
     print (-level-indent $level) >/dev/tty
     echo $@msg >/dev/tty
   }
@@ -141,13 +141,13 @@ Some utility functions to produce the test output.
 =test:check= is the basic building block. It takes a lamda, and returns a function which verifies that the output of the lambda is true. Optionally a description of the test can be passed, which gets printed together with the result of the test. The =&check-txt= option is mainly for internal use by =test:is/is-not=, and allows to specify the code to be displayed as the check, which by default is the source code definition of =$f=. The returned function runs the lambda, prints the result, and returns =$true= or =$false= depending on the result of the check. The returned function takes an option =&top-id= to be consistent with the API of the function returned by =test:set=, but this option is not used. The =&level= option is used to determine the indentation to use for the report.
 
 #+begin_src elvish
-  fn check [f @d &check-txt='']{
-    msg = (styled (str:join " " [$@d]) $info-style)
+  fn check {|f @d &check-txt=''|
+    var msg = (styled (str:join " " [$@d]) $info-style)
     if (eq $check-txt '') {
-      check-txt = $f[def]
+      set check-txt = $f[def]
     }
-    put [&top-id='' &level=0]{
-      res = (bool ($f))
+    put {|&top-id='' &level=0|
+      var res = (bool ($f))
       -output &level=$level (status $res PASS FAIL) $msg $check-txt
       put $res
     }
@@ -157,10 +157,10 @@ Some utility functions to produce the test output.
 =test:compare= uses =test:check= in the backend, but allows separate specification of the lambda to run and the value to which its output should be compared using the given =$cmpfn= function (its name should get passed as =$cmp= for the report. The advantage over =test:check= is that it can report not only whether the check failed, but also which value was produced instead of the expected one.
 
 #+begin_src elvish
-  fn compare [cmp cmpfn f v @d]{
-    put [&top-id='' &level=0]{
-      res = ($f)
-      check-res = ((check { $cmpfn $res $v } $@d &check-txt='('$cmp' ('$f[body]') '(to-string $v)')') &level=$level)
+  fn compare {|cmp cmpfn f v @d|
+    put {|&top-id='' &level=0|
+      var res = ($f)
+      var check-res = ((check { $cmpfn $res $v } $@d &check-txt='('$cmp' ('$f[body]') '(to-string $v)')') &level=$level)
       if (not $check-res) {
         -output &level=$level "  actual: (not ("$cmp' '(to-string $res)' '(to-string $v)'))'
       }
@@ -172,10 +172,10 @@ Some utility functions to produce the test output.
 =test:is= and =test:is-not= are shortcuts for =test:compare= with =eq= and =not-eq= as comparison functions, respectively.
 
 #+begin_src elvish
-  fn is [f v @d]{
+  fn is {|f v @d|
     compare eq $eq~ $f $v $@d
   }
-  fn is-not [f v @d]{
+  fn is-not {|f v @d|
     compare not-eq $not-eq~ $f $v $@d
   }
 #+end_src
@@ -183,18 +183,18 @@ Some utility functions to produce the test output.
 =test:set= receives a description and an array containing test functions (can be other =test:set='s, =test:check=, =test:compare=, =test:is= or =test:is-not=) and returns a function which calls them in sequence. A header with the description is printed. In nested =test:set= objects, the description of the enclosing set gets prepended, separated by a space. It keeps count of how many of the checks succeed, and prints a report at the end. It returns =$true= if all the checks passed, =$false= otherwise.
 
 #+begin_src elvish
-  fn set [id tests]{
-    put [&top-id="" &level=0]{
+  fn set {|id tests|
+    put {|&top-id="" &level=0|
       if (not-eq $top-id '') {
-        id = $top-id' '$id
+        set id = $top-id' '$id
       }
       -output &level=$level (styled "Testing "$id $info-style)
-      -nextlevel = (+ $level 1)
-      passed = (each [t]{
+      var -nextlevel = (+ $level 1)
+      var passed = (each {|t|
           if ($t &top-id=$id &level=$-nextlevel) { put $true }
       } $tests | count)
-      res = (eq $passed (count $tests))
-      msg = (status $res $passed"/"(count $tests)" passed" '')
+      var res = (eq $passed (count $tests))
+      var msg = (status $res $passed"/"(count $tests)" passed" '')
       -output &level=$level (styled $id" results:" $info-style) $msg
       put $res
     }

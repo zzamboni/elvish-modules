@@ -78,180 +78,180 @@ Note that this module automatically starts =gitstatusd= in the background (court
 Load some libraries.
 
 #+begin_src elvish
-use path
-use github.com/zzamboni/elvish-modules/spinners
+  use path
+  use github.com/zzamboni/elvish-modules/spinners
 #+end_src
 
 We use the segments from the [[file:~/.elvish/lib/github.com/zzamboni/elvish-themes/chain.org][Chain]] theme for the display, so we load that module.
 
 #+begin_src elvish
-use github.com/zzamboni/elvish-themes/chain
+  use github.com/zzamboni/elvish-themes/chain
 #+end_src
 
 The list of repositories read from the file is cached in =$git-summary:summary-repos=.
 
 #+begin_src elvish
-summary-repos = []
+  var summary-repos = []
 #+end_src
 
 Default function used to find repositories for the =&all= option.
 
 #+begin_src elvish :noweb yes
-find-all-user-repos-fn = {
-  fd -H -I -t d '^.git$' ~ | each $path:dir~
-}
+  var find-all-user-repos-fn = {
+    fd -H -I -t d '^.git$' ~ | each $path:dir~
+  }
 #+end_src
 
 Default location of the file where the list of repositories to show is stored.
 
 #+begin_src elvish :noweb yes
-repos-file = ~/.elvish/package-data/elvish-themes/git-summary-repos.json
+  var repos-file = ~/.elvish/package-data/elvish-themes/git-summary-repos.json
 #+end_src
 
 Whether to stop =gitstatusd= after using it.
 
 #+begin_src elvish
-stop-gitstatusd-after-use = $false
+  var stop-gitstatusd-after-use = $false
 #+end_src
 
 We define a couple of functions to read and write =$git-summary:summary-repos= from disk.
 
 #+begin_src elvish
-fn -write-summary-repos {
-  mkdir -p (path:dir $repos-file)
-  to-json [$summary-repos] > $repos-file
-}
-
-fn -read-summary-repos {
-  try {
-    summary-repos = (from-json < $repos-file)
-  } except {
-    summary-repos = []
+  fn -write-summary-repos {
+    mkdir -p (path:dir $repos-file)
+    to-json [$summary-repos] > $repos-file
   }
-}
+
+  fn -read-summary-repos {
+    try {
+      set summary-repos = (from-json < $repos-file)
+    } except {
+      set summary-repos = []
+    }
+  }
 #+end_src
 
 The =git-summary:gather-data= function collects the data from a given set of repositories.
 
 #+begin_src elvish
-fn gather-data [repos]{
-  each [r]{
-    try {
-      cd $r
-      chain:-parse-git &with-timestamp
-      status = [($chain:segment[git-combined])]
-      put [
-        &repo= (tilde-abbr $r)
-        &status= $status
-        &ts= $chain:last-status[timestamp]
-        &timestamp= ($chain:segment[git-timestamp])
-        &branch= ($chain:segment[git-branch])
-      ]
-    } except e {
-      put [
-        &repo= (tilde-abbr $r)
-        &status= [(styled '['(to-string $e)']' red)]
-        &ts= ""
-        &timestamp= ""
-        &branch= ""
-      ]
+  fn gather-data {|repos|
+    each {|r|
+      try {
+        cd $r
+        chain:-parse-git &with-timestamp
+        var status = [($chain:segment[git-combined])]
+        put [
+          &repo= (tilde-abbr $r)
+          &status= $status
+          &ts= $chain:last-status[timestamp]
+          &timestamp= ($chain:segment[git-timestamp])
+          &branch= ($chain:segment[git-branch])
+        ]
+      } except e {
+        put [
+          &repo= (tilde-abbr $r)
+          &status= [(styled '['(to-string $e)']' red)]
+          &ts= ""
+          &timestamp= ""
+          &branch= ""
+        ]
+      }
+    } $repos
+    if $stop-gitstatusd-after-use {
+      # Temporarily disable background job notifications
+      var old-notify-bg-job-success = $notify-bg-job-success
+      set notify-bg-job-success = $false
+      chain:gitstatus:stop
+      sleep 0.01
+      set notify-bg-job-success = $old-notify-bg-job-success
     }
-  } $repos
-  if $stop-gitstatusd-after-use {
-    # Temporarily disable background job notifications
-    old-notify-bg-job-success = $notify-bg-job-success
-    notify-bg-job-success = $false
-    chain:gitstatus:stop
-    sleep 0.01
-    notify-bg-job-success = $old-notify-bg-job-success
   }
-}
 #+end_src
 
 The =git-summary:summary-status= function is the main entry point to display the status of the configured repos.
 
 #+begin_src elvish
-fn summary-status [@repos &all=$false &only-dirty=$false]{
-  prev = $pwd
+  fn summary-status {|@repos &all=$false &only-dirty=$false|
+    var prev = $pwd
 
-  # Determine how to sort the output. This only happens in newer
-  # versions of Elvish (where the order function exists)
-  use builtin
-  order-cmd~ = $all~
-  if (has-key $builtin: order~) {
-    order-cmd~ = { order &less-than=[a b]{ <s $a[ts] $b[ts] } &reverse }
-  }
-
-  # Read repo list from disk, cache in $git-summary:summary-repos
-  -read-summary-repos
-
-  # Determine the list of repos to display:
-  # 1) If the &all option is given, find them
-  if $all {
-    spinners:run &title="Finding all git repos" &style=blue {
-      repos = [($find-all-user-repos-fn)]
+    # Determine how to sort the output. This only happens in newer
+    # versions of Elvish (where the order function exists)
+    use builtin
+    var order-cmd~ = $all~
+    if (has-key $builtin: order~) {
+      set order-cmd~ = { order &less-than={|a b| <s $a[ts] $b[ts] } &reverse }
     }
-  }
-  # 2) If repos is not given nor defined through &all, use $git-summary:summary-repos
-  if (eq $repos []) {
-    repos = $summary-repos
-  }
-  # 3) If repos is specified, just use it
 
-  # Produce the output
-  spinners:run &title="Gathering repo data" &style=blue { gather-data $repos } | order-cmd | each [r]{
-    status-display = $r[status]
-    if (or (not $only-dirty) (not-eq $status-display [])) {
-      if (eq $status-display []) {
-        color = (chain:-segment-style git-combined)
-        status-display = [(chain:-colorized "[" $color) (styled OK green) (chain:-colorized "]" $color)]
+    # Read repo list from disk, cache in $git-summary:summary-repos
+    -read-summary-repos
+
+    # Determine the list of repos to display:
+    # 1) If the &all option is given, find them
+    if $all {
+      spinners:run &title="Finding all git repos" &style=blue {
+        set repos = [($find-all-user-repos-fn)]
       }
-      @status = $r[timestamp] ' ' (all $status-display) ' ' $r[branch]
-      echo &sep="" $@status ' ' (chain:-colorized $r[repo] (chain:-segment-style git-repo))
     }
+    # 2) If repos is not given nor defined through &all, use $git-summary:summary-repos
+    if (eq $repos []) {
+      set repos = $summary-repos
+    }
+    # 3) If repos is specified, just use it
+
+    # Produce the output
+    spinners:run &title="Gathering repo data" &style=blue { gather-data $repos } | order-cmd | each {|r|
+      var status-display = $r[status]
+      if (or (not $only-dirty) (not-eq $status-display [])) {
+        if (eq $status-display []) {
+          var color = (chain:-segment-style git-combined)
+          set status-display = [(chain:-colorized "[" $color) (styled OK green) (chain:-colorized "]" $color)]
+        }
+        var @status = $r[timestamp] ' ' (all $status-display) ' ' $r[branch]
+        echo &sep="" $@status ' ' (chain:-colorized $r[repo] (chain:-segment-style git-repo))
+      }
+    }
+    cd $prev
   }
-  cd $prev
-}
 #+end_src
 
 The =git-summary:add-repo= and =git-summary:remove-repo= functions can be used to add/remove directories from the summary list. If no directories are given as arguments, they operate on the current directory.
 
 #+begin_src elvish
-fn add-repo [@dirs]{
-  if (eq $dirs []) {
-    dirs = [ $pwd ]
-  }
-  -read-summary-repos
-  each [d]{
-    if (has-value $summary-repos $d) {
-      echo (styled "Repo "$d" is already in the list" yellow)
-    } else {
-      summary-repos = [ $@summary-repos $d ]
-      echo (styled "Repo "$d" added to the list" green)
+  fn add-repo {|@dirs|
+    if (eq $dirs []) {
+      set dirs = [ $pwd ]
     }
-  } $dirs
-  -write-summary-repos
-}
+    -read-summary-repos
+    each {|d|
+      if (has-value $summary-repos $d) {
+        echo (styled "Repo "$d" is already in the list" yellow)
+      } else {
+        set summary-repos = [ $@summary-repos $d ]
+        echo (styled "Repo "$d" added to the list" green)
+      }
+    } $dirs
+    -write-summary-repos
+  }
 #+end_src
 
 #+begin_src elvish
-fn remove-repo [@dirs]{
-  if (eq $dirs []) {
-    dirs = [ $pwd ]
-  }
-  -read-summary-repos
-  @new-repos = (each [d]{
-      if (not (has-value $dirs $d)) { put $d }
-  } $summary-repos)
-  each [d]{
-    if (has-value $summary-repos $d) {
-      echo (styled "Repo "$d" removed from the list." green)
-    } else {
-      echo (styled "Repo "$d" was not on the list" yellow)
+  fn remove-repo {|@dirs|
+    if (eq $dirs []) {
+      set dirs = [ $pwd ]
     }
-  } $dirs
+    -read-summary-repos
+    var @new-repos = (each {|d|
+        if (not (has-value $dirs $d)) { put $d }
+    } $summary-repos)
+    each {|d|
+      if (has-value $summary-repos $d) {
+        echo (styled "Repo "$d" removed from the list." green)
+      } else {
+        echo (styled "Repo "$d" was not on the list" yellow)
+      }
+    } $dirs
 
-  summary-repos = $new-repos
-  -write-summary-repos
-}
+    set summary-repos = $new-repos
+    -write-summary-repos
+  }
 #+end_src

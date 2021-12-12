@@ -73,8 +73,8 @@ Some common sequences have their own functions. Both descriptive names and short
 Execute a function with given =stty= parameters.
 
 #+begin_src elvish
-  fn with-stty [args cmd~]{
-    local:stty = (stty -g </dev/tty)
+  fn with-stty {|args cmd~|
+    var stty = (stty -g </dev/tty)
     try { stty $@args </dev/tty >/dev/tty; cmd } finally { stty $stty </dev/tty >/dev/tty}
   }
 #+end_src
@@ -82,9 +82,9 @@ Execute a function with given =stty= parameters.
 Emit a CSI escape sequence. The arguments are joined without a separator, but elements that are lists are themselves joined by semicolons.
 
 #+begin_src elvish
-  fn csi [@cmd]{
+  fn csi {|@cmd|
     print "\e["(str:join '' [(
-          each [e]{
+          each {|e|
             if (eq (kind-of $e) list) {
               str:join ';' $e
             } else {
@@ -97,7 +97,7 @@ Emit a CSI escape sequence. The arguments are joined without a separator, but el
 Emit a CSI escape sequence which reports a return value on the input, and reads the produced string up to the given delimiter character. The first argument is the delimiter, the rest are the arguments passed to =tty:csi= for the sequence to emit. Returns a string containing the whole reported result.
 
 #+begin_src elvish
-  fn csi-report [delim @cmd]{
+  fn csi-report {|delim @cmd|
     with-stty [-echo raw] { csi $@cmd; read-upto $delim </dev/tty }
   }
 #+end_src
@@ -106,34 +106,34 @@ Get cursor position. Returns a two-list element with =[ row column ]=.
 
 #+begin_src elvish
   fn cursor-pos {
-    local:res = (csi-report R 6 n)
+    var res = (csi-report R 6 n)
     put (re:find '\[(\d+);(\d+)R' $res)[groups][{1,2}][text]
   }
 
   # Short name alias according to https://en.wikipedia.org/wiki/ANSI_escape_code
-  dsr~ = $cursor-pos~
+  var dsr~ = $cursor-pos~
 #+end_src
 
 Set cursor position. Takes two arguments =row= and =column=.
 
 #+begin_src elvish
-  fn set-cursor-pos [row col]{
+  fn set-cursor-pos {|row col|
     csi [$row $col] H
   }
 
   # Short name alias according to https://en.wikipedia.org/wiki/ANSI_escape_code
-  cur~ = $set-cursor-pos~
+  var cur~ = $set-cursor-pos~
 #+end_src
 
 Clear a part of the line. =&mode= specifies what to clear. If =&mode= is 0 (default), clear from cursor to the end of the line. If =&mode= is 1, clear from cursor to beginning of the line. If =&mode= is 2, clear entire line.
 
 #+begin_src elvish
-  fn clear-line [&mode=0]{
+  fn clear-line {|&mode=0|
     csi $mode K
   }
 
   # Short name alias according to https://en.wikipedia.org/wiki/ANSI_escape_code
-  el~ = $clear-line~
+  var el~ = $clear-line~
 #+end_src
 
 Hide or show the cursor.

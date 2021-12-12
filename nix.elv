@@ -11,15 +11,15 @@ fn multi-user-setup {
   # Set up secure multi-user builds: non-root users build through the
   # Nix daemon.
   if (or (not-eq $E:USER root) (not ?(test -w /nix/var/nix/db))) {
-    E:NIX_REMOTE = daemon
+    set E:NIX_REMOTE = daemon
   }
 
-  E:NIX_USER_PROFILE_DIR = "/nix/var/nix/profiles/per-user/"$E:USER
-  nix-profiles = [
+  set E:NIX_USER_PROFILE_DIR = "/nix/var/nix/profiles/per-user/"$E:USER
+  var nix-profiles = [
     "/nix/var/nix/profiles/default"
     $E:HOME"/.nix-profile"
   ]
-  E:NIX_PROFILES = (str:join " " $nix-profiles)
+  set E:NIX_PROFILES = (str:join " " $nix-profiles)
 
   # Set up the per-user profile.
   mkdir -m 0755 -p $E:NIX_USER_PROFILE_DIR
@@ -43,7 +43,7 @@ fn multi-user-setup {
     }
 
     # Create the per-user garbage collector roots directory.
-    nix-user-gcroots-dir = "/nix/var/nix/gcroots/per-user/"$E:USER
+    var nix-user-gcroots-dir = "/nix/var/nix/gcroots/per-user/"$E:USER
     mkdir -m 0755 -p $nix-user-gcroots-dir
     if (not ?(test -O $nix-user-gcroots-dir)) {
       echo (styled "WARNING: bad ownership on "$nix-user-gcroots-dir yellow) >&2
@@ -59,10 +59,10 @@ fn multi-user-setup {
     }
   }
 
-  E:NIX_SSL_CERT_FILE = "/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt"
-  E:NIX_PATH = "/nix/var/nix/profiles/per-user/root/channels"
+  set E:NIX_SSL_CERT_FILE = "/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt"
+  set E:NIX_PATH = "/nix/var/nix/profiles/per-user/root/channels"
   # E:MANPATH = ~/.nix-profile/share/man
-  paths = [
+  set paths = [
     ~/.nix-profile/bin
     ~/.nix-profile/sbin
     ~/.nix-profile/lib/kde4/libexec
@@ -78,13 +78,13 @@ fn multi-user-setup {
 fn single-user-setup {
   # Set up single-user Nix (no daemon)
   if (not-eq $E:HOME "") {
-    nix-link = ~/.nix-profile
+    var nix-link = ~/.nix-profile
     if (not ?(test -L $nix-link)) {
       echo (styled "creating "$nix-link green) >&2
-      -nix-def-link = /nix/var/nix/profiles/default
+      var -nix-def-link = /nix/var/nix/profiles/default
       ln -s $-nix-def-link $nix-link
     }
-    paths = [
+    set paths = [
       $nix-link"/bin"
       $nix-link"/sbin"
       $@paths
@@ -97,55 +97,55 @@ fn single-user-setup {
     # <nixpkgs> paths work when the user has fetched the Nixpkgs
     # channel.
     if (not-eq $E:NIX_PATH "") {
-      E:NIX_PATH = $E:NIX_PATH":nixpkgs="$E:HOME"/.nix-defexpr/channels/nixpkgs"
+      set E:NIX_PATH = $E:NIX_PATH":nixpkgs="$E:HOME"/.nix-defexpr/channels/nixpkgs"
     } else {
-      E:NIX_PATH = "nixpkgs="$E:HOME"/.nix-defexpr/channels/nixpkgs"
+      set E:NIX_PATH = "nixpkgs="$E:HOME"/.nix-defexpr/channels/nixpkgs"
     }
 
     # Set $NIX_SSL_CERT_FILE so that Nixpkgs applications like curl work.
     if ?(test -e  /etc/ssl/certs/ca-certificates.crt ) { # NixOS, Ubuntu, Debian, Gentoo, Arch
-      E:NIX_SSL_CERT_FILE = /etc/ssl/certs/ca-certificates.crt
+      set E:NIX_SSL_CERT_FILE = /etc/ssl/certs/ca-certificates.crt
     } elif ?(test -e  /etc/ssl/ca-bundle.pem ) { # openSUSE Tumbleweed
-      E:NIX_SSL_CERT_FILE = /etc/ssl/ca-bundle.pem
+      set E:NIX_SSL_CERT_FILE = /etc/ssl/ca-bundle.pem
     } elif ?(test -e  /etc/ssl/certs/ca-bundle.crt ) { # Old NixOS
-      E:NIX_SSL_CERT_FILE = /etc/ssl/certs/ca-bundle.crt
+      set E:NIX_SSL_CERT_FILE = /etc/ssl/certs/ca-bundle.crt
     } elif ?(test -e  /etc/pki/tls/certs/ca-bundle.crt ) { # Fedora, CentOS
-      E:NIX_SSL_CERT_FILE = /etc/pki/tls/certs/ca-bundle.crt
+      set E:NIX_SSL_CERT_FILE = /etc/pki/tls/certs/ca-bundle.crt
     } elif ?(test -e  $nix-link"/etc/ssl/certs/ca-bundle.crt" ) { # fall back to cacert in Nix profile
-      E:NIX_SSL_CERT_FILE = $nix-link"/etc/ssl/certs/ca-bundle.crt"
+      set E:NIX_SSL_CERT_FILE = $nix-link"/etc/ssl/certs/ca-bundle.crt"
     } elif ?(test -e  $nix-link"/etc/ca-bundle.crt" ) { # old cacert in Nix profile
-      E:NIX_SSL_CERT_FILE = $nix-link"/etc/ca-bundle.crt"
+      set E:NIX_SSL_CERT_FILE = $nix-link"/etc/ca-bundle.crt"
     }
   }
 }
 
-fn search [@pkgs]{
-  pipecmd = cat
-  opts = []
+fn search {|@pkgs|
+  var pipecmd = cat
+  var opts = []
   if (eq $pkgs[0] "--json") {
-    pipecmd = json_pp
+    set pipecmd = json_pp
   }
   nix-env -qa $@opts $@pkgs | $pipecmd
 }
 
-fn install [@pkgs]{
+fn install {|@pkgs|
   nix-env -i $@pkgs
 }
 
 fn brew-to-nix {
-  brew leaves | each [pkg]{
+  brew leaves | each {|pkg|
     echo (styled "Package "$pkg green)
     brew info $pkg
-    loop = $true
+    var loop = $true
     while $loop {
-      loop = $false
+      set loop = $false
       print (styled $pkg": [R]emove/[Q]uery nix/[K]eep/Remove and [I]nstall with nix? " yellow)
-      resp = (util:readline </dev/tty)
+      var resp = (util:readline </dev/tty)
       if (eq $resp "r") {
         brew uninstall --force $pkg
       } elif (eq $resp "q") {
-        _ = ?(search --description '.*'$pkg'.*')
-        loop = $true
+        set _ = ?(search --description '.*'$pkg'.*')
+        set loop = $true
       } elif (eq $resp "i") {
         install $pkg
         brew uninstall --force $pkg
@@ -154,15 +154,15 @@ fn brew-to-nix {
   }
 }
 
-fn info [pkg]{
+fn info {|pkg|
   # Get data
-  install-path = nil
-  installed = ?(install-path = [(re:split '\s+' (nix-env -q --out-path $pkg 2>/dev/null))][1])
-  flag = (if $installed { put "-q" } else { put "-qa" })
-  data = (nix-env $flag --json $pkg | from-json)
-  top-key = (keys $data | take 1)
-  pkg = $data[$top-key]
-  meta = $pkg[meta]
+  var install-path = nil
+  var installed = ?(set install-path = [(re:split '\s+' (nix-env -q --out-path $pkg 2>/dev/null))][1])
+  var flag = (if $installed { put "-q" } else { put "-qa" })
+  var data = (nix-env $flag --json $pkg | from-json)
+  var top-key = (keys $data | take 1)
+  set pkg = $data[$top-key]
+  var meta = $pkg[meta]
 
   # Produce the output
   print (styled $pkg[name] yellow)

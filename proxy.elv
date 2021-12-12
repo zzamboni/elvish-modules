@@ -6,44 +6,44 @@
 use ./prompt-hooks
 use str
 
-host = ""
+var host = ""
 
-test = $false
+var test = $false
 
-notify = $true
+var notify = $true
 
-disable-autoset = $false
+var disable-autoset = $false
 
-env-vars = [ http_proxy https_proxy ]
+var env-vars = [ http_proxy https_proxy ]
 
 fn is-set {
   eval "not-eq $E:"(take 1 $env-vars)" ''"
 }
 
-fn set-proxy [@param]{
-  proxyhost = $host
+fn set-proxy {|@param|
+  var proxyhost = $host
   if (> (count $param) 0) {
-    proxyhost = $param[0]
+    set proxyhost = $param[0]
   }
   if (not-eq $proxyhost "") {
-    each [var]{ set-env $var $host } $env-vars
+    each {|var| set-env $var $host } $env-vars
   }
 }
 
 fn unset-proxy {
-  each [var]{ unset-env $var } $env-vars
+  each {|var| unset-env $var } $env-vars
 }
 
 fn disable {
-  disable-autoset = $true
+  set disable-autoset = $true
   unset-proxy
 }
 
 fn enable {
-  disable-autoset = $false
+  set disable-autoset = $false
 }
 
-fn autoset [@_]{
+fn autoset {|@_|
   if (or (not $test) $disable-autoset) {
     return
   }
