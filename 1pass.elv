@@ -30,11 +30,16 @@ fn get-item-raw {|item &options=[] &fields=[]|
   signin
   if (not-eq $fields []) {
     set options = [ $@options --fields (str:join , $fields) ]
-  }
-  $op get item $@options $item
+  } else {
+    set options = [ $@options ]
+}
+  $op item get $@options $item | slurp
 }
 
 fn get-item {|item &options=[] &fields=[]|
+  if (!= (count $fields) 1) {
+    set options = [ $@options --format json ]
+  }
   var item-str = (get-item-raw &options=$options &fields=$fields $item)
   if (== (count $fields) 1) {
     put $item-str

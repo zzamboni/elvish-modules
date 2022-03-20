@@ -106,22 +106,27 @@ Base function to get item information. This function returns the raw string outp
     signin
     if (not-eq $fields []) {
       set options = [ $@options --fields (str:join , $fields) ]
-    }
-    $op get item $@options $item
+    } else {
+      set options = [ $@options ]
+  }
+    $op item get $@options $item | slurp
   }
 #+end_src
 
 The main function is the same, but it parses the return value from JSON into an Elvish map.
 
 #+begin_src elvish
-  fn get-item {|item &options=[] &fields=[]|
-    var item-str = (get-item-raw &options=$options &fields=$fields $item)
-    if (== (count $fields) 1) {
-      put $item-str
-    } else {
-      echo $item-str | from-json
-    }
+fn get-item {|item &options=[] &fields=[]|
+  if (!= (count $fields) 1) {
+    set options = [ $@options --format json ]
   }
+  var item-str = (get-item-raw &options=$options &fields=$fields $item)
+  if (== (count $fields) 1) {
+    put $item-str
+  } else {
+    echo $item-str | from-json
+  }
+}
 #+end_src
 
 One of the most common use cases is to get the password stored in an item, so we have a special function for this.
