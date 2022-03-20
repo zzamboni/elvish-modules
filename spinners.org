@@ -439,7 +439,7 @@ Simplest point of entry for displaying a spinner while a function is running. Ta
       set status = $ok
       try {
         $f $@f-args
-      } except e {
+      } catch e {
         set status = $e
       } finally {
         # Short pause to avoid a potential race condition when the

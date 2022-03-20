@@ -125,7 +125,7 @@ We define a couple of functions to read and write =$git-summary:summary-repos= f
   fn -read-summary-repos {
     try {
       set summary-repos = (from-json < $repos-file)
-    } except {
+    } catch {
       set summary-repos = []
     }
   }
@@ -147,7 +147,7 @@ The =git-summary:gather-data= function collects the data from a given set of rep
           &timestamp= ($chain:segment[git-timestamp])
           &branch= ($chain:segment[git-branch])
         ]
-      } except e {
+      } catch e {
         put [
           &repo= (tilde-abbr $r)
           &status= [(styled '['(to-string $e)']' red)]

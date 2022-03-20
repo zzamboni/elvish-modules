@@ -498,7 +498,7 @@ We simply step through the /expression value/ pairs, and =put= the first value w
     each {|k|
       try {
         set obj = $obj[$k]
-      } except {
+      } catch {
         set obj = $default
         break
       }

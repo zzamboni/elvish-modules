@@ -167,7 +167,7 @@ fn run {|&spinner=$nil &frames=$nil &interval=$nil &title="" &style=[] &prefix="
     set status = $ok
     try {
       $f $@f-args
-    } except e {
+    } catch e {
       set status = $e
     } finally {
       # Short pause to avoid a potential race condition when the

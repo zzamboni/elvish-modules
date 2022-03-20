@@ -133,7 +133,7 @@ fn path-in {|obj path &default=$nil|
   each {|k|
     try {
       set obj = $obj[$k]
-    } except {
+    } catch {
       set obj = $default
       break
     }

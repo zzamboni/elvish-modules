@@ -14,7 +14,7 @@ fn git-vcsh {|@arg|
     # If we are in a git repo, run git normally
     try {
       e:git $@arg
-    } except e {
+    } catch e {
       if (not (re:match 'git killed by signal broken pipe' (echo $e))) {
         fail (echo $e)
       }

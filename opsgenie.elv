@@ -43,7 +43,7 @@ fn admins {
           set admins[$user[user][username]] = $id
         }
       }
-    } except e {
+    } catch e {
       # This is here to skip teams without members
     }
   }
