@@ -93,7 +93,7 @@ The =$terminal-title:title-during-prompt= and =$terminal-title:title-during-comm
 <<title-during-command-default>>
 #+end_src
 
-The =init= function sets up the corresponding prompt hooks.
+The =init= function sets up the corresponding prompt hooks and after-chdir hook. The after-chdir hook is needed for cases such as navigating with the built-in Elvish location and navigation modes.
 
 #+begin_src elvish
   fn init {
@@ -103,6 +103,9 @@ The =init= function sets up the corresponding prompt hooks.
     prompt-hooks:add-after-readline {|cmd|
       set-title ($title-during-command $cmd)
     }
+    set after-chdir = [ $@after-chdir {|dir|
+      set-title ($title-during-prompt)
+    } ]
   }
 #+end_src
 
