@@ -30,6 +30,9 @@ fn init {
   prompt-hooks:add-after-readline {|cmd|
     set-title ($title-during-command $cmd)
   }
+  set after-chdir = [ $@after-chdir {|dir|
+    set-title ($title-during-prompt)
+  } ]
 }
 
 init
