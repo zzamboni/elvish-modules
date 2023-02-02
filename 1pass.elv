@@ -55,7 +55,7 @@ fn get-password {|item|
 
 var op_plugins_file = ~/.config/op/plugins.sh
 
-fn read_aliases {
+fn read-aliases {
   cat $op_plugins_file | each {|l|
     var m = [(re:find '^alias (\w+)="(.*?)"' $l)]
     if (not-eq $m []) {
