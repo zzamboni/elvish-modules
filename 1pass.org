@@ -13,6 +13,7 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
   - [[#configuration][Configuration]]
   - [[#authentication-and-token-manipulation][Authentication and token manipulation]]
   - [[#getting-item-information][Getting item information]]
+  - [[#reading-op-shell-plugin-aliases][Reading op shell plugin aliases]]
 
 * Usage
 
@@ -132,7 +133,33 @@ fn get-item {|item &options=[] &fields=[]|
 One of the most common use cases is to get the password stored in an item, so we have a special function for this.
 
 #+begin_src elvish
-  fn get-password {|item|
-    get-item &fields=[$password-field] $item
+fn get-password {|item|
+  get-item &fields=[$password-field] $item
+}
+#+end_src
+
+** Reading op shell plugin aliases
+
+This function reads =$1pass:op_plugins_file= (default =~/.config/op/plugins.sh=) and parses the alias definitions, defining them as Elvish functions.
+
+#+begin_src elvish
+var op_plugins_file = ~/.config/op/plugins.sh
+#+end_src
+
+#+begin_src elvish
+fn read_aliases {
+  cat $op_plugins_file | each {|l|
+    var m = [(re:find '^alias (\w+)="(.*?)"' $l)]
+    if (not-eq $m []) {
+      var name = $m[0][groups][1][text]
+      var cmd = [(edit:wordify $m[0][groups][2][text])]
+      var fndef = (print 'edit:add-var '$name'~ {|@_args| ' $@cmd '$@_args }' | slurp)
+      eval $fndef
+    }
+    if (re:find '^export' $l) {
+      var _ key val = (re:split &max=3 '[ =]' $l)
+      set-env $key $val
+    }
   }
+}
 #+end_src
