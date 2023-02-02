@@ -7,7 +7,7 @@ This module provides wrappers to use the 1Password =op= CLI tool with Elvish.
 
 This file is written in [[https://leanpub.com/lit-config][literate programming style]], to make it easy to explain. See [[file:1pass.elv][1pass.elv]] for the generated file.
 
-* Table of Contents                                          :TOC_3:noexport:
+* Table of Contents :TOC_3:noexport:
 - [[#usage][Usage]]
 - [[#implementation][Implementation]]
   - [[#configuration][Configuration]]
@@ -20,14 +20,14 @@ This file is written in [[https://leanpub.com/lit-config][literate programming s
 Install the =elvish-modules= package using [[https://elvish.io/ref/epm.html][epm]] (you can put these statements in your =rc.elv= file as well, to automatically install the package upon startup if needed):
 
 #+begin_src elvish
-  use epm
-  epm:install &silent-if-installed github.com/zzamboni/elvish-modules
+use epm
+epm:install &silent-if-installed github.com/zzamboni/elvish-modules
 #+end_src
 
 In your =rc.elv=, load this module:
 
 #+begin_src elvish
-  use github.com/zzamboni/elvish-modules/1pass
+use github.com/zzamboni/elvish-modules/1pass
 #+end_src
 
 * Implementation
@@ -39,7 +39,8 @@ In your =rc.elv=, load this module:
 Load some base modules.
 
 #+begin_src elvish
-  use str
+use str
+use re
 #+end_src
 
 ** Configuration
@@ -47,19 +48,19 @@ Load some base modules.
 The account to use, defaults to =my=.
 
 #+begin_src elvish
-  var account = my
+var account = my
 #+end_src
 
 The command to use, defaults to the =op= command.
 
 #+begin_src elvish
-  var op = (external op)
+var op = (external op)
 #+end_src
 
 The field name where the passwords are usually stored - don't modify this unless you know what you are doing.
 
 #+begin_src elvish
-  var password-field = "password"
+var password-field = "password"
 #+end_src
 
 ** Authentication and token manipulation
@@ -67,21 +68,21 @@ The field name where the passwords are usually stored - don't modify this unless
 Get the current session token. Returns =$nil= if not set.
 
 #+begin_src elvish
-  fn session-token {|&account=$account|
-    if (has-env OP_SESSION_$account) {
-      get-env OP_SESSION_$account
-    } else {
-      put $nil
-    }
+fn session-token {|&account=$account|
+  if (has-env OP_SESSION_$account) {
+    get-env OP_SESSION_$account
+  } else {
+    put $nil
   }
+}
 #+end_src
 
 Set the token environment variable
 
 #+begin_src elvish
-  fn set-token {|&account=$account token|
-    set-env OP_SESSION_$account $token
-  }
+fn set-token {|&account=$account token|
+  set-env OP_SESSION_$account $token
+}
 #+end_src
 
 Refresh the current login token, reauthenticating if needed. Reauthentication can be forced by using the =&no-refresh= option.
@@ -89,13 +90,13 @@ Refresh the current login token, reauthenticating if needed. Reauthentication ca
 Note that this assumes you have logged in at least once with the full =op signin= syntax, to specify the account and your email address, as described in [[https://support.1password.com/command-line/#sign-in-or-out][the =op= documentation]].
 
 #+begin_src elvish
-  fn signin {|&account=$account &no-refresh=$false|
-    var refresh-opts = [ --session (session-token) ]
-    if $no-refresh {
-      set refresh-opts = []
-    }
-    set-token &account=$account ($op signin --raw $@refresh-opts </dev/tty)
+fn signin {|&account=$account &no-refresh=$false|
+  var refresh-opts = [ --session (session-token) ]
+  if $no-refresh {
+    set refresh-opts = []
   }
+  set-token &account=$account ($op signin --raw $@refresh-opts </dev/tty)
+}
 #+end_src
 
 ** Getting item information
@@ -103,15 +104,15 @@ Note that this assumes you have logged in at least once with the full =op signin
 Base function to get item information. This function returns the raw string output from the command.
 
 #+begin_src elvish
-  fn get-item-raw {|item &options=[] &fields=[]|
-    signin
-    if (not-eq $fields []) {
-      set options = [ $@options --fields (str:join , $fields) ]
-    } else {
-      set options = [ $@options ]
+fn get-item-raw {|item &options=[] &fields=[]|
+  signin
+  if (not-eq $fields []) {
+    set options = [ $@options --fields (str:join , $fields) ]
+  } else {
+    set options = [ $@options ]
   }
-    $op item get $@options $item | slurp
-  }
+  $op item get $@options $item | slurp
+}
 #+end_src
 
 The main function is the same, but it parses the return value from JSON into an Elvish map.

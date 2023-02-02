@@ -33,7 +33,7 @@ fn get-item-raw {|item &options=[] &fields=[]|
     set options = [ $@options --fields (str:join , $fields) ]
   } else {
     set options = [ $@options ]
-}
+  }
   $op item get $@options $item | slurp
 }
 
