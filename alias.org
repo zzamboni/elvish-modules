@@ -58,7 +58,7 @@ The =alias:save= command can receive one or more alias names, or with the =&all=
 alias:save &verbose &all
 #+end_src
 
-When saved, each alias is stored in a separate file under =$alias:dir= (=~/.elvish/aliases/= by default). Saved aliases are automatically loaded when the module initializes.
+When saved, each alias is stored in a separate file under =$alias:dir= (=~/.config/.elvish/aliases/= by default). Saved aliases are automatically loaded when the module initializes.
 
 Note that due to Elvish's scoping rules, if you want to use a module from your alias, you need to load the module as well by specifying the =&use= option when defining the alias, which receives a list of module names to load, like this:
 
@@ -123,7 +123,7 @@ alias:rm alias
 The =alias:dir= variable determines where the alias files will be saved.
 
 #+begin_src elvish
-  var dir = ~/.elvish/aliases
+  var dir = ~/.config/.elvish/aliases
 #+end_src
 
 The =alias:arg-replacer= variable contains the string that will be used to indicate where the arguments will be inserted in the alias expansion.

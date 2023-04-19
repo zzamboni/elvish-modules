@@ -6,7 +6,7 @@
 use re
 use str
 
-var dir = ~/.elvish/aliases
+var dir = ~/.config/.elvish/aliases
 
 var arg-replacer = '{}'
 
