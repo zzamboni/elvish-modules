@@ -8,7 +8,7 @@ var notifier = auto
 
 var notifications-to-try = [ macos libnotify text ]
 
-var never-notify = [ vi vim emacs nano less more bat ]
+var never-notify = [ vi vim nvim emacs nano less more bat ]
 var always-notify = [ ]
 
 var notification-fns = [
