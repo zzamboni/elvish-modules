@@ -5,8 +5,10 @@
 
 use re
 use str
+use path
+use runtime
 
-var dir = ~/.elvish/aliases
+var dir = (path:dir $runtime:effective-rc-path)/aliases
 
 var arg-replacer = '{}'
 
@@ -59,8 +61,8 @@ fn def {|&verbose=$false &save=$false &use=[] name @cmd|
     } $cmd)
   ]
   var body = ({
-    echo "#alias:new" $name (if (not-eq $use []) { put "&use="(to-string $use) }) (each {|w| repr $w } $cmd)
-    print "edit:add-var "$name'~ {|@_args| ' $@use-statements $@new-cmd $args-at-end '}'
+      echo "#alias:new" $name (if (not-eq $use []) { put "&use="(to-string $use) }) (each {|w| repr $w } $cmd)
+      print "edit:add-var "$name'~ {|@_args| ' $@use-statements $@new-cmd $args-at-end '}'
   } | slurp)
   -define-alias $name $body
   if $save {
