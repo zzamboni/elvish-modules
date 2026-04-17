@@ -39,7 +39,7 @@ fn publish {|@args|
 
 fn status {|@args|
   var slug = (get-slug $@args)
-  var status = (curl -s "https://leanpub.com/"$slug"/job_status?api_key="(api-key) | from-json)
+  var status = (curl -s "https://leanpub.com/"$slug"/job_status.json?api_key="(api-key) | from-json)
   if (has-key $status backtrace) {
     var file = (mktemp)
     echo $status[backtrace] > $file
