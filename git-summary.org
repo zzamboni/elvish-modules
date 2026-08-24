@@ -255,3 +255,10 @@ The =git-summary:add-repo= and =git-summary:remove-repo= functions can be used t
     -write-summary-repos
   }
 #+end_src
+
+#+begin_src elvish
+fn list-repos {
+  -read-summary-repos
+  pprint (order $summary-repos)
+}
+#+end_src
