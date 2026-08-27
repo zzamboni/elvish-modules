@@ -46,7 +46,7 @@ The default notification threshold is 10 seconds, so when the command finishes, 
 You can specify a list commands for which you do not want notifications in the =$long-running-notifications:never-notify= variable, and a list of commands that should always be notified (regardless of how long they took) in =always-notify=. Their default values are:
 
 #+begin_src  elvish
-  never-notify = [ vi vim emacs nano less more bat ]
+  never-notify = [ vi vim nvim emacs nano less more bat ]
   always-notify = [ ]
 #+end_src
 
