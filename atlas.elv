@@ -17,7 +17,7 @@ fn push {|@arg|
 fn buildonly {|type branch repo|
   echo (styled "Building "$type" on "$repo", branch "$branch"..." yellow) > /dev/tty
   atlas build $E:ATLAS_TOKEN $repo $type $branch | tee build/build.out > /dev/tty
-  var URL EXT = (cat build/build.out | eawk {|line @f|
+  var URL EXT = (cat build/build.out | re:awk {|line @f|
       var m = (or (re:find '(?i)'$type':\s+(.*\.([a-z]+))$' $line) $false)
       if $m {
         put $m[groups][1 2][text]
